@@ -1,4 +1,5 @@
 #include "ble_manager.h"
+#include "vcp_controller.h"
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -14,6 +15,73 @@ struct deviceInfo {
 	bool connect;
 } scannedDevice;
 
+void auth_cancel(struct bt_conn *conn)
+{
+    LOG_INF("Pairing cancelled");
+}
+
+void auth_passkey_display(struct bt_conn *conn, unsigned int passkey)
+{
+    LOG_INF("Passkey display: %06u", passkey);
+}
+
+void auth_passkey_confirm(struct bt_conn *conn, unsigned int passkey)
+{
+    LOG_INF("Numeric comparison: %06u - auto-confirming", passkey);
+    bt_conn_auth_passkey_confirm(conn);
+}
+
+void auth_pairing_confirm(struct bt_conn *conn)
+{
+    LOG_INF("SC Just Works pairing - auto-confirming");
+    bt_conn_auth_pairing_confirm(conn);
+}
+
+void pairing_complete(struct bt_conn *conn, bool bonded)
+{
+    LOG_INF("Pairing complete. Bonded: %d", bonded);
+}
+
+void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
+{
+    LOG_ERR("Pairing failed: %d", reason);
+}
+
+struct bt_conn_auth_cb auth_callbacks = {
+	.cancel = auth_cancel,
+	.passkey_display = auth_passkey_display,
+	.passkey_confirm = auth_passkey_confirm,
+	.pairing_confirm = auth_pairing_confirm,
+};
+
+struct bt_conn_auth_info_cb auth_info_callbacks = {
+	.pairing_complete = pairing_complete,
+	.pairing_failed = pairing_failed,
+};
+
+void security_changed(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	if (!err) {
+			LOG_DBG("Security changed: %s level %u", addr, level);
+	} else {
+			LOG_ERR("Security failed: %s level %u err %d", addr, level, err);
+			return;
+	}
+
+	if (level >= BT_SECURITY_L2) {
+		LOG_INF("Pairing successful - security level: %u", level);
+
+		if (!vcp_discovered) {
+			int vcp_err = vcp_discover(conn);
+			if (vcp_err)
+				LOG_ERR("VCP discovery failed (err %d)", vcp_err);
+		}
+	}
+}
+
 /* Connection callbacks */
 static void connected(struct bt_conn *conn, uint8_t err)
 {
@@ -24,11 +92,20 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	}
 
 	LOG_INF("Connected");
+	LOG_DBG("Connection pointer: %p, stored connection: %p", conn, connection);
+
+	LOG_DBG("Requesting pairing with security %d", BT_SECURITY_WANTED);
+	int pair_err = bt_conn_set_security(conn, BT_SECURITY_WANTED);
+	if (pair_err)
+	{
+		LOG_ERR("Failed to set security (err %d)", pair_err);
+		return;
+	}
 }
 
 static void disconnected(struct bt_conn *conn, uint8_t reason)
 {
-	LOG_DBG("Disconnected (reason 0x%02X)", reason);
+	LOG_INF("Disconnected (reason 0x%02X)", reason);
 
 	if (connection)
 	{
@@ -44,6 +121,7 @@ static void disconnected(struct bt_conn *conn, uint8_t reason)
 BT_CONN_CB_DEFINE(conn_callbacks) = {
 	.connected = connected,
 	.disconnected = disconnected,
+	.security_changed = security_changed,
 };
 
 /* Device discovery function
@@ -126,6 +204,15 @@ void ble_manager_scan_start(void)
 /* Initialize BLE scanner */
 int ble_manager_init(void)
 {
+	bt_conn_auth_cb_register(&auth_callbacks);
+	bt_conn_auth_info_cb_register(&auth_info_callbacks);
+
+	int err = vcp_controller_init();
+	if (err) {
+		LOG_ERR("VCP controller init failed (err %d)", err);
+		return err;
+	}
+
 	LOG_INF("BLE scanner initialized");
 	return 0;
 }

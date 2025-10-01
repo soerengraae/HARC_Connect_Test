@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/soere/zephyrproject/zephyr/subsys/bluetooth/audio/**)",
+      "Read(//c/Users/soere/zephyrproject/zephyr/**)",
+      "WebSearch",
+      "WebFetch(domain:docs.zephyrproject.org)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -20,11 +20,16 @@
 
 #define MAX_DISCOVERED_DEVICES_MEMORY_SIZE 1024 // 1 KB
 #define BT_NAME_MAX_LEN 12
+#define BT_SECURITY_WANTED BT_SECURITY_L4
 
 /* BLE scanner functions */
 int ble_manager_init(void);
 void ble_manager_scan_start(void);
 void bt_ready(int err);
+void security_changed(struct bt_conn *conn, bt_security_t level, enum bt_security_err err);
+void auth_cancel(struct bt_conn *conn);
+void pairing_complete(struct bt_conn *conn, bool bonded);
+void pairing_failed(struct bt_conn *conn, enum bt_security_err reason);
 
 /* Connection management */
 extern struct bt_conn_cb conn_callbacks;
