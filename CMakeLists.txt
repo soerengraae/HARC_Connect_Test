@@ -5,5 +5,5 @@ project(VCPcontroller)
 
 target_sources(app PRIVATE
     src/main.c
-    src/ble_scanner.c
+    src/ble_manager.c
 )
