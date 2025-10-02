@@ -20,7 +20,7 @@
 
 #define MAX_DISCOVERED_DEVICES_MEMORY_SIZE 1024 // 1 KB
 #define BT_NAME_MAX_LEN 12
-#define BT_SECURITY_WANTED BT_SECURITY_L3
+#define BT_SECURITY_WANTED BT_SECURITY_L2
 
 /* BLE scanner functions */
 int ble_manager_init(void);

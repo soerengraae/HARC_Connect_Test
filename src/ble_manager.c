@@ -94,6 +94,14 @@ void security_changed(struct bt_conn *conn, bt_security_t level, enum bt_securit
 	if (level >= BT_SECURITY_L2)
 	{
 		LOG_INF("Pairing successful - security level: %u", level);
+
+		// Trigger VCP discovery after security is established
+		if (!vcp_discovered)
+		{
+			int vcp_err = vcp_discover(conn);
+			if (vcp_err)
+				LOG_ERR("VCP discovery failed (err %d)", vcp_err);
+		}
 	}
 }
 
@@ -109,12 +117,14 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	LOG_INF("Connected");
 	LOG_DBG("Connection pointer: %p, stored connection: %p", conn, connection);
 
-	LOG_DBG("Requesting pairing with security %d", BT_SECURITY_WANTED);
-	int pair_err = bt_conn_set_security(conn, BT_SECURITY_WANTED);
-	if (pair_err)
+	// Don't request pairing immediately - let it happen automatically when needed
+	// or when accessing protected characteristics
+	if (!vcp_discovered)
 	{
-		LOG_ERR("Failed to set security (err %d)", pair_err);
-		return;
+		LOG_DBG("Starting VCP discovery");
+		int vcp_err = vcp_discover(conn);
+		if (vcp_err)
+			LOG_ERR("VCP discovery failed (err %d)", vcp_err);
 	}
 }
 
