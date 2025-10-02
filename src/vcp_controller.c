@@ -144,6 +144,10 @@ int vcp_discover(struct bt_conn *conn)
 	struct bt_vcp_vol_ctlr *discovered_ctlr = NULL;
 
 	default_conn = conn;
+
+	bt_security_t sec = bt_conn_get_security(conn);
+    LOG_INF("Current security before VCP discover: %d", sec);
+
 	err = bt_vcp_vol_ctlr_discover(conn, &discovered_ctlr);
 	if (err) {
 		return err;

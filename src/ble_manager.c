@@ -51,13 +51,13 @@ void auth_cancel(struct bt_conn *conn)
 void pairing_complete(struct bt_conn *conn, bool bonded)
 {
 	LOG_INF("Pairing complete. Bonded: %d", bonded);
+	if (!bonded) {
+        LOG_ERR("Pairing did not result in bonding!");
+        return;
+    }
 
-	if (!vcp_discovered)
-	{
-		int vcp_err = vcp_discover(conn);
-		if (vcp_err)
-			LOG_ERR("VCP discovery failed (err %d)", vcp_err);
-	}
+	LOG_INF("Bond established - disconnecting to persist bond");
+    bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
 }
 
 void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
@@ -91,9 +91,33 @@ void security_changed(struct bt_conn *conn, bt_security_t level, enum bt_securit
 		return;
 	}
 
-	if (level >= BT_SECURITY_L2)
+	if (level >= BT_SECURITY_WANTED)
 	{
-		LOG_INF("Pairing successful - security level: %u", level);
+		LOG_INF("Encryption established - checking if bonded");
+            
+		// Check if we're bonded (not just encrypted)
+		struct bt_conn_info info;
+		bt_conn_get_info(conn, &info);
+		
+		if (info.state == BT_CONN_STATE_CONNECTED && 
+			bt_conn_get_security(conn) >= BT_SECURITY_L2) {
+			
+			// We're encrypted - check if this is a new pairing or existing bond
+			// If pairing_complete hasn't been called yet, this is still initial pairing
+			// If it has, we can proceed with VCP discovery
+			
+			LOG_INF("Ready for VCP discovery on bonded connection");
+			
+			if (!vcp_discovered) {
+				k_sleep(K_MSEC(100)); // Small delay for stability
+				int vcp_err = vcp_discover(conn);
+				if (vcp_err) {
+					LOG_ERR("VCP discovery failed (err %d)", vcp_err);
+				}
+			}
+		}
+	} else {
+		LOG_ERR("Security failed: %s level %u err %d", addr, level, err);
 	}
 }
 
@@ -107,7 +131,7 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	}
 
 	LOG_INF("Connected");
-	LOG_DBG("Connection pointer: %p, stored connection: %p", conn, connection);
+	// LOG_DBG("Connection pointer: %p, stored connection: %p", conn, connection);
 
 	LOG_DBG("Requesting pairing with security %d", BT_SECURITY_WANTED);
 	int pair_err = bt_conn_set_security(conn, BT_SECURITY_WANTED);
@@ -259,6 +283,15 @@ void bt_ready(int err)
 		LOG_ERR("BLE manager init failed (err %d)", err);
 		return;
 	}
+
+	if (IS_ENABLED(CONFIG_SETTINGS)) {
+        err = settings_load();
+        if (err) {
+            LOG_ERR("Settings load failed (err %d)", err);
+        } else {
+            LOG_INF("Bonds loaded from storage");
+        }
+    }
 
 	ble_manager_scan_start();
 }

@@ -11,6 +11,14 @@ int main(void)
 {
 	int err;
 
+	if (IS_ENABLED(CONFIG_SETTINGS)) {
+		err = settings_subsys_init();
+        if (err) {
+            LOG_ERR("Settings init failed (err %d)", err);
+        }
+    }
+
+
 	/* Initialize Bluetooth */
 	err = bt_enable(bt_ready);
 	if (err) {
