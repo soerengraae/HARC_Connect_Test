@@ -10,34 +10,21 @@ struct k_work_delayable vcp_discovery_work;
 bool vcp_discovered = false;
 bool volume_direction = true; // true = up, false = down
 
-/**
- * @brief Work handler to initiate VCP discovery after a set delay.
- * This is scheduled after encryption is established.
- * If first-time pairing completes and disconnects before this fires,
- * the work is cancelled to avoid unnecessary discovery attempts.
- * 
- * @param work Pointer to the work item (not used)
- */
-void vcp_discovery_work_handler(struct k_work *work)
+void vcp_discover_start(struct connection_context *ctx)
 {
-	(void)work;
+    if (ctx->state != CONN_STATE_BONDED) {
+        LOG_WRN("Not starting VCP - wrong state: %d", ctx->state);
+        return;
+    }
 
-	// Exit if no pending connection
-	if (!pending_vcp_conn) {
-		return;
-	}
+    ctx->state = CONN_STATE_READY;
 
-	LOG_INF("Starting VCP discovery");
-	
-	if (!vcp_discovered) {
-		int vcp_err = vcp_discover(pending_vcp_conn);
-		if (vcp_err) {
-			LOG_ERR("VCP discovery failed (err %d)", vcp_err);
-		}
-	}
-	
-	bt_conn_unref(pending_vcp_conn);
-	pending_vcp_conn = NULL;
+    if (!vcp_discovered) {
+        int vcp_err = vcp_discover(ctx->conn);
+        if (vcp_err) {
+            LOG_ERR("VCP discovery failed (err %d)", vcp_err);
+        }
+    }
 }
 
 void vcp_volume_up(void)
@@ -200,18 +187,19 @@ int vcp_controller_init(void)
 		return err;
 	}
 
+	vcp_controller_reset_state();
+
 	LOG_INF("VCP controller initialized");
 
-	k_work_init_delayable(&vcp_discovery_work, vcp_discovery_work_handler);
 	return 0;
 }
 
 /* Reset VCP controller state */
 void vcp_controller_reset_state(void)
 {
-    vcp_discovered = false;
-    vol_ctlr = NULL;
-    default_conn = NULL;
+	vcp_discovered = false;
+	vol_ctlr = NULL;
+	default_conn = NULL;
 }
 
 int vcp_discover(struct bt_conn *conn)
@@ -222,7 +210,7 @@ int vcp_discover(struct bt_conn *conn)
 	default_conn = conn;
 
 	bt_security_t sec = bt_conn_get_security(conn);
-    LOG_INF("Current security before VCP discover: %d", sec);
+	LOG_DBG("Current security before VCP discover: %d", sec);
 
 	err = bt_vcp_vol_ctlr_discover(conn, &discovered_ctlr);
 	if (err) {
