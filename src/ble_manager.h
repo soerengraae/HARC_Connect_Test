@@ -23,6 +23,13 @@
 #define BT_NAME_MAX_LEN 12
 #define BT_SECURITY_WANTED BT_SECURITY_L2
 
+struct deviceInfo
+{
+	bt_addr_le_t addr;
+	char name[BT_NAME_MAX_LEN];
+	bool connect;
+};
+
 /* BLE scanner functions */
 int ble_manager_init(void);
 void ble_manager_scan_start(void);
@@ -41,5 +48,6 @@ extern struct bt_conn *auth_conn;
 
 /* Global state */
 extern bool first_pairing;
+extern struct deviceInfo scannedDevice;
 
 #endif /* BLE_MANAGER_H */

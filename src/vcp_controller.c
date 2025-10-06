@@ -8,6 +8,36 @@ struct bt_vcp_vol_ctlr *vol_ctlr;
 bool vcp_discovered = false;
 bool volume_direction = true; // true = up, false = down
 
+/**
+ * @brief Work handler to initiate VCP discovery after a set delay.
+ * This is scheduled after encryption is established.
+ * If first-time pairing completes and disconnects before this fires,
+ * the work is cancelled to avoid unnecessary discovery attempts.
+ * 
+ * @param work Pointer to the work item (not used)
+ */
+static void vcp_discovery_work_handler(struct k_work *work)
+{
+	(void)work;
+
+	// Exit if no pending connection
+	if (!pending_vcp_conn) {
+		return;
+	}
+
+	LOG_INF("Starting VCP discovery");
+	
+	if (!vcp_discovered) {
+		int vcp_err = vcp_discover(pending_vcp_conn);
+		if (vcp_err) {
+			LOG_ERR("VCP discovery failed (err %d)", vcp_err);
+		}
+	}
+	
+	bt_conn_unref(pending_vcp_conn);
+	pending_vcp_conn = NULL;
+}
+
 void vcp_volume_up(void)
 {
 	if (!vcp_discovered || !vol_ctlr) {

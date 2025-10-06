@@ -7,84 +7,27 @@
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
-static struct k_work_delayable vcp_discovery_work;
-static struct bt_conn *pending_vcp_conn = NULL;
+struct k_work_delayable vcp_discovery_work;
+struct bt_conn *pending_vcp_conn = NULL;
 
 struct bt_conn *connection;
 struct bt_conn *auth_conn;
-bool first_pairing = false;
-
-struct deviceInfo
-{
-	bt_addr_le_t addr;
-	char name[BT_NAME_MAX_LEN];
-	bool connect;
-} scannedDevice;
-
-static void vcp_discovery_work_handler(struct k_work *work)
-{
-	if (!pending_vcp_conn) {
-		return;
-	}
-
-	LOG_INF("Starting VCP discovery after delay");
-	
-	if (!vcp_discovered) {
-		int vcp_err = vcp_discover(pending_vcp_conn);
-		if (vcp_err) {
-			LOG_ERR("VCP discovery failed (err %d)", vcp_err);
-		}
-	}
-	
-	bt_conn_unref(pending_vcp_conn);
-	pending_vcp_conn = NULL;
-}
-
-void auth_passkey_display(struct bt_conn *conn, unsigned int passkey)
-{
-	char addr[BT_ADDR_LE_STR_LEN];
-
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-	LOG_INF("Passkey for %s: %06u", addr, passkey);
-}
-
-void auth_passkey_confirm(struct bt_conn *conn, unsigned int passkey)
-{
-	char addr[BT_ADDR_LE_STR_LEN];
-
-	auth_conn = bt_conn_ref(conn);
-
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-	LOG_INF("Passkey for %s: %06u", addr, passkey);
-	bt_conn_auth_passkey_confirm(auth_conn);
-	bt_conn_unref(auth_conn);
-	auth_conn = NULL;
-}
-
-void auth_cancel(struct bt_conn *conn)
-{
-	char addr[BT_ADDR_LE_STR_LEN];
-
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-	LOG_INF("Pairing cancelled: %s", addr);
-}
+struct deviceInfo scannedDevice;
+bool first_pairing = true;
 
 void pairing_complete(struct bt_conn *conn, bool bonded)
 {
-	LOG_INF("Pairing complete. Bonded: %d", bonded);
+	LOG_DBG("Pairing complete. Bonded: %d", bonded);
 	if (!bonded) {
 		LOG_ERR("Pairing did not result in bonding!");
 		return;
 	}
 
 	if (first_pairing) {
-		LOG_INF("First pairing complete - cancelling VCP discovery and disconnecting");
+		LOG_DBG("First pairing complete - cancelling VCP discovery and disconnecting");
 		
-		// Cancel VCP discovery work
 		k_work_cancel_delayable(&vcp_discovery_work);
+
 		if (pending_vcp_conn) {
 			bt_conn_unref(pending_vcp_conn);
 			pending_vcp_conn = NULL;
@@ -109,12 +52,6 @@ void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
 	ble_manager_scan_start();
 }
 
-struct bt_conn_auth_cb auth_callbacks = {
-	.passkey_display = auth_passkey_display,
-	.passkey_confirm = auth_passkey_confirm,
-	.cancel = auth_cancel,
-};
-
 struct bt_conn_auth_info_cb auth_info_callbacks = {
 	.pairing_complete = pairing_complete,
 	.pairing_failed = pairing_failed,
@@ -131,9 +68,9 @@ void security_changed(struct bt_conn *conn, bt_security_t level, enum bt_securit
 		if (level >= BT_SECURITY_L2) {
 			LOG_INF("Encryption established at level %u", level);
 			
-			// Schedule VCP discovery after 200ms
+			// Schedule service discovery after 200ms
 			// If pairing_complete fires and disconnects, this work will be cancelled
-			// If no pairing_complete (bonded reconnection), VCP discovery proceeds
+			// If no pairing_complete (bonded reconnection), service discovery proceeds
 			pending_vcp_conn = bt_conn_ref(conn);
 			k_work_schedule(&vcp_discovery_work, K_MSEC(200));
 		}
@@ -285,10 +222,14 @@ void ble_manager_scan_start(void)
 	LOG_INF("Scanning for HIs");
 }
 
-/* Initialize BLE scanner */
+/** Initialize BLE manager
+ * @brief Sets up connection callbacks, authentication, VCP controller, and battery reader
+ * 
+ * @return 0 on success, negative error code on failure
+ */
 int ble_manager_init(void)
 {
-	bt_conn_auth_cb_register(&auth_callbacks);
+	// bt_conn_auth_cb_register(&auth_callbacks);
 	bt_conn_auth_info_cb_register(&auth_info_callbacks);
 
 	k_work_init_delayable(&vcp_discovery_work, vcp_discovery_work_handler);
@@ -300,7 +241,14 @@ int ble_manager_init(void)
 		return err;
 	}
 
-	LOG_INF("BLE scanner initialized");
+	err = battery_reader_init();
+	if (err)
+	{
+		LOG_ERR("Battery reader init failed (err %d)", err);
+		return err;
+	}
+
+	LOG_INF("BLE manager initialized");
 	return 0;
 }
 
@@ -313,15 +261,6 @@ void bt_ready(int err)
 	}
 
 	LOG_INF("Bluetooth initialized");
-
-	// Set fixed passkey for authentication
-	// unsigned int passkey = 123456; // Your chosen 6-digit passkey
-	// err = bt_passkey_set(passkey);
-	// if (err)
-	// {
-	// 	LOG_ERR("Failed to set passkey (err %d)", err);
-	// 	return;
-	// }
 
 	/* Initialize BLE manager */
 	err = ble_manager_init();

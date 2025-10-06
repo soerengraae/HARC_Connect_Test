@@ -7,4 +7,5 @@ target_sources(app PRIVATE
     src/main.c
     src/ble_manager.c
     src/vcp_controller.c
+    src/battery_reader.c
 )
