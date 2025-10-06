@@ -13,12 +13,10 @@ bool volume_direction = true; // true = up, false = down
 void vcp_discover_start(struct connection_context *ctx)
 {
     if (ctx->state != CONN_STATE_BONDED) {
-        LOG_WRN("Not starting VCP - wrong state: %d", ctx->state);
+        LOG_WRN("Not starting VCP discovery - wrong state: %d", ctx->state);
         return;
     }
-
-    ctx->state = CONN_STATE_READY;
-
+		
     if (!vcp_discovered) {
         int vcp_err = vcp_discover(ctx->conn);
         if (vcp_err) {

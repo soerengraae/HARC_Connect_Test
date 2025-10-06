@@ -153,41 +153,43 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 }
 
 /* Discover Battery Service on connected device */
-int battery_discover(struct bt_conn *conn)
+int battery_discover(struct connection_context *ctx)
 {
-	if (!conn) {
-		LOG_ERR("Invalid connection");
-		return -EINVAL;
-	}
+  if (ctx->state != CONN_STATE_BONDED) {
+    LOG_WRN("Not starting Battery Service discovery - wrong state: %d", ctx->state);
+    return -EINVAL;
+  }
 
 	LOG_INF("Starting Battery Service discovery");
 
-	static struct bt_gatt_discover_params discover_params;
-	memset(&discover_params, 0, sizeof(discover_params));
-	discover_params.uuid = BT_UUID_BAS;
-	discover_params.type = BT_GATT_DISCOVER_PRIMARY;
-	discover_params.start_handle = BT_ATT_FIRST_ATTRIBUTE_HANDLE;
-	discover_params.end_handle = BT_ATT_LAST_ATTRIBUTE_HANDLE;
-	discover_params.func = discover_service_cb;
+  if (!battery_discovered) {
+    static struct bt_gatt_discover_params discover_params;
+    memset(&discover_params, 0, sizeof(discover_params));
+    discover_params.uuid = BT_UUID_BAS;
+    discover_params.type = BT_GATT_DISCOVER_PRIMARY;
+    discover_params.start_handle = BT_ATT_FIRST_ATTRIBUTE_HANDLE;
+    discover_params.end_handle = BT_ATT_LAST_ATTRIBUTE_HANDLE;
+    discover_params.func = discover_service_cb;
 
-	int err = bt_gatt_discover(conn, &discover_params);
-	if (err) {
-		LOG_ERR("Battery Service discovery failed (err %d)", err);
-		return err;
-	}
-
+    int err = bt_gatt_discover(ctx->conn, &discover_params);
+    if (err) {
+      LOG_ERR("Battery Service discovery failed (err %d)", err);
+      return err;
+    }
+  }
+  
 	return 0;
 }
 
 /* Read battery level */
-int battery_read_level(struct bt_conn *conn)
+int battery_read_level(struct connection_context *ctx)
 {
 	if (!battery_discovered || battery_level_handle == 0) {
 		LOG_WRN("Battery Service not discovered");
 		return -ENOENT;
 	}
 
-	if (!conn) {
+	if (!ctx->conn) {
 		LOG_ERR("Invalid connection");
 		return -EINVAL;
 	}
@@ -197,13 +199,29 @@ int battery_read_level(struct bt_conn *conn)
 	battery_read_params.single.handle = battery_level_handle;
 	battery_read_params.single.offset = 0;
 
-	int err = bt_gatt_read(conn, &battery_read_params);
+	int err = bt_gatt_read(ctx->conn, &battery_read_params);
 	if (err) {
 		LOG_ERR("Battery level read failed (err %d)", err);
 		return err;
 	}
 
 	return 0;
+}
+
+/* Get battery level */
+int battery_get_level(void)
+{
+	if (!battery_discovered) {
+		return -1;
+	}
+
+  // Read battery level
+  int err = battery_read_level(conn_ctx);
+  if (err) {
+    LOG_ERR("Failed to read battery level (err %d)", err);
+  }
+
+	return battery_level;
 }
 
 /* Subscribe to battery level notifications */
@@ -247,13 +265,4 @@ void battery_reader_reset_state(void)
 	battery_level_ccc_handle = 0;
 	battery_level = 0;
 	LOG_DBG("Battery reader state reset");
-}
-
-/* Get battery level */
-int battery_get_level(void)
-{
-	if (!battery_discovered) {
-		return -1;
-	}
-	return battery_level;
 }

@@ -4,6 +4,7 @@
 
 #include "ble_manager.h"
 #include "vcp_controller.h"
+#include "battery_reader.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
@@ -29,12 +30,22 @@ int main(void)
 		k_sleep(K_SECONDS(5));
 
 		if (vcp_discovered && vol_ctlr) {
-			LOG_DBG("Attempting to write VCP Volume Up (vol_ctlr=%p, default_conn=%p)", vol_ctlr, default_conn);
+			LOG_DBG("Attempting to write VCP Volume Change (vol_ctlr=%p, default_conn=%p)", vol_ctlr, default_conn);
 			
 			if (volume_direction)
 				vcp_volume_up();
 			else
 				vcp_volume_down();
+		}
+
+		if (battery_discovered) {
+			// Get and log battery level
+			int level = battery_get_level();
+			if (level >= 0) {
+				LOG_INF("Battery level: %d%%", level);
+			} else {
+				LOG_WRN("Battery level not available");
+			}
 		}
 	}
 

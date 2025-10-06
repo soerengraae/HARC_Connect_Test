@@ -34,8 +34,7 @@ enum connection_state {
     CONN_STATE_DISCONNECTED,
     CONN_STATE_CONNECTING,
     CONN_STATE_PAIRING,
-    CONN_STATE_BONDED,
-    CONN_STATE_READY
+    CONN_STATE_BONDED
 };
 
 struct connection_context {
@@ -59,9 +58,6 @@ bool is_bonded_device(const bt_addr_le_t *addr);
 extern struct bt_conn_cb conn_callbacks;
 extern struct bt_conn *conn;
 extern struct bt_conn *auth_conn;
-
-/* Global state */
-extern bool first_pairing;
-extern struct deviceInfo scannedDevice;
+extern struct connection_context *conn_ctx;
 
 #endif /* BLE_MANAGER_H */

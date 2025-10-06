@@ -1,5 +1,6 @@
 #include "ble_manager.h"
 #include "vcp_controller.h"
+#include "battery_reader.h"
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -9,8 +10,7 @@ LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
 struct bt_conn *connection;
 struct bt_conn *auth_conn;
-struct deviceInfo scannedDevice;
-struct connection_context conn_ctx;
+struct connection_context *conn_ctx;
 bool first_pairing = true;
 
 void pairing_complete(struct bt_conn *conn, bool bonded)
@@ -18,13 +18,13 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 	LOG_DBG("Pairing complete. Bonded: %d", bonded);
 	if (!bonded) {
 		LOG_ERR("Pairing did not result in bonding!");
-		conn_ctx.state = CONN_STATE_DISCONNECTED;
+		conn_ctx->state = CONN_STATE_DISCONNECTED;
 		return;
 	}
 
-	conn_ctx.state = CONN_STATE_BONDED;
+	conn_ctx->state = CONN_STATE_BONDED;
 
-	if (conn_ctx.is_new_device) {
+	if (conn_ctx->is_new_device) {
 		LOG_INF("New device paired successfully - saving and disconnecting");
 		
 		// Save the bond
@@ -66,17 +66,18 @@ void security_changed(struct bt_conn *conn, bt_security_t level, enum bt_securit
 			LOG_INF("Encryption established at level %u", level);
 			
 			// Only proceed with VCP if this is a reconnection (not new pairing)
-			if (conn_ctx.state == CONN_STATE_BONDED) {
-					LOG_INF("Bonded device encrypted - starting VCP discovery");
-					vcp_discover_start(&conn_ctx);
+			if (conn_ctx->state == CONN_STATE_BONDED) {
+					LOG_INF("Bonded device encrypted - starting service discovery");
+					vcp_discover_start(conn_ctx);
+					battery_discover(conn_ctx);
 			} else {
 					LOG_INF("New device - waiting for pairing completion");
-					conn_ctx.state = CONN_STATE_PAIRING;
+					conn_ctx->state = CONN_STATE_PAIRING;
 			}
 		}
 	} else {
 		LOG_ERR("Security failed: %s level %u err %d", addr, level, err);
-		conn_ctx.state = CONN_STATE_DISCONNECTED;
+		conn_ctx->state = CONN_STATE_DISCONNECTED;
 	}
 }
 
@@ -84,7 +85,7 @@ static void connected(struct bt_conn *conn, uint8_t err)
 {
 	if (err) {
 		LOG_ERR("Connection failed (err 0x%02X)", err);
-		conn_ctx.state = CONN_STATE_DISCONNECTED;
+		conn_ctx->state = CONN_STATE_DISCONNECTED;
 		return;
 	}
 
@@ -93,19 +94,19 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	const bt_addr_le_t *addr = bt_conn_get_dst(conn);
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
-	
-	conn_ctx.conn = bt_conn_ref(conn);
-	bt_addr_le_copy(&conn_ctx.addr, addr);
+
+	conn_ctx->conn = bt_conn_ref(conn);
+	bt_addr_le_copy(&conn_ctx->addr, addr);
 
 	 // Check if this device is already bonded
-	conn_ctx.is_new_device = !is_bonded_device(addr);
+	conn_ctx->is_new_device = !is_bonded_device(addr);
 
-	if (conn_ctx.is_new_device) {
+	if (conn_ctx->is_new_device) {
 		LOG_INF("Connected to new device %s - expecting pairing", addr_str);
-		conn_ctx.state = CONN_STATE_CONNECTING;
+		conn_ctx->state = CONN_STATE_CONNECTING;
 	} else {
 		LOG_INF("Connected to bonded device %s", addr_str);
-		conn_ctx.state = CONN_STATE_BONDED;
+		conn_ctx->state = CONN_STATE_BONDED;
 	}
 	
 	LOG_DBG("Requesting security level %d", BT_SECURITY_WANTED);
@@ -258,7 +259,12 @@ int ble_manager_init(void)
 		return err;
 	}
 
-	conn_ctx = (struct connection_context){0};
+	conn_ctx = (struct connection_context *)k_calloc(1, sizeof(struct connection_context));
+	if (!conn_ctx) {
+		LOG_ERR("Failed to allocate memory for connection context");
+		return -ENOMEM;
+	}
+
 	LOG_INF("BLE manager initialized");
 	return 0;
 }

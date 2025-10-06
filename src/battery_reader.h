@@ -1,6 +1,7 @@
 #ifndef BATTERY_READER_H
 #define BATTERY_READER_H
 
+#include "ble_manager.h"
 #include <zephyr/kernel.h>
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/conn.h>
@@ -16,19 +17,12 @@
 #define BT_UUID_BAS_BATTERY_LEVEL BT_UUID_DECLARE_16(BT_UUID_BAS_BATTERY_LEVEL_VAL)
 
 /**
- * @brief Initialize the battery reader module
- * 
- * @return 0 on success, negative error code on failure
- */
-int battery_reader_init(void);
-
-/**
  * @brief Discover Battery Service on a connected device
  * 
- * @param conn Pointer to the BLE connection
+ * @param ctx Pointer to the connection context
  * @return 0 on success, negative error code on failure
  */
-int battery_discover(struct bt_conn *conn);
+int battery_discover(struct connection_context *ctx);
 
 /**
  * @brief Read battery level from discovered battery service
@@ -36,7 +30,7 @@ int battery_discover(struct bt_conn *conn);
  * @param conn Pointer to the BLE connection
  * @return 0 on success, negative error code on failure
  */
-int battery_read_level(struct bt_conn *conn);
+int battery_read_level(struct connection_context *ctx);
 
 /**
  * @brief Subscribe to battery level notifications
