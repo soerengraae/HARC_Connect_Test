@@ -76,8 +76,7 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
                                  struct bt_gatt_discover_params *params)
 {
 	if (!attr) {
-		LOG_DBG("Battery characteristic discovery complete");
-		battery_discovered = true;
+		LOG_ERR("Battery characteristic not found");
 		return BT_GATT_ITER_STOP;
 	}
 
@@ -131,11 +130,12 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 	}
 
 	struct bt_gatt_service_val *svc = (struct bt_gatt_service_val *)attr->user_data;
-	
-	LOG_INF("Found Battery Service at handle %u-%u", 
+
+	LOG_DBG("Found Battery Service at handle 0x%04X-0x%04X",
 	        attr->handle, svc->end_handle);
 
-	/* Now discover characteristics within the service */
+	LOG_DBG("Discover characteristics within Battery Service");
+
 	static struct bt_gatt_discover_params discover_params;
 	memset(&discover_params, 0, sizeof(discover_params));
 	discover_params.uuid = BT_UUID_BAS_BATTERY_LEVEL;
@@ -160,7 +160,7 @@ int battery_discover(struct connection_context *ctx)
     return -EINVAL;
   }
 
-	LOG_INF("Starting Battery Service discovery");
+	LOG_DBG("Starting Battery Service discovery");
 
   if (!battery_discovered) {
     static struct bt_gatt_discover_params discover_params;
