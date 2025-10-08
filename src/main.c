@@ -6,7 +6,7 @@
 #include "vcp_controller.h"
 #include "battery_reader.h"
 
-LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 int main(void)
 {
@@ -49,7 +49,7 @@ int main(void)
 			if (level >= 0) {
 				LOG_INF("Battery level: %d%%", level);
 			} else {
-				LOG_WRN("Battery level not available");
+				LOG_ERR("Battery level not available");
 			}
 		}
 	}

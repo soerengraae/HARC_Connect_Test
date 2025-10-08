@@ -6,11 +6,30 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/hci.h>
 
-LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_INF);
 
 struct bt_conn *auth_conn;
 struct connection_context *conn_ctx;
 static struct k_work_delayable auto_connect_work;
+
+/* Callback for iterating bonded devices to find the first one */
+static void get_bonded_devices(const struct bt_bond_info *info, void *user_data)
+{
+	struct deviceInfo *device = (struct deviceInfo *)user_data;
+
+	if (!device->connect) { // Only copy first bonded device
+		bt_addr_le_copy(&device->addr, &info->addr);
+		device->connect = true;
+		device->is_new_device = false;
+
+		// Add to filter accept list for auto-connect
+		bt_le_filter_accept_list_add(&device->addr);
+
+		char addr_str[BT_ADDR_LE_STR_LEN];
+		bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
+		LOG_INF("Found bonded device: %s", addr_str);
+	}
+}
 
 void pairing_complete(struct bt_conn *conn, bool bonded)
 {
@@ -25,11 +44,13 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 
 	if (conn_ctx->info.is_new_device) {
 		LOG_INF("New device paired successfully - saving and disconnecting");
-
 		// Save the bond
 		if (IS_ENABLED(CONFIG_SETTINGS)) {
+			LOG_DBG("Saving bond information to flash");
 			settings_save();
 		}
+
+		bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &conn_ctx->info);
 
 		// Disconnect to complete initial pairing flow
 		bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
@@ -43,20 +64,21 @@ void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
 {
 	LOG_ERR("Pairing failed: %d", reason);
 
-	// Reset scanning
+	disconnect(conn, NULL);
 	ble_manager_scan_start();
 }
 
 struct bt_conn_auth_info_cb auth_info_callbacks = {
-	.pairing_complete =
-		pairing_complete, // This is only called if new bond created, misleading name :(
+	.pairing_complete = pairing_complete, // This is only called if new bond created
 	.pairing_failed = pairing_failed,
 };
 
 void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
 {
+	conn_ctx->conn = conn;
+
 	char addr[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+	bt_addr_le_to_str(bt_conn_get_dst(conn_ctx->conn), addr, sizeof(addr));
 
 	if (!err) {
 		LOG_DBG("Security changed: %s level %u", addr, level);
@@ -76,16 +98,17 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 		}
 	} else {
 		LOG_ERR("Security failed: %s level %u err %d", addr, level, err);
-		conn_ctx->state = CONN_STATE_DISCONNECTED;
 	}
 }
 
-static void disconnect(struct bt_conn *conn, void *data)
+void disconnect(struct bt_conn *conn, void *data)
 {
+	conn_ctx->conn = conn;
+
 	LOG_INF("Disconnecting connection");
-	bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
-	bt_conn_unref(conn);
-	conn = NULL;
+	bt_conn_disconnect(conn_ctx->conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+	bt_conn_unref(conn_ctx->conn);
+	conn_ctx->conn = NULL;
 }
 
 static void connected_cb(struct bt_conn *conn, uint8_t err)
@@ -103,8 +126,6 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 		}
 		return;
 	}
-
-	LOG_INF("Connected");
 
 	const bt_addr_le_t *addr = bt_conn_get_dst(conn);
 	char addr_str[BT_ADDR_LE_STR_LEN];
@@ -145,13 +166,15 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	}
 
 	vcp_controller_reset_state();
-
-	// In case we just completed first pairing, wait for NVS writes to complete
-	// before scanning/reconnecting
-	LOG_INF("Waiting for flash writes to complete before restarting scan");
-	k_sleep(K_MSEC(1000));
-
-	k_work_schedule(&auto_connect_work, K_MSEC(0));
+	
+	if (conn_ctx->state == CONN_STATE_BONDED) {
+		conn_ctx->state = CONN_STATE_DISCONNECTED;
+		k_work_schedule(&auto_connect_work, K_MSEC(0));
+	} else {
+		conn_ctx->state = CONN_STATE_DISCONNECTED;
+		LOG_DBG("Restarting scan to find bondable devices");
+		ble_manager_scan_start();
+	}
 }
 
 BT_CONN_CB_DEFINE(conn_callbacks) = {
@@ -161,7 +184,7 @@ BT_CONN_CB_DEFINE(conn_callbacks) = {
 };
 
 /* Device discovery function
-   Extracts HAS service and device name from advertisement data */
+   Extracts device name from advertisement data */
 static bool device_found(struct bt_data *data, void *user_data)
 {
 	struct deviceInfo *info = (struct deviceInfo *)user_data;
@@ -265,24 +288,6 @@ void ble_manager_scan_start(void)
 	LOG_INF("Scanning for HIs");
 }
 
-static void check_bonded_cb(const struct bt_bond_info *info, void *user_data)
-{
-	struct deviceInfo *device = (struct deviceInfo *)user_data;
-
-	if (!device->connect) { // Only copy first bonded device
-		bt_addr_le_copy(&device->addr, &info->addr);
-		device->connect = true;
-		device->is_new_device = false;
-
-		// Add to filter accept list for auto-connect
-		bt_le_filter_accept_list_add(&device->addr);
-
-		char addr_str[BT_ADDR_LE_STR_LEN];
-		bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
-		LOG_INF("Found bonded device: %s", addr_str);
-	}
-}
-
 /** Initialize BLE manager
  * @brief Sets up connection callbacks, authentication, VCP controller, and battery reader
  *
@@ -351,9 +356,10 @@ void bt_ready_cb(int err)
 
 	// Check for bonded devices
 	memset(&conn_ctx->info, 0, sizeof(conn_ctx->info));
-	bt_foreach_bond(BT_ID_DEFAULT, check_bonded_cb, &conn_ctx->info);
+	bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &conn_ctx->info);
 
 	// Initialize and schedule the deferred auto-connect work
+	LOG_DBG("Initializing auto-connect work");
 	k_work_init_delayable(&auto_connect_work, auto_connect_work_handler);
 
 	if (conn_ctx->info.connect) {
@@ -366,7 +372,7 @@ void bt_ready_cb(int err)
 	}
 }
 
-static void check_if_bonded_cb(const struct bt_bond_info *info, void *user_data)
+static void is_bonded_device_cb(const struct bt_bond_info *info, void *user_data)
 {
 	struct check_bonded_data {
 		const bt_addr_le_t *target_addr;
@@ -375,6 +381,7 @@ static void check_if_bonded_cb(const struct bt_bond_info *info, void *user_data)
 
 	if (bt_addr_le_eq(&info->addr, data->target_addr)) {
 		data->found = true;
+		LOG_DBG("Found bonded device");
 	}
 }
 
@@ -385,7 +392,10 @@ bool is_bonded_device(const bt_addr_le_t *addr)
 		bool found;
 	} check_data = {.target_addr = addr, .found = false};
 
-	bt_foreach_bond(BT_ID_DEFAULT, check_if_bonded_cb, &check_data);
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+	LOG_DBG("Checking if device %s is bonded", addr_str);
+	bt_foreach_bond(BT_ID_DEFAULT, is_bonded_device_cb, &check_data);
 
 	return check_data.found;
 }

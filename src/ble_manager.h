@@ -49,6 +49,7 @@ int ble_manager_init(void);
 void ble_manager_scan_start(void);
 void bt_ready_cb(int err);
 bool is_bonded_device(const bt_addr_le_t *addr);
+void disconnect(struct bt_conn *conn, void *data);
 
 /* Connection management */
 extern struct bt_conn_cb conn_callbacks;

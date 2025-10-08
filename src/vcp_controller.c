@@ -1,6 +1,6 @@
 #include "vcp_controller.h"
 
-LOG_MODULE_REGISTER(vcp_controller, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(vcp_controller, LOG_LEVEL_INF);
 
 /* Global state variables */
 struct bt_vcp_vol_ctlr *vol_ctlr;
@@ -36,7 +36,7 @@ void vcp_volume_up(void)
 		LOG_ERR("Failed to initiate volume up (err %d)", err);
 	} else {
 		bt_security_t sec = bt_conn_get_security(conn_ctx->conn);
-	LOG_DBG("Current security before VCP discover: %d", sec);
+		LOG_DBG("Current security before VCP change: %d", sec);
 		LOG_DBG("Volume up initiated");
 	}
 }
@@ -52,6 +52,8 @@ void vcp_volume_down(void)
 	if (err) {
 		LOG_ERR("Failed to initiate volume down (err %d)", err);
 	} else {
+		bt_security_t sec = bt_conn_get_security(conn_ctx->conn);
+		LOG_DBG("Current security before VCP change: %d", sec);
 		LOG_DBG("Volume down initiated");
 	}
 }
@@ -66,7 +68,7 @@ static void vcp_state_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err,
 	}
 	// Volume is 0-255, convert to percentage
 	float volume_percent = (float)volume * 100.0f / 255.0f;
-	LOG_INF("VCP state - Volume: %u, Mute: %u", (uint8_t)(volume_percent), mute);
+	LOG_INF("VCP state - Volume: %u%%, Mute: %u", (uint8_t)(volume_percent), mute);
 
 	if (volume >= 255)
 	{
