@@ -6,11 +6,11 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/hci.h>
 
-LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
 struct bt_conn *auth_conn;
 struct connection_context *conn_ctx;
-bool first_pairing = true;
+static struct k_work_delayable auto_connect_work;
 
 void pairing_complete(struct bt_conn *conn, bool bonded)
 {
@@ -42,7 +42,6 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
 {
     LOG_ERR("Pairing failed: %d", reason);
-    first_pairing = false;
 
 	// Reset scanning
 	ble_manager_scan_start();
@@ -275,6 +274,10 @@ static void check_bonded_cb(const struct bt_bond_info *info, void *user_data)
     if (!device->connect) {  // Only copy first bonded device
         bt_addr_le_copy(&device->addr, &info->addr);
         device->connect = true;
+		device->is_new_device = false;
+		
+		// Add to filter accept list for auto-connect
+		bt_le_filter_accept_list_add(&device->addr);
         
         char addr_str[BT_ADDR_LE_STR_LEN];
         bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
@@ -309,6 +312,22 @@ int ble_manager_init(void)
 	return 0;
 }
 
+static void auto_connect_work_handler(struct k_work *work)
+{
+	if (!conn_ctx->info.connect) {
+		LOG_WRN("No bonded device to connect to");
+		ble_manager_scan_start();
+		return;
+	}
+
+	LOG_INF("Connecting to previously bonded device");
+	int err = bt_conn_le_create_auto(BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT);
+	if (err) {
+		LOG_ERR("Failed to set auto-connect (err %d)", err);
+		ble_manager_scan_start();
+	}
+}
+
 void bt_ready_cb(int err)
 {
     if (err) {
@@ -325,32 +344,29 @@ void bt_ready_cb(int err)
         return;
     }
 
+	if (IS_ENABLED(CONFIG_SETTINGS)) {
+		// Load settings - this is critical for bonding to work
+		err = settings_load_subtree("bt");
+		if (err) {
+			LOG_WRN("Failed to load BT settings (err %d)", err);
+		}
+	}
+
     // Check for bonded devices
     memset(&conn_ctx->info, 0, sizeof(conn_ctx->info));
     bt_foreach_bond(BT_ID_DEFAULT, check_bonded_cb, &conn_ctx->info);
 
-    if (conn_ctx->info.connect) {
-        char addr_str[BT_ADDR_LE_STR_LEN];
-        bt_addr_le_to_str(&conn_ctx->info.addr, addr_str, sizeof(addr_str));
-        LOG_INF("Attempting to auto-connect to bonded device: %s", addr_str);
-        
-		bt_le_filter_accept_list_add(&conn_ctx->info.addr);
-
-        // Use auto-connect for bonded device
-        err = bt_conn_le_create_auto(BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT);
-        if (err) {
-            LOG_ERR("Failed to set auto-connect (err %d)", err);
-            // Fall back to scanning
-            ble_manager_scan_start();
-        } else {
-            LOG_INF("Auto-connect configured successfully");
-            // Optionally set a timeout to fall back to scanning
-            // k_work_schedule(&auto_connect_timeout_work, K_SECONDS(10));
-        }
-    } else {
-        LOG_INF("No previously bonded device found");
-        ble_manager_scan_start();
-    }
+	// Initialize and schedule the deferred auto-connect work
+	k_work_init_delayable(&auto_connect_work, auto_connect_work_handler);
+	
+	if (conn_ctx->info.connect) {
+		LOG_DBG("Scheduling auto-connect to bonded device");
+		// Delay by 100ms to ensure BT stack is fully ready
+		k_work_schedule(&auto_connect_work, K_MSEC(0));
+	} else {
+		LOG_INF("No previously bonded device found");
+		ble_manager_scan_start();
+	}
 }
 
 
