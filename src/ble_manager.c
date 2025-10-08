@@ -289,27 +289,10 @@ int ble_manager_init(void)
 	return 0;
 }
 
-// static void connect_to_existing_bond(const struct bt_bond_info *info, void *user_data) {
-// 	struct deviceInfo *data = (struct deviceInfo *)user_data;
-
-// 	char addr_str[BT_ADDR_LE_STR_LEN];
-// 	bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
-// 	LOG_DBG("Found bonded device: %s", addr_str);
-// 	bt_addr_le_copy(&data->addr, &info->addr);
-// 	data->connect = true;
-// }
-
-static void add_bonded_to_filter(const struct bt_bond_info *info, void *user_data)
-{
-	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
-	
-	int err = bt_le_filter_accept_list_add(&info->addr);
-	if (err) {
-		LOG_ERR("Failed to add %s to filter accept list (err %d)", addr_str, err);
-	} else {
-		LOG_INF("Added bonded device %s to filter accept list", addr_str);
-	}
+void is_bonded_device_cb(const struct bt_bond_info *info, void *user_data) {
+	struct deviceInfo *data = (struct deviceInfo *)user_data;
+	bt_addr_le_copy(&data->addr, &info->addr);
+	data->connect = true;
 }
 
 void bt_ready_cb(int err)
@@ -331,30 +314,22 @@ void bt_ready_cb(int err)
 	}
 
 	if (IS_ENABLED(CONFIG_SETTINGS)) {
-        err = settings_load();
-        if (err) {
-            LOG_ERR("Settings load failed (err %d)", err);
-        } else {
-            LOG_INF("Bonds loaded from storage");
-
-			// Get address of first bonded device
-			settings_load_subtree("bt/bond");
-        }
+		// Get address of first bonded device
+		settings_load_subtree("bt/bond");
     }
 
-	ble_manager_scan_start();
-}
+	bt_foreach_bond(BT_ID_DEFAULT, is_bonded_device_cb, &conn_ctx->info);
 
-void is_bonded_device_cb(const struct bt_bond_info *info, void *user_data) {
-	struct check_bonded_data {
-		const bt_addr_le_t *addr;
-		bool found;
-	} *data = user_data;
-
-	if (!bt_addr_le_cmp(&info->addr, data->addr)) {
-		data->found = true;
-		// Stop iterating
-		return;
+	if (conn_ctx->info.connect) {
+		LOG_INF("Connecting to previously bonded device");
+		int err = bt_le_set_auto_conn(&conn_ctx->info.addr, BT_LE_CONN_PARAM_DEFAULT);
+		if (err) {
+			LOG_ERR("Failed to connect to bonded device (err %d)", err);
+			ble_manager_scan_start();
+		}
+	} else {
+		LOG_INF("No previously bonded device found");
+		ble_manager_scan_start();
 	}
 }
 

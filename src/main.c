@@ -17,7 +17,12 @@ int main(void)
         if (err) {
             LOG_ERR("Settings init failed (err %d)", err);
         }
-    }
+
+		err = settings_load();
+		if (err) {
+			LOG_ERR("Settings load failed (err %d)", err);
+		}
+	}
 
 	/* Initialize Bluetooth */
 	err = bt_enable(bt_ready_cb);
