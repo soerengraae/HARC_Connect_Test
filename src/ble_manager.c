@@ -38,7 +38,15 @@ static void get_bonded_devices(const struct bt_bond_info *info, void *user_data)
 		device->is_new_device = false;
 
 		// Add to filter accept list for auto-connect
-		bt_le_filter_accept_list_add(&device->addr);
+		int err = bt_le_filter_accept_list_add(&device->addr);
+		if (err && err != -EALREADY) {
+			LOG_ERR("Failed to add device to filter accept list (err %d)", err);
+		}
+
+		err = bt_le_set_rpa_timeout(900); // Set RPA timeout
+		if (err) {
+			LOG_WRN("Failed to set RPA timeout (err %d)", err);
+		}
 
 		char addr_str[BT_ADDR_LE_STR_LEN];
 		bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
@@ -103,7 +111,7 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			if (conn_ctx->state == CONN_STATE_BONDED) {
 				LOG_DBG("Bonded device encrypted - starting service discovery");
 				vcp_discover_start(conn_ctx);
-				battery_discover(conn_ctx);
+				// battery_discover(conn_ctx);
 			} else {
 				LOG_DBG("New device - waiting for pairing completion");
 				conn_ctx->state = CONN_STATE_PAIRING;
@@ -365,7 +373,6 @@ int ble_manager_init(void)
 	k_work_init_delayable(&security_request_work, security_request_handler);
 	k_work_init_delayable(&auto_connect_work, auto_connect_work_handler);
 	k_work_init_delayable(&auto_connect_timeout_work, auto_connect_timeout_handler);
-	k_work_init_delayable(&vcp_discovery_work, vcp_discovery_work_handler);
 
 	LOG_INF("BLE manager initialized");
 	return 0;
@@ -379,6 +386,8 @@ void bt_ready_cb(int err)
 	}
 
 	LOG_INF("Bluetooth initialized");
+
+	bt_le_filter_accept_list_clear();
 
 	/* Initialize BLE manager */
 	err = ble_manager_init();
