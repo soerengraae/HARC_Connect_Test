@@ -110,7 +110,7 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			// Only proceed with VCP if this is a reconnection (not new pairing)
 			if (conn_ctx->state == CONN_STATE_BONDED) {
 				LOG_DBG("Bonded device encrypted - starting service discovery");
-				vcp_discover_start(conn_ctx);
+				vcp_cmd_discover();
 				// battery_discover(conn_ctx);
 			} else {
 				LOG_DBG("New device - waiting for pairing completion");

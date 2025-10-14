@@ -10,6 +10,7 @@
 
 /* VCP command types */
 enum vcp_cmd_type {
+    VCP_CMD_DISCOVER,
     VCP_CMD_VOLUME_UP,
     VCP_CMD_VOLUME_DOWN,
     VCP_CMD_SET_VOLUME,
@@ -22,9 +23,7 @@ enum vcp_cmd_type {
 /* VCP command structure */
 struct vcp_cmd {
     enum vcp_cmd_type type;
-    union {
-        uint8_t volume;  // For SET_VOLUME
-    } params;
+    uint8_t d0;  // Data parameter
     uint8_t retry_count;
     sys_snode_t node;  // For linked list
 };
@@ -36,6 +35,7 @@ struct vcp_cmd {
 
 /* Public API */
 int vcp_controller_init(void);
+int vcp_cmd_discover(void);
 int vcp_cmd_volume_up(void);
 int vcp_cmd_volume_down(void);
 int vcp_cmd_set_volume(uint8_t volume);

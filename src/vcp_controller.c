@@ -95,8 +95,8 @@ static struct vcp_cmd *vcp_cmd_dequeue(void)
 static int vcp_execute_command(struct vcp_cmd *cmd)
 {
     int err = 0;
-    
-    if (!vcp_discovered || !vol_ctlr) {
+
+    if ((!vcp_discovered && cmd->type != VCP_CMD_DISCOVER) || !vol_ctlr) {
         LOG_WRN("VCP not ready");
         return -ENOTCONN;
     }
@@ -105,6 +105,9 @@ static int vcp_execute_command(struct vcp_cmd *cmd)
     LOG_DBG("Executing command type %d, security: %d", cmd->type, sec);
     
     switch (cmd->type) {
+    case VCP_CMD_DISCOVER:
+        err = bt_vcp_vol_ctlr_discover(conn_ctx->conn, &vol_ctlr);
+        break;
     case VCP_CMD_VOLUME_UP:
         err = bt_vcp_vol_ctlr_vol_up(vol_ctlr);
         break;
@@ -114,7 +117,7 @@ static int vcp_execute_command(struct vcp_cmd *cmd)
         break;
         
     case VCP_CMD_SET_VOLUME:
-        err = bt_vcp_vol_ctlr_set_vol(vol_ctlr, cmd->params.volume);
+        err = bt_vcp_vol_ctlr_set_vol(vol_ctlr, cmd->d0);
         break;
         
     case VCP_CMD_MUTE:
@@ -320,6 +323,17 @@ static void vcp_cmd_thread()
 /* Command thread */
 K_THREAD_DEFINE(vcp_cmd_thread_id, 1024, vcp_cmd_thread, NULL, NULL, NULL, 7, 0, 0);
 
+int vcp_cmd_discover(void)
+{
+    struct vcp_cmd *cmd = vcp_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+    
+    cmd->type = VCP_CMD_DISCOVER;
+    return vcp_cmd_enqueue(cmd);
+}
+
 int vcp_cmd_read_state(void)
 {
 	struct vcp_cmd *cmd = vcp_cmd_alloc();
@@ -372,7 +386,7 @@ int vcp_cmd_set_volume(uint8_t volume)
     }
     
     cmd->type = VCP_CMD_SET_VOLUME;
-    cmd->params.volume = volume;
+    cmd->d0 = volume;
     return vcp_cmd_enqueue(cmd);
 }
 
@@ -584,34 +598,4 @@ void vcp_controller_reset(void)
     vcp_cmd_in_progress = false;
     k_work_cancel_delayable(&vcp_cmd_timeout_work);
     k_work_cancel_delayable(&vcp_cmd_retry_work);  // NEW
-}
-
-void vcp_discover_start(struct connection_context *ctx)
-{
-    if (ctx->state != CONN_STATE_BONDED) {
-        LOG_WRN("Not starting VCP discovery - wrong state: %d", ctx->state);
-        return;
-    }
-
-    int vcp_err = vcp_discover(ctx->conn);
-    if (vcp_err) {
-        LOG_ERR("VCP discovery failed (err %d)", vcp_err);
-    }
-}
-
-int vcp_discover(struct bt_conn *conn)
-{
-    int err;
-    struct bt_vcp_vol_ctlr *discovered_ctlr = NULL;
-
-    bt_security_t sec = bt_conn_get_security(conn_ctx->conn);
-    LOG_DBG("Current security before VCP discover: %d", sec);
-
-    err = bt_vcp_vol_ctlr_discover(conn_ctx->conn, &discovered_ctlr);
-    if (err) {
-        return err;
-    }
-
-    LOG_DBG("VCP discovery initiated");
-    return err;
 }

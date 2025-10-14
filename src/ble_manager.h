@@ -44,6 +44,22 @@ struct connection_context {
     struct deviceInfo info;
 };
 
+/** BLE command types
+ * @brief Types of BLE commands - currently we have the VCP and Battery Reader
+ */
+enum ble_cmd_type {
+    BLE_CMD_VCP,
+    BLE_CMD_BAT
+};
+
+/* BLE command structure */
+struct ble_cmd {
+    enum ble_cmd_type type;
+    uint8_t d0;  // Data parameter
+    uint8_t retry_count;
+    sys_snode_t node;  // For linked list
+};
+
 /* BLE scanner functions */
 int ble_manager_init(void);
 void ble_manager_scan_start(void);
