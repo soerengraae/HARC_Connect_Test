@@ -248,24 +248,6 @@ int battery_read_level(struct connection_context *ctx)
 	return 0;
 }
 
-/* Get battery level */
-int battery_get_level(void)
-{
-	if (!battery_discovered)
-	{
-		return -1;
-	}
-
-	// Read battery level
-	int err = battery_read_level(conn_ctx);
-	if (err)
-	{
-		LOG_ERR("Failed to read battery level (err %d)", err);
-	}
-
-	return battery_level;
-}
-
 /* Subscribe to battery level notifications */
 int battery_subscribe_notifications(struct bt_conn *conn)
 {

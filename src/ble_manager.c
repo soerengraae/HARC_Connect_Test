@@ -13,6 +13,87 @@ static struct k_work_delayable auto_connect_work;
 static struct k_work_delayable auto_connect_timeout_work;
 static struct k_work_delayable security_request_work;
 
+/* BLE Command queue state */
+static sys_slist_t ble_cmd_queue;
+static struct k_mutex ble_queue_mutex;
+static struct k_sem ble_cmd_sem;
+static struct k_work_delayable ble_cmd_timeout_work;
+static struct ble_cmd *current_ble_cmd = NULL;
+static bool ble_cmd_in_progress = false;
+
+/* Memory pool for BLE commands */
+K_MEM_SLAB_DEFINE(ble_cmd_slab, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4);
+
+/* Forward declarations */
+static void ble_process_next_command(void);
+static void ble_cmd_timeout_handler(struct k_work *work);
+
+/* Command queue initialization */
+static int ble_queue_init(void)
+{
+    sys_slist_init(&ble_cmd_queue);
+    k_mutex_init(&ble_queue_mutex);
+    k_sem_init(&ble_cmd_sem, 0, 1);
+    k_work_init_delayable(&ble_cmd_timeout_work, ble_cmd_timeout_handler);
+
+    return 0;
+}
+
+/* Allocate a command from memory pool */
+static struct ble_cmd *ble_cmd_alloc(void)
+{
+    struct ble_cmd *cmd;
+
+    if (k_mem_slab_alloc(&ble_cmd_slab, (void **)&cmd, K_NO_WAIT) != 0) {
+        LOG_ERR("Failed to allocate BLE command - queue full");
+        return NULL;
+    }
+
+    memset(cmd, 0, sizeof(struct ble_cmd));
+    return cmd;
+}
+
+/* Free a command back to memory pool */
+static void ble_cmd_free(struct ble_cmd *cmd)
+{
+    if (cmd) {
+        k_mem_slab_free(&ble_cmd_slab, (void *)cmd);
+    }
+}
+
+/* Enqueue a command */
+static int ble_cmd_enqueue(struct ble_cmd *cmd)
+{
+    if (!cmd) {
+        return -EINVAL;
+    }
+
+    k_mutex_lock(&ble_queue_mutex, K_FOREVER);
+    sys_slist_append(&ble_cmd_queue, &cmd->node);
+    k_mutex_unlock(&ble_queue_mutex);
+
+    // Signal the processing thread
+    k_sem_give(&ble_cmd_sem);
+
+    LOG_DBG("BLE command enqueued, type: %d", cmd->type);
+    return 0;
+}
+
+/* Dequeue a command */
+static struct ble_cmd *ble_cmd_dequeue(void)
+{
+    struct ble_cmd *cmd = NULL;
+
+    k_mutex_lock(&ble_queue_mutex, K_FOREVER);
+    sys_snode_t *node = sys_slist_get(&ble_cmd_queue);
+    if (node) {
+        cmd = CONTAINER_OF(node, struct ble_cmd, node);
+    }
+    k_mutex_unlock(&ble_queue_mutex);
+
+    return cmd;
+}
+
 static void security_request_handler(struct k_work *work)
 {
     if (!conn_ctx->conn) {
@@ -110,8 +191,8 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			// Only proceed with VCP if this is a reconnection (not new pairing)
 			if (conn_ctx->state == CONN_STATE_BONDED) {
 				LOG_DBG("Bonded device encrypted - starting service discovery");
-				vcp_cmd_discover();
-				// battery_discover(conn_ctx);
+				ble_cmd_vcp_discover();
+				ble_cmd_bas_discover();
 			} else {
 				LOG_DBG("New device - waiting for pairing completion");
 				conn_ctx->state = CONN_STATE_PAIRING;
@@ -186,9 +267,10 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 		conn_ctx->conn = NULL;
 	}
 
+	ble_manager_cmd_queue_reset();
 	vcp_controller_reset();
 	battery_reader_reset();
-	
+
 	if (conn_ctx->state == CONN_STATE_BONDED) {
 		conn_ctx->state = CONN_STATE_DISCONNECTED;
 		k_work_schedule(&auto_connect_work, K_MSEC(0));
@@ -357,9 +439,9 @@ int ble_manager_init(void)
 {
 	bt_conn_auth_info_cb_register(&auth_info_callbacks);
 
-	int err = vcp_controller_init();
+	int err = ble_queue_init();
 	if (err) {
-		LOG_ERR("VCP controller init failed (err %d)", err);
+		LOG_ERR("BLE queue init failed (err %d)", err);
 		return err;
 	}
 
@@ -443,3 +525,329 @@ bool is_bonded_device(const bt_addr_le_t *addr)
 
 	return check_data.found;
 }
+
+/* Execute a single BLE command - dispatches to appropriate subsystem */
+static int ble_execute_command(struct ble_cmd *cmd)
+{
+    int err = 0;
+
+    LOG_DBG("Executing BLE command type %d", cmd->type);
+
+    switch (cmd->type) {
+    /* VCP commands - route to VCP controller (has its own queue & completion handling) */
+    case BLE_CMD_VCP_DISCOVER:
+        err = vcp_cmd_discover();
+        break;
+    case BLE_CMD_VCP_VOLUME_UP:
+        err = vcp_cmd_volume_up();
+        break;
+    case BLE_CMD_VCP_VOLUME_DOWN:
+        err = vcp_cmd_volume_down();
+        break;
+    case BLE_CMD_VCP_SET_VOLUME:
+        err = vcp_cmd_set_volume(cmd->d0);
+        break;
+    case BLE_CMD_VCP_MUTE:
+        err = vcp_cmd_mute();
+        break;
+    case BLE_CMD_VCP_UNMUTE:
+        err = vcp_cmd_unmute();
+        break;
+    case BLE_CMD_VCP_READ_STATE:
+        err = vcp_cmd_read_state();
+        break;
+    case BLE_CMD_VCP_READ_FLAGS:
+        err = vcp_cmd_read_flags();
+        break;
+
+    /* Battery Service commands - execute directly via GATT */
+    case BLE_CMD_BAS_DISCOVER:
+        err = battery_discover(conn_ctx);
+        break;
+    case BLE_CMD_BAS_READ_LEVEL:
+        err = battery_read_level(conn_ctx);
+        break;
+
+    default:
+        LOG_ERR("Unknown BLE command type: %d", cmd->type);
+        err = -EINVAL;
+        break;
+    }
+
+    if (err) {
+        LOG_ERR("BLE command execution failed: type=%d, err=%d", cmd->type, err);
+    } else {
+        LOG_DBG("BLE command initiated successfully: type=%d", cmd->type);
+    }
+
+    return err;
+}
+
+/* Handle command timeout - safety net only, VCP handles retries */
+static void ble_cmd_timeout_handler(struct k_work *work)
+{
+    if (!current_ble_cmd) {
+        LOG_WRN("Timeout but no current command");
+        ble_cmd_in_progress = false;
+        ble_process_next_command();
+        return;
+    }
+
+    LOG_ERR("BLE command timeout (safety net): type=%d - VCP subsystem may have hung",
+            current_ble_cmd->type);
+
+    // Free the command and move on (VCP already did retries if appropriate)
+    ble_cmd_free(current_ble_cmd);
+    current_ble_cmd = NULL;
+    ble_cmd_in_progress = false;
+
+    // Process next command
+    ble_process_next_command();
+}
+
+/* Mark command as complete (called when subsystem command completes) */
+void ble_cmd_complete(int err)
+{
+    // Cancel timeout
+    k_work_cancel_delayable(&ble_cmd_timeout_work);
+
+    if (!current_ble_cmd) {
+        LOG_WRN("Command complete but no current command");
+        return;
+    }
+
+    if (err) {
+        LOG_ERR("BLE command failed: type=%d, err=%d (VCP already retried if appropriate)",
+                current_ble_cmd->type, err);
+    } else {
+        LOG_DBG("BLE command completed successfully: type=%d", current_ble_cmd->type);
+    }
+
+    // Free the command
+    ble_cmd_free(current_ble_cmd);
+    current_ble_cmd = NULL;
+    ble_cmd_in_progress = false;
+
+    // Process next command
+    ble_process_next_command();
+}
+
+/* Process the next command in the queue */
+static void ble_process_next_command(void)
+{
+    if (ble_cmd_in_progress) {
+        LOG_DBG("BLE command already in progress, skipping");
+        return;
+    }
+
+    struct ble_cmd *cmd = ble_cmd_dequeue();
+    if (!cmd) {
+        LOG_DBG("No BLE commands in queue");
+        return;
+    }
+
+    current_ble_cmd = cmd;
+    ble_cmd_in_progress = true;
+
+    // Check if this is a BAS command (they complete immediately since they just queue GATT ops)
+    bool is_bas_cmd = (cmd->type == BLE_CMD_BAS_DISCOVER ||
+                       cmd->type == BLE_CMD_BAS_READ_LEVEL);
+
+    // Execute the command
+    int err = ble_execute_command(cmd);
+
+    if (err) {
+        // Command failed to initiate
+        LOG_ERR("Failed to initiate BLE command: %d", err);
+
+        if (err == -ENOTCONN || err == -EINVAL) {
+            // Not ready, re-queue and try later
+            k_mutex_lock(&ble_queue_mutex, K_FOREVER);
+            sys_slist_prepend(&ble_cmd_queue, &cmd->node);
+            k_mutex_unlock(&ble_queue_mutex);
+            current_ble_cmd = NULL;
+            ble_cmd_in_progress = false;
+
+            // Retry after delay
+            k_work_schedule(&ble_cmd_timeout_work, K_MSEC(1000));
+        } else {
+            // Other error, drop command
+            ble_cmd_free(cmd);
+            current_ble_cmd = NULL;
+            ble_cmd_in_progress = false;
+
+            // Try next command
+            ble_process_next_command();
+        }
+        return;
+    }
+
+    // BAS commands complete immediately since they just queue GATT operations
+    // VCP commands wait for completion callback from VCP subsystem
+    if (is_bas_cmd) {
+        LOG_DBG("BAS command completed immediately: type=%d", cmd->type);
+        ble_cmd_free(cmd);
+        current_ble_cmd = NULL;
+        ble_cmd_in_progress = false;
+
+        // Process next command
+        ble_process_next_command();
+    } else {
+        // VCP command - wait for completion callback with timeout
+        LOG_DBG("VCP command enqueued, waiting for completion: type=%d", cmd->type);
+        k_work_schedule(&ble_cmd_timeout_work, K_MSEC(BLE_CMD_TIMEOUT_MS));
+    }
+}
+
+/* Public API - VCP Commands */
+int ble_cmd_vcp_discover(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_DISCOVER;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_vcp_volume_up(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_VOLUME_UP;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_vcp_volume_down(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_VOLUME_DOWN;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_vcp_set_volume(uint8_t volume)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_SET_VOLUME;
+    cmd->d0 = volume;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_vcp_mute(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_MUTE;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_vcp_unmute(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_UNMUTE;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_vcp_read_state(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_READ_STATE;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_vcp_read_flags(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_VCP_READ_FLAGS;
+    return ble_cmd_enqueue(cmd);
+}
+
+/* Public API - Battery Service Commands */
+int ble_cmd_bas_discover(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_BAS_DISCOVER;
+    return ble_cmd_enqueue(cmd);
+}
+
+int ble_cmd_bas_read_level(void)
+{
+    struct ble_cmd *cmd = ble_cmd_alloc();
+    if (!cmd) {
+        return -ENOMEM;
+    }
+
+    cmd->type = BLE_CMD_BAS_READ_LEVEL;
+    return ble_cmd_enqueue(cmd);
+}
+
+/* Reset BLE command queue */
+void ble_manager_cmd_queue_reset(void)
+{
+    // Clear command queue
+    k_mutex_lock(&ble_queue_mutex, K_FOREVER);
+    struct ble_cmd *cmd;
+    while ((cmd = (struct ble_cmd *)sys_slist_get(&ble_cmd_queue)) != NULL) {
+        ble_cmd_free(cmd);
+    }
+    k_mutex_unlock(&ble_queue_mutex);
+
+    // Cancel any pending command
+    if (current_ble_cmd) {
+        ble_cmd_free(current_ble_cmd);
+        current_ble_cmd = NULL;
+    }
+
+    ble_cmd_in_progress = false;
+    k_work_cancel_delayable(&ble_cmd_timeout_work);
+
+    LOG_DBG("BLE command queue reset");
+}
+
+/* Command processing thread */
+static void ble_cmd_thread(void)
+{
+    LOG_INF("BLE command thread started");
+
+    while (1) {
+        // Wait for a command to be enqueued
+        k_sem_take(&ble_cmd_sem, K_FOREVER);
+
+        // Process the next command
+        ble_process_next_command();
+    }
+}
+
+/* Command thread */
+K_THREAD_DEFINE(ble_cmd_thread_id, 1024, ble_cmd_thread, NULL, NULL, NULL, 7, 0, 0);

@@ -33,7 +33,6 @@ struct vcp_cmd {
 #define VCP_CMD_MAX_RETRIES 3
 #define VCP_CMD_TIMEOUT_MS 5000
 
-/* Public API */
 int vcp_controller_init(void);
 int vcp_cmd_discover(void);
 int vcp_cmd_volume_up(void);
@@ -41,11 +40,9 @@ int vcp_cmd_volume_down(void);
 int vcp_cmd_set_volume(uint8_t volume);
 int vcp_cmd_mute(void);
 int vcp_cmd_unmute(void);
+int vcp_cmd_read_state(void);
+int vcp_cmd_read_flags(void);
 void vcp_controller_reset(void);
-void vcp_discover_start(struct connection_context *ctx);
-
-/* Internal functions */
-int vcp_discover(struct bt_conn *conn);
 
 /* Global state */
 extern struct bt_vcp_vol_ctlr *vol_ctlr;

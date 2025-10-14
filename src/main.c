@@ -24,6 +24,12 @@ int main(void)
         }
     }
 
+    err = vcp_controller_init();
+	if (err) {
+		LOG_ERR("VCP controller init failed (err %d)", err);
+		return err;
+	}
+
     /* Initialize Bluetooth */
     err = bt_enable(bt_ready_cb);
     if (err) {
@@ -38,16 +44,16 @@ int main(void)
             LOG_DBG("Queueing VCP Volume Change");
             
             if (volume_direction) {
-                vcp_cmd_volume_up();
+                ble_cmd_vcp_volume_up();
             } else {
-                vcp_cmd_volume_down();
+                ble_cmd_vcp_volume_down();
             }
         }
 
         if (battery_discovered) {
-            int level = battery_get_level();
-            if (level >= 0) {
-                LOG_INF("Battery level: %d%%", level);
+            ble_cmd_bas_read_level();
+            if (battery_level >= 0) {
+                LOG_INF("Battery level: %d%%", battery_level);
             } else {
                 LOG_ERR("Battery level not available");
             }

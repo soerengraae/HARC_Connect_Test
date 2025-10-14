@@ -44,21 +44,35 @@ struct connection_context {
     struct deviceInfo info;
 };
 
-/** BLE command types
- * @brief Types of BLE commands - currently we have the VCP and Battery Reader
- */
+/* BLE command types */
 enum ble_cmd_type {
-    BLE_CMD_VCP,
-    BLE_CMD_BAT
+    /* VCP commands */
+    BLE_CMD_VCP_DISCOVER,
+    BLE_CMD_VCP_VOLUME_UP,
+    BLE_CMD_VCP_VOLUME_DOWN,
+    BLE_CMD_VCP_SET_VOLUME,
+    BLE_CMD_VCP_MUTE,
+    BLE_CMD_VCP_UNMUTE,
+    BLE_CMD_VCP_READ_STATE,
+    BLE_CMD_VCP_READ_FLAGS,
+
+    /* Battery Service commands */
+    BLE_CMD_BAS_DISCOVER,
+    BLE_CMD_BAS_READ_LEVEL,
 };
 
 /* BLE command structure */
 struct ble_cmd {
     enum ble_cmd_type type;
-    uint8_t d0;  // Data parameter
+    uint8_t d0;  // Data parameter (e.g., volume level)
     uint8_t retry_count;
     sys_snode_t node;  // For linked list
 };
+
+/* Command queue configuration */
+#define BLE_CMD_QUEUE_SIZE 10
+#define BLE_CMD_MAX_RETRIES 3
+#define BLE_CMD_TIMEOUT_MS 5000
 
 /* BLE scanner functions */
 int ble_manager_init(void);
@@ -66,6 +80,24 @@ void ble_manager_scan_start(void);
 void bt_ready_cb(int err);
 bool is_bonded_device(const bt_addr_le_t *addr);
 void disconnect(struct bt_conn *conn, void *data);
+
+/* BLE command queue API */
+int ble_cmd_vcp_discover(void);
+int ble_cmd_vcp_volume_up(void);
+int ble_cmd_vcp_volume_down(void);
+int ble_cmd_vcp_set_volume(uint8_t volume);
+int ble_cmd_vcp_mute(void);
+int ble_cmd_vcp_unmute(void);
+int ble_cmd_vcp_read_state(void);
+int ble_cmd_vcp_read_flags(void);
+
+int ble_cmd_bas_discover(void);
+int ble_cmd_bas_read_level(void);
+
+void ble_manager_cmd_queue_reset(void);
+
+/* Command completion notification from subsystems */
+void ble_cmd_complete(int err);
 
 /* Connection management */
 extern struct bt_conn_cb conn_callbacks;

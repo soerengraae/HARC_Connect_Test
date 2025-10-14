@@ -220,38 +220,41 @@ static void vcp_cmd_complete(int err)
 {
     // Cancel timeout
     k_work_cancel_delayable(&vcp_cmd_timeout_work);
-    
+
     if (!current_cmd) {
         LOG_WRN("Command complete but no current command");
         return;
     }
-    
+
     if (err) {
         LOG_WRN("Command failed: type=%d, err=%d, retry=%d/%d",
                 current_cmd->type, err, current_cmd->retry_count, VCP_CMD_MAX_RETRIES);
-        
+
         // Retry logic for certain errors
         if ((err == 15 || err == 128) && current_cmd->retry_count < VCP_CMD_MAX_RETRIES) {
             current_cmd->retry_count++;
-            LOG_INF("Retrying command type %d (attempt %d)", 
+            LOG_INF("Retrying command type %d (attempt %d)",
                     current_cmd->type, current_cmd->retry_count);
-            
+
             // Keep vcp_cmd_in_progress = true and current_cmd valid
             // Schedule retry after delay
             k_work_schedule(&vcp_cmd_retry_work, K_MSEC(500));
             return;
         }
-        
+
         LOG_ERR("Command failed permanently: type=%d", current_cmd->type);
     } else {
         LOG_DBG("Command completed successfully: type=%d", current_cmd->type);
     }
-    
+
     // Free the command
     vcp_cmd_free(current_cmd);
     current_cmd = NULL;
     vcp_cmd_in_progress = false;
-    
+
+    // Notify BLE manager of completion
+    ble_cmd_complete(err);
+
     // Process next command
     vcp_process_next_command();
 }
@@ -580,7 +583,7 @@ void vcp_controller_reset(void)
 {
     vcp_discovered = false;
     vol_ctlr = NULL;
-    
+
     // Clear command queue
     k_mutex_lock(&vcp_queue_mutex, K_FOREVER);
     struct vcp_cmd *cmd;
@@ -588,14 +591,14 @@ void vcp_controller_reset(void)
         vcp_cmd_free(cmd);
     }
     k_mutex_unlock(&vcp_queue_mutex);
-    
+
     // Cancel any pending command
     if (current_cmd) {
         vcp_cmd_free(current_cmd);
         current_cmd = NULL;
     }
-    
+
     vcp_cmd_in_progress = false;
     k_work_cancel_delayable(&vcp_cmd_timeout_work);
-    k_work_cancel_delayable(&vcp_cmd_retry_work);  // NEW
+    k_work_cancel_delayable(&vcp_cmd_retry_work);
 }
