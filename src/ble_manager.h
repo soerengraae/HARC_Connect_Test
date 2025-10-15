@@ -12,7 +12,8 @@
  * @brief Helper macro for fulfilling scanning parameters
  * according to the CAP Connection procedures "Ready for Audio related Peripheral" mode.
  * 
- * This will save power when compared to the default @ref BT_LE_SCAN_ACTIVE
+ * This will save power when compared to the default @ref BT_LE_SCAN_ACTIVE.
+ * It's only used when scanning for a bondable device. If a device is already bonded, we use 100% duty cycle to scan and connect.
  */
 #define BT_LE_SCAN_ACTIVE_CAP_RAP BT_LE_SCAN_PARAM(BT_LE_SCAN_TYPE_ACTIVE, \
             BT_LE_SCAN_OPT_FILTER_DUPLICATE, \

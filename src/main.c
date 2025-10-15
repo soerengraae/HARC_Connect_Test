@@ -44,11 +44,9 @@ int main(void)
             LOG_DBG("Queueing VCP Volume Change");
             if (volume_direction) {
                 ble_cmd_vcp_volume_up();
-                ble_cmd_vcp_read_state();
                 ble_cmd_vcp_volume_up();
             } else {
                 ble_cmd_vcp_volume_down();
-                ble_cmd_vcp_read_state();
                 ble_cmd_vcp_volume_down();
             }
         }

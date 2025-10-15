@@ -234,8 +234,7 @@ static void vcp_cmd_complete(int err)
         LOG_WRN("Command failed: type=%d, err=%d, retry=%d/%d",
                 current_cmd->type, err, (current_cmd->retry_count)+1, VCP_CMD_MAX_RETRIES);
 
-        if (current_cmd->retry_count < VCP_CMD_MAX_RETRIES) {
-            current_cmd->retry_count++;
+        if (++(current_cmd->retry_count) < VCP_CMD_MAX_RETRIES) {
             LOG_DBG("Retrying command type %d (attempt %d)",
                     current_cmd->type, current_cmd->retry_count);
 
