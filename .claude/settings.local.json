@@ -4,8 +4,7 @@
       "WebSearch",
       "WebFetch(domain:docs.zephyrproject.org)",
       "Read(//c/Users/soere/zephyrproject/zephyr/include/zephyr/bluetooth/**)",
-      "Read(//c/Users/soere/zephyrproject/zephyr/**)",
-      "Read(//Users/sorengraae/**)"
+      "Read(//c/Users/soere/zephyrproject/zephyr/**)"
     ],
     "deny": [],
     "ask": []

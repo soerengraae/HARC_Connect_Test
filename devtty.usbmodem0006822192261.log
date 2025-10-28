@@ -1,1023 +1,1023 @@
-[00:05:26.240,936] <inf> vcp_controller: VCP state - Volume: 63%, Mute: 0
-[00:05:26.340,454] <inf> battery_reader: Battery level read: 100%
-[00:05:26.340,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:05:26.340,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:05:30.280,242] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:30.280,273] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:30.280,273] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:05:30.280,334] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:30.280,364] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:30.280,364] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:30.340,454] <inf> vcp_controller: Volume down success
-[00:05:30.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:30.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:30.340,515] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:30.340,545] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:30.340,972] <inf> vcp_controller: VCP state - Volume: 54%, Mute: 0
-[00:05:30.790,466] <err> vcp_controller: VCP volume down error (err 128)
-[00:05:30.790,496] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:05:31.390,441] <inf> vcp_controller: Volume down success
-[00:05:31.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:31.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:05:31.390,563] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:05:31.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:05:31.390,960] <inf> vcp_controller: VCP state - Volume: 45%, Mute: 0
-[00:05:31.540,435] <inf> battery_reader: Battery level read: 100%
-[00:05:31.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:05:31.540,496] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:05:35.280,395] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:35.280,426] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:35.280,426] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:05:35.280,487] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:35.280,517] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:35.280,517] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:35.840,454] <inf> vcp_controller: Volume down success
-[00:05:35.840,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:35.840,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:35.840,515] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:35.840,545] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:35.840,972] <inf> vcp_controller: VCP state - Volume: 36%, Mute: 0
-[00:05:36.140,472] <err> vcp_controller: VCP volume down error (err 128)
-[00:05:36.140,502] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:05:36.740,447] <inf> vcp_controller: Volume down success
-[00:05:36.740,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:36.740,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:05:36.740,570] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:05:36.740,570] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:05:36.740,936] <inf> vcp_controller: VCP state - Volume: 27%, Mute: 0
-[00:05:36.840,454] <inf> battery_reader: Battery level read: 100%
-[00:05:36.840,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:05:36.840,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:05:40.280,548] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:40.280,578] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:40.280,578] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:05:40.280,639] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:40.280,670] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:40.280,670] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:40.440,460] <inf> vcp_controller: Volume down success
-[00:05:40.440,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:40.440,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:40.440,521] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:40.440,551] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:40.440,979] <inf> vcp_controller: VCP state - Volume: 18%, Mute: 0
-[00:05:40.840,454] <err> vcp_controller: VCP volume down error (err 128)
-[00:05:40.840,484] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:05:41.440,460] <inf> vcp_controller: Volume down success
-[00:05:41.440,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:41.440,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:05:41.440,551] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:05:41.440,582] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:05:41.440,948] <inf> vcp_controller: VCP state - Volume: 9%, Mute: 0
-[00:05:41.690,460] <inf> battery_reader: Battery level read: 100%
-[00:05:41.690,460] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:05:41.690,490] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:05:45.280,700] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:45.280,731] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:05:45.280,731] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:05:45.280,792] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:45.280,822] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:45.280,822] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:45.340,454] <inf> vcp_controller: Volume down success
-[00:05:45.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:45.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:05:45.340,515] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:05:45.340,545] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:05:45.340,972] <inf> vcp_controller: VCP state - Volume: 0%, Mute: 0
-[00:05:45.640,472] <err> vcp_controller: VCP volume down error (err 128)
-[00:05:45.640,502] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:05:46.240,447] <inf> vcp_controller: Volume down success
-[00:05:46.240,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:05:46.240,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:05:46.240,570] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:05:46.240,570] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:05:46.240,936] <inf> vcp_controller: VCP state - Volume: 0%, Mute: 0
-[00:05:46.340,454] <inf> battery_reader: Battery level read: 100%
-[00:05:46.340,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:05:46.340,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:05:50.280,853] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:05:50.280,883] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:05:50.280,883] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:05:50.280,944] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:05:50.280,975] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:05:50.280,975] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:05:50.490,447] <inf> vcp_controller: Volume up success
-[00:05:50.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:05:50.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:05:50.490,509] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:05:50.490,539] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:05:50.490,966] <inf> vcp_controller: VCP state - Volume: 9%, Mute: 0
-[00:05:50.790,466] <err> vcp_controller: VCP volume up error (err 128)
-[00:05:50.790,496] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:05:51.490,447] <inf> vcp_controller: Volume up success
-[00:05:51.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:05:51.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:05:51.490,570] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:05:51.490,570] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:05:51.490,936] <inf> vcp_controller: VCP state - Volume: 18%, Mute: 0
-[00:05:51.590,454] <inf> battery_reader: Battery level read: 100%
-[00:05:51.590,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:05:51.590,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:05:55.281,005] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:05:55.281,036] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:05:55.281,036] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:05:55.281,097] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:05:55.281,127] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:05:55.281,127] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:05:55.390,441] <inf> vcp_controller: Volume up success
-[00:05:55.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:05:55.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:05:55.390,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:05:55.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:05:55.390,960] <inf> vcp_controller: VCP state - Volume: 27%, Mute: 0
-[00:05:55.740,478] <err> vcp_controller: VCP volume up error (err 128)
-[00:05:55.740,509] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:05:56.390,441] <inf> vcp_controller: Volume up success
-[00:05:56.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:05:56.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:05:56.390,563] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:05:56.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:05:56.390,960] <inf> vcp_controller: VCP state - Volume: 36%, Mute: 0
-[00:05:56.490,447] <inf> battery_reader: Battery level read: 100%
-[00:05:56.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:05:56.490,509] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:00.281,158] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:00.281,188] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:00.281,188] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:00.281,250] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:00.281,280] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:00.281,280] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:00.340,454] <inf> vcp_controller: Volume up success
-[00:06:00.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:00.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:00.340,515] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:00.340,545] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:00.340,972] <inf> vcp_controller: VCP state - Volume: 45%, Mute: 0
-[00:06:00.690,460] <err> vcp_controller: VCP volume up error (err 128)
-[00:06:00.690,490] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:06:01.290,466] <inf> vcp_controller: Volume up success
-[00:06:01.290,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:01.290,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:01.290,557] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:01.290,588] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:01.290,954] <inf> vcp_controller: VCP state - Volume: 54%, Mute: 0
-[00:06:01.390,441] <inf> battery_reader: Battery level read: 100%
-[00:06:01.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:01.390,502] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:05.281,311] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:05.281,341] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:05.281,341] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:05.281,402] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:05.281,433] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:05.281,433] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:05.390,441] <inf> vcp_controller: Volume up success
-[00:06:05.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:05.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:05.390,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:05.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:05.390,960] <inf> vcp_controller: VCP state - Volume: 63%, Mute: 0
-[00:06:05.690,460] <err> vcp_controller: VCP volume up error (err 128)
-[00:06:05.690,490] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:06:06.290,466] <inf> vcp_controller: Volume up success
-[00:06:06.290,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:06.290,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:06.290,557] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:06.290,588] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:06.290,954] <inf> vcp_controller: VCP state - Volume: 72%, Mute: 0
-[00:06:06.390,441] <inf> battery_reader: Battery level read: 100%
-[00:06:06.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:06.390,502] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:10.281,463] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:10.281,494] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:10.281,494] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:10.281,555] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:10.281,585] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:10.281,585] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:10.540,466] <inf> vcp_controller: Volume up success
-[00:06:10.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:10.540,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:10.540,527] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:10.540,557] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:10.540,985] <inf> vcp_controller: VCP state - Volume: 81%, Mute: 0
-[00:06:10.840,454] <err> vcp_controller: VCP volume up error (err 128)
-[00:06:10.840,484] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:06:11.490,447] <inf> vcp_controller: Volume up success
-[00:06:11.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:11.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:11.490,570] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:11.490,570] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:11.490,936] <inf> vcp_controller: VCP state - Volume: 90%, Mute: 0
-[00:06:11.590,454] <inf> battery_reader: Battery level read: 100%
-[00:06:11.590,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:11.590,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:15.281,616] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:15.281,646] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:15.281,646] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:15.281,707] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:15.281,738] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:15.281,738] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:15.390,441] <inf> vcp_controller: Volume up success
-[00:06:15.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:15.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:15.390,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:15.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:15.390,960] <inf> vcp_controller: VCP state - Volume: 99%, Mute: 0
-[00:06:15.690,460] <err> vcp_controller: VCP volume up error (err 128)
-[00:06:15.690,490] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:06:16.290,466] <inf> vcp_controller: Volume up success
-[00:06:16.290,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:16.290,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:16.290,557] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:16.290,588] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:16.290,954] <inf> vcp_controller: VCP state - Volume: 100%, Mute: 0
-[00:06:16.390,441] <inf> battery_reader: Battery level read: 100%
-[00:06:16.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:16.390,502] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:20.281,768] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:20.281,799] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:20.281,799] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:20.281,860] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:20.281,890] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:20.281,890] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:20.440,460] <inf> vcp_controller: Volume down success
-[00:06:20.440,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:20.440,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:20.440,521] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:20.440,551] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:20.440,979] <inf> vcp_controller: VCP state - Volume: 90%, Mute: 0
-[00:06:20.740,478] <err> vcp_controller: VCP volume down error (err 128)
-[00:06:20.740,509] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:06:21.340,454] <inf> vcp_controller: Volume down success
-[00:06:21.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:21.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:21.340,576] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:21.340,576] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:21.340,942] <inf> vcp_controller: VCP state - Volume: 81%, Mute: 0
-[00:06:21.440,460] <inf> battery_reader: Battery level read: 100%
-[00:06:21.440,460] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:21.440,490] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:25.281,921] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:25.281,951] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:25.281,951] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:25.282,012] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:25.282,043] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:25.282,043] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:25.490,447] <inf> vcp_controller: Volume down success
-[00:06:25.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:25.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:25.490,509] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:25.490,539] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:25.490,966] <inf> vcp_controller: VCP state - Volume: 72%, Mute: 0
-[00:06:25.890,472] <err> vcp_controller: VCP volume down error (err 128)
-[00:06:25.890,502] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:06:26.490,447] <inf> vcp_controller: Volume down success
-[00:06:26.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:26.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:26.490,570] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:26.490,570] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:26.490,936] <inf> vcp_controller: VCP state - Volume: 63%, Mute: 0
-[00:06:26.590,454] <inf> battery_reader: Battery level read: 100%
-[00:06:26.590,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:26.590,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:30.282,073] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:30.282,104] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:30.282,104] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:30.282,165] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:30.282,196] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:30.282,196] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:30.590,454] <inf> vcp_controller: Volume down success
-[00:06:30.590,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:30.590,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:30.590,515] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:30.590,545] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:30.590,972] <inf> vcp_controller: VCP state - Volume: 54%, Mute: 0
-[00:06:30.890,472] <err> vcp_controller: VCP volume down error (err 128)
-[00:06:30.890,502] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:06:31.590,454] <inf> vcp_controller: Volume down success
-[00:06:31.590,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:31.590,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:31.590,576] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:31.590,576] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:31.590,942] <inf> vcp_controller: VCP state - Volume: 45%, Mute: 0
-[00:06:31.840,454] <inf> battery_reader: Battery level read: 100%
-[00:06:31.840,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:31.840,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:35.282,226] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:35.282,257] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:35.282,257] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:35.282,318] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:35.282,348] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:35.282,348] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:35.540,466] <inf> vcp_controller: Volume down success
-[00:06:35.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:35.540,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:35.540,527] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:35.540,557] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:35.540,985] <inf> vcp_controller: VCP state - Volume: 36%, Mute: 0
-[00:06:35.890,472] <err> vcp_controller: VCP volume down error (err 128)
-[00:06:35.890,502] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:06:36.540,466] <inf> vcp_controller: Volume down success
-[00:06:36.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:36.540,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:36.540,557] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:36.540,588] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:36.540,954] <inf> vcp_controller: VCP state - Volume: 27%, Mute: 0
-[00:06:36.640,441] <inf> battery_reader: Battery level read: 100%
-[00:06:36.640,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:36.640,502] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:40.282,379] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:40.282,409] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:40.282,409] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:40.282,470] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:40.282,501] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:40.282,501] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:40.490,447] <inf> vcp_controller: Volume down success
-[00:06:40.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:40.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:40.490,509] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:40.490,539] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:40.490,966] <inf> vcp_controller: VCP state - Volume: 18%, Mute: 0
-[00:06:40.790,466] <err> vcp_controller: VCP volume down error (err 128)
-[00:06:40.790,496] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:06:41.390,441] <inf> vcp_controller: Volume down success
-[00:06:41.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:41.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:41.390,563] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:41.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:41.390,960] <inf> vcp_controller: VCP state - Volume: 9%, Mute: 0
-[00:06:41.490,447] <inf> battery_reader: Battery level read: 100%
-[00:06:41.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:41.490,509] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:45.282,531] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:45.282,562] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:06:45.282,562] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:45.282,623] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:45.282,653] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:45.282,653] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:45.540,466] <inf> vcp_controller: Volume down success
-[00:06:45.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:45.540,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:06:45.540,527] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:06:45.540,557] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:06:45.540,985] <inf> vcp_controller: VCP state - Volume: 0%, Mute: 0
-[00:06:45.840,454] <err> vcp_controller: VCP volume down error (err 128)
-[00:06:45.840,484] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:06:46.440,460] <inf> vcp_controller: Volume down success
-[00:06:46.440,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:06:46.440,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:46.440,551] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:46.440,582] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:46.440,948] <inf> vcp_controller: VCP state - Volume: 0%, Mute: 0
-[00:06:46.540,435] <inf> battery_reader: Battery level read: 100%
-[00:06:46.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:46.540,496] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:50.282,684] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:50.282,714] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:50.282,714] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:50.282,775] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:50.282,806] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:50.282,806] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:50.340,454] <inf> vcp_controller: Volume up success
-[00:06:50.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:50.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:50.340,515] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:50.340,545] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:50.340,972] <inf> vcp_controller: VCP state - Volume: 9%, Mute: 0
-[00:06:50.640,472] <err> vcp_controller: VCP volume up error (err 128)
-[00:06:50.640,502] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:06:51.240,447] <inf> vcp_controller: Volume up success
-[00:06:51.240,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:51.240,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:51.240,570] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:51.240,570] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:51.240,936] <inf> vcp_controller: VCP state - Volume: 18%, Mute: 0
-[00:06:51.340,454] <inf> battery_reader: Battery level read: 100%
-[00:06:51.340,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:51.340,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:06:55.282,836] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:55.282,867] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:06:55.282,867] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:06:55.282,928] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:55.282,958] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:55.282,958] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:55.390,441] <inf> vcp_controller: Volume up success
-[00:06:55.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:55.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:06:55.390,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:06:55.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:06:55.390,960] <inf> vcp_controller: VCP state - Volume: 27%, Mute: 0
-[00:06:55.740,478] <err> vcp_controller: VCP volume up error (err 128)
-[00:06:55.740,509] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:06:56.340,881] <inf> vcp_controller: Volume up success
-[00:06:56.340,911] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:06:56.340,942] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:06:56.341,003] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:06:56.341,003] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:06:56.341,400] <inf> vcp_controller: VCP state - Volume: 36%, Mute: 0
-[00:06:56.440,460] <inf> battery_reader: Battery level read: 100%
-[00:06:56.440,460] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:06:56.440,490] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:00.282,989] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:00.283,020] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:00.283,020] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:00.283,081] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:00.283,111] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:00.283,111] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:01.040,466] <inf> vcp_controller: Volume up success
-[00:07:01.040,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:01.040,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:01.040,527] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:01.040,557] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:01.040,985] <inf> vcp_controller: VCP state - Volume: 45%, Mute: 0
-[00:07:01.340,454] <err> vcp_controller: VCP volume up error (err 128)
-[00:07:01.340,484] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:07:01.940,460] <inf> vcp_controller: Volume up success
-[00:07:01.940,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:01.940,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:01.940,551] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:01.940,582] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:01.940,948] <inf> vcp_controller: VCP state - Volume: 54%, Mute: 0
-[00:07:02.040,435] <inf> battery_reader: Battery level read: 100%
-[00:07:02.040,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:02.040,496] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:05.283,142] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:05.283,172] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:05.283,172] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:05.283,233] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:05.283,264] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:05.283,264] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:05.490,447] <inf> vcp_controller: Volume up success
-[00:07:05.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:05.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:05.490,509] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:05.490,539] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:05.490,966] <inf> vcp_controller: VCP state - Volume: 63%, Mute: 0
-[00:07:05.940,460] <err> vcp_controller: VCP volume up error (err 128)
-[00:07:05.940,490] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:07:06.790,466] <inf> vcp_controller: Volume up success
-[00:07:06.790,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:06.790,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:06.790,557] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:06.790,588] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:06.790,954] <inf> vcp_controller: VCP state - Volume: 72%, Mute: 0
-[00:07:07.040,435] <inf> battery_reader: Battery level read: 100%
-[00:07:07.040,496] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:07.040,496] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:10.283,294] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:10.283,325] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:10.283,325] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:10.283,386] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:10.283,416] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:10.283,416] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:10.490,447] <inf> vcp_controller: Volume up success
-[00:07:10.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:10.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:10.490,509] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:10.490,539] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:10.490,966] <inf> vcp_controller: VCP state - Volume: 81%, Mute: 0
-[00:07:10.790,466] <err> vcp_controller: VCP volume up error (err 128)
-[00:07:10.790,496] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:07:11.390,441] <inf> vcp_controller: Volume up success
-[00:07:11.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:11.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:11.390,563] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:11.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:11.390,960] <inf> vcp_controller: VCP state - Volume: 90%, Mute: 0
-[00:07:11.490,447] <inf> battery_reader: Battery level read: 100%
-[00:07:11.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:11.490,509] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:15.283,447] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:15.283,477] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:15.283,477] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:15.283,538] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:15.283,569] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:15.283,569] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:15.540,466] <inf> vcp_controller: Volume up success
-[00:07:15.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:15.540,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:15.540,527] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:15.540,557] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:15.540,985] <inf> vcp_controller: VCP state - Volume: 99%, Mute: 0
-[00:07:15.890,472] <err> vcp_controller: VCP volume up error (err 128)
-[00:07:15.890,502] <wrn> vcp_controller: Command failed: type=1, err=128, retry=1/3
-[00:07:16.490,447] <inf> vcp_controller: Volume up success
-[00:07:16.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:16.490,509] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:16.490,570] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:16.490,570] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:16.490,936] <inf> vcp_controller: VCP state - Volume: 100%, Mute: 0
-[00:07:16.590,454] <inf> battery_reader: Battery level read: 100%
-[00:07:16.590,454] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:16.590,515] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:20.283,599] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:20.283,630] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:20.283,630] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:20.283,691] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:20.283,721] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:20.283,752] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:20.440,460] <inf> vcp_controller: Volume down success
-[00:07:20.440,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:20.440,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:20.440,521] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:20.440,551] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:20.440,979] <inf> vcp_controller: VCP state - Volume: 90%, Mute: 0
-[00:07:20.740,478] <err> vcp_controller: VCP volume down error (err 128)
-[00:07:20.740,509] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:07:21.340,454] <inf> vcp_controller: Volume down success
-[00:07:21.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:21.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:21.340,576] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:21.340,576] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:21.340,942] <inf> vcp_controller: VCP state - Volume: 81%, Mute: 0
-[00:07:21.440,460] <inf> battery_reader: Battery level read: 100%
-[00:07:21.440,460] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:21.440,490] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:25.283,752] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:25.283,782] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:25.283,782] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:25.283,843] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:25.283,874] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:25.283,874] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:25.540,466] <inf> vcp_controller: Volume down success
-[00:07:25.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:25.540,496] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:25.540,527] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:25.540,557] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:25.540,985] <inf> vcp_controller: VCP state - Volume: 72%, Mute: 0
-[00:07:25.840,454] <err> vcp_controller: VCP volume down error (err 128)
-[00:07:25.840,484] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:07:26.440,460] <inf> vcp_controller: Volume down success
-[00:07:26.440,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:26.440,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:26.440,551] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:26.440,582] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:26.440,948] <inf> vcp_controller: VCP state - Volume: 63%, Mute: 0
-[00:07:26.540,435] <inf> battery_reader: Battery level read: 100%
-[00:07:26.540,466] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:26.540,496] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:30.283,905] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:30.283,935] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:30.283,935] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:30.283,996] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:30.284,027] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:30.284,027] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:30.440,460] <inf> vcp_controller: Volume down success
-[00:07:30.440,490] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:30.440,490] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:30.440,521] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:30.440,551] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:30.440,979] <inf> vcp_controller: VCP state - Volume: 54%, Mute: 0
-[00:07:30.740,478] <err> vcp_controller: VCP volume down error (err 128)
-[00:07:30.740,509] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:07:31.340,454] <inf> vcp_controller: Volume down success
-[00:07:31.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:31.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:31.340,576] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:31.340,576] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:31.340,942] <inf> vcp_controller: VCP state - Volume: 45%, Mute: 0
-[00:07:31.440,460] <inf> battery_reader: Battery level read: 100%
-[00:07:31.440,460] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:31.440,490] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:35.284,057] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:35.284,088] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:35.284,088] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:35.284,149] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:35.284,179] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:35.284,179] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:35.390,441] <inf> vcp_controller: Volume down success
-[00:07:35.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:35.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:35.390,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:35.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:35.390,960] <inf> vcp_controller: VCP state - Volume: 36%, Mute: 0
-[00:07:35.790,466] <err> vcp_controller: VCP volume down error (err 128)
-[00:07:35.790,496] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:07:36.390,441] <inf> vcp_controller: Volume down success
-[00:07:36.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:36.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:36.390,563] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:36.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:36.390,960] <inf> vcp_controller: VCP state - Volume: 27%, Mute: 0
-[00:07:36.490,447] <inf> battery_reader: Battery level read: 100%
-[00:07:36.490,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:36.490,509] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:40.284,210] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:40.284,240] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:40.284,240] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:40.284,301] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:40.284,332] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:40.284,332] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:40.390,441] <inf> vcp_controller: Volume down success
-[00:07:40.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:40.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:40.390,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:40.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:40.390,960] <inf> vcp_controller: VCP state - Volume: 18%, Mute: 0
-[00:07:40.740,478] <err> vcp_controller: VCP volume down error (err 128)
-[00:07:40.740,509] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:07:41.340,454] <inf> vcp_controller: Volume down success
-[00:07:41.340,484] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:41.340,484] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:41.340,576] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:41.340,576] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:41.340,942] <inf> vcp_controller: VCP state - Volume: 9%, Mute: 0
-[00:07:41.440,460] <inf> battery_reader: Battery level read: 100%
-[00:07:41.440,460] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:41.440,490] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:45.284,362] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:45.284,393] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 3
-[00:07:45.284,393] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:45.284,454] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:45.284,484] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:45.284,484] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:45.640,441] <inf> vcp_controller: Volume down success
-[00:07:45.640,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:45.640,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 3
-[00:07:45.640,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=3
-[00:07:45.640,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=3
-[00:07:45.640,960] <inf> vcp_controller: VCP state - Volume: 0%, Mute: 0
-[00:07:46.040,466] <err> vcp_controller: VCP volume down error (err 128)
-[00:07:46.040,496] <wrn> vcp_controller: Command failed: type=2, err=128, retry=1/3
-[00:07:46.640,441] <inf> vcp_controller: Volume down success
-[00:07:46.640,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=3
-[00:07:46.640,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 10
-[00:07:46.640,563] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=10
-[00:07:46.640,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=10
-[00:07:46.640,930] <inf> vcp_controller: VCP state - Volume: 0%, Mute: 0
-[00:07:46.740,447] <inf> battery_reader: Battery level read: 100%
-[00:07:46.740,478] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=10
-[00:07:46.740,509] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:07:50.284,515] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:50.284,545] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 2
-[00:07:50.284,545] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 10
-[00:07:50.284,606] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:50.284,637] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:50.284,637] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:50.390,441] <inf> vcp_controller: Volume up success
-[00:07:50.390,472] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=2
-[00:07:50.390,502] <dbg> ble_manager: ble_execute_command: Executing BLE command type 2
-[00:07:50.390,533] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=2
-[00:07:50.390,563] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=2
-[00:07:50.390,960] <inf> vcp_controller: VCP state - Volume: 9%, Mute: 0
+[00:01:25.338,439] <dbg> bt_att: chan_send: code 0x0a
+[00:01:25.338,470] <dbg> bt_gatt: gatt_write_rsp: err 15
+[00:01:25.338,500] <dbg> bt_gatt: att_err_from_int: 15
+[00:01:25.338,500] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x0F
+[00:01:25.338,531] <dbg> bt_vcp_vol_ctlr: vcs_cp_notify_app: 0x20005670 opcode 1 err 15
+[00:01:25.338,531] <err> vcp_controller: VCP volume up error (err 15)
+[00:01:25.338,623] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:01:25.338,623] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:01:25.338,653] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:01:25.338,653] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:01:25.338,684] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:01:25.438,293] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:01:25.438,323] <dbg> bt_att: att_handle_read_rsp: 
+[00:01:25.438,354] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:01:25.438,385] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:01:25.438,385] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:01:25.438,415] <inf> battery_reader: Battery level read: 20%
+[00:01:30.281,494] <dbg> bt_gatt: bt_gatt_write: handle 0x00d8 length 2
+[00:01:30.281,494] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:01:30.281,555] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:01:30.281,555] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 5
+[00:01:30.281,585] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:01:30.281,585] <dbg> bt_att: chan_send: code 0x12
+[00:01:30.281,677] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:01:30.281,707] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:01:30.281,738] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:01:30.281,738] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:01:30.281,768] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:01:30.281,890] <dbg> vcp_controller: vcp_volume_up: Current security before VCP change: 2
+[00:01:30.281,890] <dbg> vcp_controller: vcp_volume_up: Volume up initiated
+[00:01:30.281,921] <dbg> bt_gatt: bt_gatt_read: handle 0x0120
+[00:01:30.281,921] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:01:30.281,951] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:01:30.281,982] <inf> main: Battery level: 20%
+[00:01:30.488,311] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x01 len 4
+[00:01:30.488,342] <dbg> bt_att: att_error_rsp: request 0x12 handle 0x00d8 error 0x0f
+[00:01:30.488,372] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 15 len 0: 
+[00:01:30.488,403] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:01:30.488,433] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 3
+[00:01:30.488,433] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:01:30.488,464] <dbg> bt_att: chan_send: code 0x0a
+[00:01:30.488,494] <dbg> bt_gatt: gatt_write_rsp: err 15
+[00:01:30.488,494] <dbg> bt_gatt: att_err_from_int: 15
+[00:01:30.488,525] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x0F
+[00:01:30.488,555] <dbg> bt_vcp_vol_ctlr: vcs_cp_notify_app: 0x20005670 opcode 1 err 15
+[00:01:30.488,555] <err> vcp_controller: VCP volume up error (err 15)
+[00:01:30.488,647] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:01:30.488,647] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:01:30.488,677] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:01:30.488,677] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:01:30.488,708] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:01:30.588,287] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:01:30.588,317] <dbg> bt_att: att_handle_read_rsp: 
+[00:01:30.588,348] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:01:30.588,378] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:01:30.588,409] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:01:30.588,409] <inf> battery_reader: Battery level read: 20%
+[00:01:35.282,104] <dbg> bt_gatt: bt_gatt_write: handle 0x00d8 length 2
+[00:01:35.282,104] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:01:35.282,165] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:01:35.282,165] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:01:35.282,196] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:01:35.282,196] <dbg> bt_att: chan_send: code 0x12
+[00:01:35.282,287] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:01:35.282,318] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:01:35.282,348] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:01:35.282,348] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:01:35.282,379] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:01:35.282,501] <dbg> vcp_controller: vcp_volume_up: Current security before VCP change: 2
+[00:01:35.282,501] <dbg> vcp_controller: vcp_volume_up: Volume up initiated
+[00:01:35.282,531] <dbg> bt_gatt: bt_gatt_read: handle 0x0120
+[00:01:35.282,531] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:01:35.282,562] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:01:35.282,592] <inf> main: Battery level: 20%
+[00:01:35.388,305] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x01 len 4
+[00:01:35.388,336] <dbg> bt_att: att_error_rsp: request 0x12 handle 0x00d8 error 0x0f
+[00:01:35.388,366] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 15 len 0: 
+[00:01:35.388,397] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:01:35.388,397] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 3
+[00:01:35.388,427] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:01:35.388,427] <dbg> bt_att: chan_send: code 0x0a
+[00:01:35.388,488] <dbg> bt_gatt: gatt_write_rsp: err 15
+[00:01:35.388,488] <dbg> bt_gatt: att_err_from_int: 15
+[00:01:35.388,519] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x0F
+[00:01:35.388,519] <dbg> bt_vcp_vol_ctlr: vcs_cp_notify_app: 0x20005670 opcode 1 err 15
+[00:01:35.388,519] <err> vcp_controller: VCP volume up error (err 15)
+[00:01:35.388,610] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:01:35.388,641] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:01:35.388,641] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:01:35.388,671] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:01:35.388,671] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:01:35.488,311] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:01:35.488,311] <dbg> bt_att: att_handle_read_rsp: 
+[00:01:35.488,372] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:01:35.488,372] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:01:35.488,403] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:01:35.488,403] <inf> battery_reader: Battery level read: 20%
+*** Booting Zephyr OS build v4.2.0-3326-g8e6077e3e507 ***
+[00:00:00.266,143] <inf> fs_nvs: 6 Sectors of 4096 bytes
+[00:00:00.266,143] <inf> fs_nvs: alloc wra: 0, fd0
+[00:00:00.266,174] <inf> fs_nvs: data wra: 0, 1c
+[00:00:00.266,204] <dbg> settings: settings_nvs_backend_init: Initialized
+[00:00:00.266,296] <dbg> bt_gatt: db_hash_set: Stored Hash: 
+                                  f9 2f d7 62 a8 ef ce 6d  17 7e ef 46 4b c1 87 43 |./.b...m .~.FK..C
+[00:00:00.266,357] <dbg> settings: settings_call_set_handler: set-value OK. key: bt/hash
+[00:00:00.266,784] <dbg> bt_gatt: db_hash_gen: Hash: 
+                                  f9 2f d7 62 a8 ef ce 6d  17 7e ef 46 4b c1 87 43 |./.b...m .~.FK..C
+[00:00:00.266,784] <dbg> bt_gatt: do_db_hash: Database Hash matches
+[00:00:00.268,127] <inf> bt_hci_core: HW Platform: Nordic Semiconductor (0x0002)
+[00:00:00.268,157] <inf> bt_hci_core: HW Variant: nRF52x (0x0002)
+[00:00:00.268,188] <inf> bt_hci_core: Firmware: Standard Bluetooth controller (0x00) Version 4.2 Build 99
+[00:00:00.268,402] <dbg> bt_smp: bt_smp_init: LE SC enabled
+[00:00:00.268,432] <inf> bt_hci_core: No ID address. App must call settings_load()
+[00:00:00.268,432] <inf> ble_manager: Bluetooth initialized
+[00:00:00.268,463] <inf> vcp_controller: VCP controller initialized
+[00:00:00.268,463] <dbg> ble_manager: ble_manager_init: Initializing connect work
+[00:00:00.268,524] <inf> ble_manager: BLE manager initialized
+[00:00:00.268,615] <dbg> bt_gatt: db_hash_set: Stored Hash: 
+                                  f9 2f d7 62 a8 ef ce 6d  17 7e ef 46 4b c1 87 43 |./.b...m .~.FK..C
+[00:00:00.268,646] <dbg> settings: settings_call_set_handler: set-value OK. key: bt/hash
+[00:00:00.268,859] <dbg> bt_smp: smp_d1: key bbc6d7035671c8e577d7e73fd39503a4 d 1 r 0
+[00:00:00.268,890] <dbg> bt_smp: smp_d1: res 48ccf4848f2815bb750c0e276ced67ae
+[00:00:00.268,951] <inf> bt_hci_core: HCI transport: Controller
+[00:00:00.269,042] <inf> bt_hci_core: Identity: D0:26:7A:4D:45:9E (random)
+[00:00:00.269,073] <inf> bt_hci_core: HCI: version 5.4 (0x0d) revision 0x0000, manufacturer 0x05f1
+[00:00:00.269,104] <inf> bt_hci_core: LMP: version 5.4 (0x0d) subver 0xffff
+[00:00:00.269,134] <inf> ble_manager: No previously bonded device found
+[00:00:00.269,195] <dbg> bt_rpa: ah: irk 48ccf4848f2815bb750c0e276ced67ae
+[00:00:00.269,226] <dbg> bt_rpa: ah: r aa5863
+[00:00:00.269,348] <dbg> bt_rpa: bt_rpa_create: Created RPA 63:58:AA:E0:42:27
+[00:00:00.269,683] <inf> ble_manager: Scanning for HIs
+[00:00:00.716,125] <dbg> bt_smp: bt_smp_pkey_ready: 
+[00:00:04.113,006] <dbg> bt_keys: bt_keys_find_irk: ED:ED:39:D9:13:E0 (random)
+[00:00:04.113,220] <dbg> ble_manager: device_found: Advertisement data type 0x1 len 1 from ED:ED:39:D9:13:E0 (random)
+[00:00:04.113,311] <dbg> ble_manager: device_found: Advertisement data type 0x3 len 2 from ED:ED:39:D9:13:E0 (random)
+[00:00:04.113,464] <dbg> ble_manager: device_found: Advertisement data type 0xFF len 19 from ED:ED:39:D9:13:E0 (random)
+[00:00:04.113,555] <dbg> ble_manager: device_found: Advertisement data type 0xA len 1 from ED:ED:39:D9:13:E0 (random)
+[00:00:05.396,575] <dbg> bt_keys: bt_keys_find_irk: 53:6A:01:08:C4:B9 (random)
+[00:00:05.396,697] <dbg> bt_keys: bt_keys_find_irk: No IRK for 53:6A:01:08:C4:B9 (random)
+[00:00:05.396,850] <dbg> ble_manager: device_found: Advertisement data type 0x1 len 1 from 53:6A:01:08:C4:B9 (random)
+[00:00:05.396,972] <dbg> ble_manager: device_found: Advertisement data type 0x7 len 16 from 53:6A:01:08:C4:B9 (random)
+[00:00:05.397,247] <dbg> bt_keys: bt_keys_find_irk: 53:6A:01:08:C4:B9 (random)
+[00:00:05.397,369] <dbg> bt_keys: bt_keys_find_irk: No IRK for 53:6A:01:08:C4:B9 (random)
+[00:00:05.397,521] <dbg> ble_manager: device_found: Advertisement data type 0x9 len 7 from 53:6A:01:08:C4:B9 (random)
+[00:00:05.397,552] <dbg> ble_manager: device_found: Found device name: HARC HI
+[00:00:05.397,583] <dbg> ble_manager: device_found: strcmp result: 0
+[00:00:05.397,613] <dbg> ble_manager: device_found: Will attempt to connect to HARC HI
+[00:00:05.397,766] <inf> ble_manager: Connecting to HARC HI (with address 53:6A:01:08:C4:B9 (random))
+[00:00:05.398,071] <dbg> bt_keys: bt_keys_find_irk: 53:6A:01:08:C4:B9 (random)
+[00:00:05.398,162] <dbg> bt_keys: bt_keys_find_irk: No IRK for 53:6A:01:08:C4:B9 (random)
+[00:00:05.455,474] <dbg> bt_keys: bt_keys_find_irk: 53:6A:01:08:C4:B9 (random)
+[00:00:05.455,566] <dbg> bt_keys: bt_keys_find_irk: No IRK for 53:6A:01:08:C4:B9 (random)
+[00:00:05.455,596] <dbg> bt_smp: bt_smp_accept: conn 0x20004a68 handle 0
+[00:00:05.455,627] <dbg> bt_smp: bt_smp_connected: chan 0x20004d34 cid 0x0006
+[00:00:05.455,657] <dbg> bt_att: bt_att_accept: conn 0x20004a68 handle 0
+[00:00:05.455,688] <dbg> bt_att: att_chan_attach: att 0x2000bd24 chan 0x2000a9c0 flags 0
+[00:00:05.455,718] <dbg> bt_att: bt_att_connected: chan 0x2000a9c4 cid 0x0004
+[00:00:05.455,749] <dbg> bt_gatt: bt_gatt_connected: conn 0x20004a68
+[00:00:05.455,841] <dbg> bt_keys: bt_keys_find_addr: 53:6A:01:08:C4:B9 (random)
+[00:00:05.455,871] <dbg> bt_att: bt_att_status: chan 0x2000a9c4 status 0x2000a9d4
+[00:00:05.456,024] <dbg> ble_manager: is_bonded_device: Checking if device 53:6A:01:08:C4:B9 (random) is bonded
+[00:00:05.456,054] <dbg> ble_manager: connected_cb: Connected to new device 53:6A:01:08:C4:B9 (random) - expecting pairing
+[00:00:05.956,146] <dbg> ble_manager: security_request_handler: Requesting security level 2
+[00:00:05.956,268] <dbg> bt_keys: bt_keys_find: type 32 53:6A:01:08:C4:B9 (random)
+[00:00:05.956,359] <dbg> bt_keys: bt_keys_find: type 4 53:6A:01:08:C4:B9 (random)
+[00:00:05.956,390] <dbg> bt_smp: smp_send_pairing_req: 
+[00:00:05.956,481] <dbg> bt_keys: bt_keys_get_addr: 53:6A:01:08:C4:B9 (random)
+[00:00:05.956,573] <dbg> bt_keys: bt_keys_get_addr: created 0x20005630 for 53:6A:01:08:C4:B9 (random)
+[00:00:05.957,885] <dbg> bt_smp: smp_init: prnd 023743ad1422e2feac3706e88a9b847e
+[00:00:05.957,916] <dbg> bt_smp: smp_send_pairing_req: req: io_capability 0x03, oob_flag 0x00, auth_req 0x09, max_key_size 0x10, init_key_dist 0x03, resp_key_dist 0x03
+[00:00:06.056,884] <dbg> bt_smp: bt_smp_recv: Received SMP code 0x02 len 6
+[00:00:06.056,915] <dbg> bt_smp: smp_pairing_rsp: rsp: io_capability 0x03, oob_flag 0x00, auth_req 0x09, max_key_size 0x10, init_key_dist 0x02, resp_key_dist 0x02
+[00:00:07.106,994] <dbg> bt_smp: bt_smp_recv: Received SMP code 0x0c len 64
+[00:00:07.107,025] <dbg> bt_smp: smp_public_key: 
+[00:00:07.107,543] <dbg> bt_smp: bt_smp_recv: Received SMP code 0x03 len 16
+[00:00:07.107,574] <dbg> bt_smp: smp_pairing_confirm: 
+[00:00:07.206,817] <dbg> bt_smp: bt_smp_recv: Received SMP code 0x04 len 16
+[00:00:07.206,817] <dbg> bt_smp: smp_pairing_random: 
+[00:00:07.207,458] <dbg> bt_smp: sc_smp_check_confirm: pcnf 27999dead1f320a3f001432e1ecc4f03
+[00:00:07.207,489] <dbg> bt_smp: sc_smp_check_confirm: cfm 27999dead1f320a3f001432e1ecc4f03
+[00:00:07.331,085] <dbg> bt_smp: bt_smp_dhkey_ready: 0x200080cc
+[00:00:07.332,977] <dbg> bt_smp: sc_smp_send_dhkey_check: 
+[00:00:07.406,799] <dbg> bt_smp: bt_smp_recv: Received SMP code 0x0d len 16
+[00:00:07.406,829] <dbg> bt_smp: smp_dhkey_check: 
+[00:00:07.706,787] <dbg> bt_keys: bt_keys_clear: 53:6A:01:08:C4:B9 (random) (keys 0x0000)
+[00:00:07.706,970] <dbg> bt_keys: bt_keys_get_addr: 53:6A:01:08:C4:B9 (random)
+[00:00:07.707,122] <dbg> bt_keys: bt_keys_get_addr: created 0x20005630 for 53:6A:01:08:C4:B9 (random)
+[00:00:07.707,183] <dbg> bt_smp: bt_smp_encrypt_change: chan 0x20004d34 conn 0x20004a68 handle 0 encrypt 0x01 hci status 0x00 
+[00:00:07.707,244] <dbg> bt_att: bt_att_encrypt_change: chan 0x2000a9c4 conn 0x20004a68 handle 0 sec_level 0x02 status 0x00 
+[00:00:07.707,275] <dbg> bt_gatt: bt_gatt_encrypt_change: conn 0x20004a68
+[00:00:07.707,336] <dbg> bt_keys: bt_keys_find_addr: 53:6A:01:08:C4:B9 (random)
+[00:00:07.707,519] <dbg> ble_manager: security_changed_cb: Security changed: 53:6A:01:08:C4:B9 (random) level 2
+[00:00:07.707,550] <dbg> ble_manager: security_changed_cb: Encryption established at level 2
+[00:00:07.707,580] <dbg> ble_manager: security_changed_cb: New device - waiting for pairing completion
+[00:00:07.707,733] <dbg> bt_smp: bt_smp_recv: Received SMP code 0x08 len 16
+[00:00:07.707,733] <dbg> bt_smp: smp_ident_info: 
+[00:00:07.707,824] <dbg> bt_keys: bt_keys_get_type: type 2 53:6A:01:08:C4:B9 (random)
+[00:00:07.707,916] <dbg> bt_keys: bt_keys_find: type 2 53:6A:01:08:C4:B9 (random)
+[00:00:07.708,007] <dbg> bt_keys: bt_keys_get_addr: 53:6A:01:08:C4:B9 (random)
+[00:00:07.756,805] <dbg> bt_smp: bt_smp_recv: Received SMP code 0x09 len 7
+[00:00:07.756,896] <dbg> bt_smp: smp_ident_addr_info: identity CC:89:6C:EE:40:F3 (public)
+[00:00:07.756,988] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:07.757,080] <dbg> bt_keys: bt_keys_get_type: type 2 53:6A:01:08:C4:B9 (random)
+[00:00:07.757,171] <dbg> bt_keys: bt_keys_find: type 2 53:6A:01:08:C4:B9 (random)
+[00:00:07.757,263] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:07.757,476] <dbg> bt_gatt: gatt_store_ccc: Stored CCCs for CC:89:6C:EE:40:F3 (public)
+[00:00:07.757,507] <dbg> bt_gatt: gatt_store_ccc:   CCC: NULL
+[00:00:07.807,250] <dbg> bt_smp: smp_pairing_complete: got status 0x0
+[00:00:07.821,868] <dbg> bt_keys: bt_keys_store: Stored keys for CC:89:6C:EE:40:F3 (public)
+[00:00:07.822,082] <dbg> bt_gatt: gatt_store_ccc: Stored CCCs for CC:89:6C:EE:40:F3 (public)
+[00:00:07.822,113] <dbg> bt_gatt: gatt_store_ccc:   CCC: NULL
+[00:00:07.822,113] <dbg> bt_gatt: bt_gatt_store_cf: No config for CF
+[00:00:07.822,326] <dbg> bt_gatt: bt_gatt_store_cf: Stored CF for CC:89:6C:EE:40:F3 (public)
+[00:00:07.822,326] <dbg> bt_gatt: bt_gatt_store_cf: Saved data
+[00:00:07.822,357] <dbg> ble_manager: pairing_complete: Pairing complete. Bonded: 1
+[00:00:07.822,357] <inf> ble_manager: New device paired successfully - saving and disconnecting
+[00:00:07.822,387] <dbg> ble_manager: pairing_complete: Saving bond information to flash
+[00:00:07.822,540] <inf> ble_manager: Found bonded device: CC:89:6C:EE:40:F3 (public)
+[00:00:07.856,872] <wrn> bt_l2cap: Ignoring data for unknown channel ID 0x002a
+[00:00:07.857,360] <dbg> bt_smp: bt_smp_disconnected: chan 0x20004d34 cid 0x0006
+[00:00:07.857,421] <dbg> bt_att: bt_att_disconnected: chan 0x2000a9c4 cid 0x0004
+[00:00:07.857,452] <dbg> bt_att: att_chan_detach: chan 0x2000a9c0
+[00:00:07.857,452] <dbg> bt_gatt: bt_gatt_disconnected: conn 0x20004a68
+[00:00:07.857,574] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:07.857,666] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:07.857,696] <dbg> bt_att: bt_att_released: chan 0x2000a9c0
+[00:00:07.857,727] <inf> ble_manager: Disconnected (reason 0x16)
+[00:00:07.857,757] <inf> ble_manager: Connecting to previously bonded device
+[00:00:07.858,489] <dbg> bt_rpa: ah: irk 88375043bce1b450b50b97b8b1938f71
+[00:00:07.858,520] <dbg> bt_rpa: ah: r bf5478
+[00:00:07.858,642] <dbg> bt_rpa: bt_rpa_create: Created RPA 78:54:BF:D0:82:4F
+[00:00:07.858,795] <dbg> bt_rpa: ah: irk 48ccf4848f2815bb750c0e276ced67ae
+[00:00:07.858,825] <dbg> bt_rpa: ah: r e95b7d
+[00:00:07.858,947] <dbg> bt_rpa: bt_rpa_create: Created RPA 7D:5B:E9:CB:88:A5
+[00:00:07.922,546] <dbg> bt_smp: bt_smp_accept: conn 0x20004a68 handle 0
+[00:00:07.922,576] <dbg> bt_smp: bt_smp_connected: chan 0x20004d34 cid 0x0006
+[00:00:07.922,607] <dbg> bt_att: bt_att_accept: conn 0x20004a68 handle 0
+[00:00:07.922,637] <dbg> bt_att: att_chan_attach: att 0x2000bd24 chan 0x2000a9c0 flags 0
+[00:00:07.922,668] <dbg> bt_att: bt_att_connected: chan 0x2000a9c4 cid 0x0004
+[00:00:07.922,698] <dbg> bt_gatt: bt_gatt_connected: conn 0x20004a68
+[00:00:07.922,760] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:07.922,973] <dbg> bt_att: bt_att_status: chan 0x2000a9c4 status 0x2000a9d4
+[00:00:07.923,126] <dbg> ble_manager: is_bonded_device: Checking if device CC:89:6C:EE:40:F3 (public) is bonded
+[00:00:07.923,156] <dbg> ble_manager: is_bonded_device_cb: Found bonded device
+[00:00:07.923,187] <inf> ble_manager: Connected to bonded device CC:89:6C:EE:40:F3 (public)
+[00:00:08.423,278] <dbg> ble_manager: security_request_handler: Requesting security level 2
+[00:00:08.423,400] <dbg> bt_keys: bt_keys_find: type 32 CC:89:6C:EE:40:F3 (public)
+[00:00:08.873,870] <dbg> bt_smp: bt_smp_encrypt_change: chan 0x20004d34 conn 0x20004a68 handle 0 encrypt 0x01 hci status 0x00 
+[00:00:08.873,931] <dbg> bt_att: bt_att_encrypt_change: chan 0x2000a9c4 conn 0x20004a68 handle 0 sec_level 0x02 status 0x00 
+[00:00:08.873,962] <dbg> bt_gatt: bt_gatt_encrypt_change: conn 0x20004a68
+[00:00:08.874,053] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:08.874,237] <dbg> ble_manager: security_changed_cb: Security changed: CC:89:6C:EE:40:F3 (public) level 2
+[00:00:08.874,237] <dbg> ble_manager: security_changed_cb: Encryption established at level 2
+[00:00:08.874,267] <dbg> ble_manager: security_changed_cb: Bonded device encrypted - starting service discovery
+[00:00:08.874,267] <dbg> vcp_controller: vcp_discover: Current security before VCP discover: 2
+[00:00:08.874,298] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:08.874,359] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:08.874,420] <dbg> bt_gatt: gatt_find_type_encode: uuid 1844 start_handle 0x0001 end_handle 0xffff
+[00:00:08.874,420] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:08.874,450] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 9
+[00:00:08.874,481] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x06
+[00:00:08.874,481] <dbg> bt_att: chan_send: code 0x06
+[00:00:08.874,572] <dbg> vcp_controller: vcp_discover: VCP discovery initiated
+[00:00:08.874,572] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:08.874,603] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd6c
+[00:00:08.874,664] <dbg> bt_gatt: gatt_find_type_encode: uuid 180f start_handle 0x0001 end_handle 0xffff
+[00:00:08.874,694] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd6c
+[00:00:08.874,847] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:08.874,877] <dbg> bt_att: att_on_sent_cb: opcode 0x6
+[00:00:08.874,908] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:08.874,908] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:08.874,938] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:08.875,000] <wrn> bt_l2cap: Ignoring data for unknown channel ID 0x002a
+[00:00:08.923,919] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x08 len 6
+[00:00:08.924,011] <dbg> bt_att: att_read_type_req: start_handle 0x0001 end_handle 0xffff type 2a00
+[00:00:08.924,072] <dbg> bt_att: read_type_cb: handle 0x000b
+[00:00:08.924,072] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 11
+[00:00:08.924,102] <dbg> bt_att: chan_send: code 0x09
+[00:00:08.924,255] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:08.924,285] <dbg> bt_att: att_on_sent_cb: opcode 0x9
+[00:00:08.924,316] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:08.924,316] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:08.974,060] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x07 len 4
+[00:00:08.974,090] <dbg> bt_att: att_handle_find_type_rsp: 
+[00:00:08.974,121] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 4: d100db00
+[00:00:08.974,151] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:08.974,182] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd6c len 9
+[00:00:08.974,182] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x06
+[00:00:08.974,212] <dbg> bt_att: chan_send: code 0x06
+[00:00:08.974,243] <dbg> bt_gatt: gatt_find_type_rsp: err 0
+[00:00:08.974,243] <dbg> bt_gatt: gatt_find_type_rsp: start_handle 0x00d1 end_handle 0x00db
+[00:00:08.974,334] <dbg> bt_vcp_vol_ctlr: primary_discover_func: [ATTRIBUTE] handle 0x00D1
+[00:00:08.974,334] <dbg> bt_vcp_vol_ctlr: primary_discover_func: Primary discover complete
+[00:00:08.974,365] <dbg> bt_gatt: gatt_read_type: start_handle 0x00d2 end_handle 0x00db
+[00:00:08.974,365] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:08.974,395] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:08.974,426] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:08.974,609] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:08.974,639] <dbg> bt_att: att_on_sent_cb: opcode 0x6
+[00:00:08.974,670] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:08.974,670] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:08.974,700] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd6c
+[00:00:09.024,047] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x06 len 8
+[00:00:09.024,047] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
+[00:00:09.024,108] <dbg> bt_att: find_type_cb: handle 0x0001
+[00:00:09.024,139] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:09.024,169] <dbg> bt_att: find_type_cb: handle 0x0009
+[00:00:09.024,200] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:09.024,230] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:09.024,322] <dbg> bt_att: chan_send: code 0x01
+[00:00:09.024,505] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:09.024,536] <dbg> bt_att: att_on_sent_cb: opcode 0x1
+[00:00:09.024,566] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.024,566] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.074,462] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x07 len 4
+[00:00:09.074,493] <dbg> bt_att: att_handle_find_type_rsp: 
+[00:00:09.074,523] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 4: 1e012101
+[00:00:09.074,554] <dbg> bt_att: bt_att_req_free: req 0x2000bd6c
+[00:00:09.074,554] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 7
+[00:00:09.074,584] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x08
+[00:00:09.074,584] <dbg> bt_att: chan_send: code 0x08
+[00:00:09.074,645] <dbg> bt_gatt: gatt_find_type_rsp: err 0
+[00:00:09.074,645] <dbg> bt_gatt: gatt_find_type_rsp: start_handle 0x011e end_handle 0x0121
+[00:00:09.074,676] <dbg> bt_gatt: gatt_read_type: start_handle 0x011f end_handle 0x0121
+[00:00:09.074,676] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.074,707] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd6c
+[00:00:09.074,737] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd6c
+[00:00:09.074,829] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:09.074,859] <dbg> bt_att: att_on_sent_cb: opcode 0x8
+[00:00:09.074,859] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.074,859] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.074,890] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:09.123,992] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x06 len 8
+[00:00:09.124,023] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
+[00:00:09.124,053] <dbg> bt_att: find_type_cb: handle 0x0001
+[00:00:09.124,084] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:09.124,114] <dbg> bt_att: find_type_cb: handle 0x0009
+[00:00:09.124,145] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:09.124,176] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:09.124,267] <dbg> bt_att: chan_send: code 0x01
+[00:00:09.124,359] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:09.124,389] <dbg> bt_att: att_on_sent_cb: opcode 0x1
+[00:00:09.124,389] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.124,420] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.223,999] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x09 len 22
+[00:00:09.223,999] <dbg> bt_att: att_handle_read_type_rsp: 
+[00:00:09.224,060] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 22: 07d40012d5007d2bd70008d8007e2bd90012da007f2b
+[00:00:09.224,090] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:09.224,121] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd6c len 7
+[00:00:09.224,121] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x08
+[00:00:09.224,151] <dbg> bt_att: chan_send: code 0x08
+[00:00:09.224,212] <dbg> bt_gatt: gatt_read_type_rsp: err 0
+[00:00:09.224,273] <dbg> bt_gatt: parse_characteristic: handle 0x00d4 uuid 2b7d properties 0x12
+[00:00:09.224,304] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: [ATTRIBUTE] handle 0x00D4
+[00:00:09.224,304] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Volume state
+[00:00:09.224,334] <dbg> bt_gatt: gatt_find_info: start_handle 0x00d5 end_handle 0x00db
+[00:00:09.224,365] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.224,365] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:09.224,395] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:09.224,426] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Subscribed to handle 0x00D4
+[00:00:09.224,487] <dbg> bt_gatt: parse_characteristic: handle 0x00d7 uuid 2b7e properties 0x08
+[00:00:09.224,487] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: [ATTRIBUTE] handle 0x00D7
+[00:00:09.224,517] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Control Point
+[00:00:09.224,578] <dbg> bt_gatt: parse_characteristic: handle 0x00d9 uuid 2b7f properties 0x12
+[00:00:09.224,578] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: [ATTRIBUTE] handle 0x00D9
+[00:00:09.224,609] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Volume Flags
+[00:00:09.224,639] <dbg> bt_gatt: gatt_find_info: start_handle 0x00da end_handle 0x00db
+[00:00:09.224,639] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.224,670] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:09.224,700] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:09.224,731] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Subscribed to handle 0x00D9
+[00:00:09.224,731] <dbg> bt_gatt: gatt_read_type: start_handle 0x00da end_handle 0x00db
+[00:00:09.224,761] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.224,761] <dbg> bt_att: bt_att_req_alloc: No space for req
+[00:00:09.224,792] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Setup complete for vol_ctlr
+[00:00:09.224,792] <inf> vcp_controller: VCP discovery complete - VOCS: 0, AICS: 0
+[00:00:09.224,822] <dbg> bt_gatt: bt_gatt_read: handle 0x00d5
+[00:00:09.224,822] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.224,853] <dbg> bt_att: bt_att_req_alloc: No space for req
+[00:00:09.224,853] <err> vcp_controller: Failed to read VCP state (err -12)
+[00:00:09.224,853] <dbg> bt_gatt: bt_gatt_read: handle 0x00da
+[00:00:09.224,884] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.224,884] <dbg> bt_att: bt_att_req_alloc: No space for req
+[00:00:09.224,914] <err> vcp_controller: Failed to read VCP flags (err -12)
+[00:00:09.225,006] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:09.225,006] <dbg> bt_att: att_on_sent_cb: opcode 0x8
+[00:00:09.225,036] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.225,036] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.225,067] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd6c
+[00:00:09.273,986] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x06 len 22
+[00:00:09.273,986] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
+[00:00:09.274,047] <dbg> bt_att: find_type_cb: handle 0x0001
+[00:00:09.274,078] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:09.274,108] <dbg> bt_att: find_type_cb: handle 0x0009
+[00:00:09.274,139] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:09.274,169] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:09.274,291] <dbg> bt_att: chan_send: code 0x01
+[00:00:09.274,444] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:09.274,444] <dbg> bt_att: att_on_sent_cb: opcode 0x1
+[00:00:09.274,475] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.274,475] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.324,035] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x09 len 8
+[00:00:09.324,066] <dbg> bt_att: att_handle_read_type_rsp: 
+[00:00:09.324,096] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 8: 071f01122001192a
+[00:00:09.324,127] <dbg> bt_att: bt_att_req_free: req 0x2000bd6c
+[00:00:09.324,157] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 5
+[00:00:09.324,157] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x04
+[00:00:09.324,188] <dbg> bt_att: chan_send: code 0x04
+[00:00:09.324,218] <dbg> bt_gatt: gatt_read_type_rsp: err 0
+[00:00:09.324,279] <dbg> bt_gatt: parse_characteristic: handle 0x011f uuid 2a19 properties 0x12
+[00:00:09.324,279] <dbg> bt_gatt: gatt_find_info: start_handle 0x0121 end_handle 0x0121
+[00:00:09.324,310] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.324,310] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd6c
+[00:00:09.324,371] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd6c
+[00:00:09.324,432] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:09.324,462] <dbg> bt_att: att_on_sent_cb: opcode 0x4
+[00:00:09.324,493] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.324,493] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.324,523] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:09.424,041] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x05 len 21
+[00:00:09.424,041] <dbg> bt_att: att_handle_find_info_rsp: 
+[00:00:09.424,102] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 21: 01d5007d2bd6000229d7000328d8007e2bd9000328
+[00:00:09.424,133] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:09.424,133] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:09.424,163] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x04
+[00:00:09.424,163] <dbg> bt_att: chan_send: code 0x04
+[00:00:09.424,194] <dbg> bt_gatt: gatt_find_info_rsp: err 0
+[00:00:09.424,255] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00d5 uuid 2b7d
+[00:00:09.424,316] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00d6 uuid 2902
+[00:00:09.424,346] <dbg> bt_gatt: gatt_write_ccc: handle 0x00d6 value 0x0001
+[00:00:09.424,377] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.424,377] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:09.424,407] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:09.424,499] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:09.424,530] <dbg> bt_att: att_on_sent_cb: opcode 0x4
+[00:00:09.424,530] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.424,560] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.424,560] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:09.523,986] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x05 len 9
+[00:00:09.523,986] <dbg> bt_att: att_handle_find_info_rsp: 
+[00:00:09.524,047] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 9: 01da007f2bdb000229
+[00:00:09.524,078] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:09.524,078] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd6c len 5
+[00:00:09.524,108] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x04
+[00:00:09.524,108] <dbg> bt_att: chan_send: code 0x04
+[00:00:09.524,139] <dbg> bt_gatt: gatt_find_info_rsp: err 0
+[00:00:09.524,200] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00da uuid 2b7f
+[00:00:09.524,261] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00db uuid 2902
+[00:00:09.524,291] <dbg> bt_gatt: gatt_write_ccc: handle 0x00db value 0x0001
+[00:00:09.524,291] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:09.524,322] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:09.524,353] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:09.524,444] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:09.524,475] <dbg> bt_att: att_on_sent_cb: opcode 0x4
+[00:00:09.524,475] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.524,505] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.524,505] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd6c
+[00:00:09.623,962] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x05 len 5
+[00:00:09.623,992] <dbg> bt_att: att_handle_find_info_rsp: 
+[00:00:09.624,023] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 5: 0121010229
+[00:00:09.624,053] <dbg> bt_att: bt_att_req_free: req 0x2000bd6c
+[00:00:09.624,053] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 5
+[00:00:09.624,084] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:09.624,084] <dbg> bt_att: chan_send: code 0x12
+[00:00:09.624,114] <dbg> bt_gatt: gatt_find_info_rsp: err 0
+[00:00:09.624,176] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x0121 uuid 2902
+[00:00:09.624,206] <wrn> battery_reader: CCC descriptor not found - notifications not available
+[00:00:09.624,267] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:09.624,298] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:09.624,298] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.624,328] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.624,328] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:09.723,937] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x13 len 0
+[00:00:09.723,968] <dbg> bt_att: att_handle_write_rsp: 
+[00:00:09.723,999] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 0: 
+[00:00:09.724,029] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:09.724,029] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:09.724,060] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:09.724,060] <dbg> bt_att: chan_send: code 0x12
+[00:00:09.724,090] <dbg> bt_gatt: gatt_write_ccc_rsp: err 0
+[00:00:09.724,121] <dbg> bt_gatt: att_err_from_int: 0
+[00:00:09.724,212] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:09.724,212] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:09.724,243] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:09.724,243] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:09.724,273] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:09.823,944] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x13 len 0
+[00:00:09.823,974] <dbg> bt_att: att_handle_write_rsp: 
+[00:00:09.824,005] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 0: 
+[00:00:09.824,005] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:09.824,035] <dbg> bt_gatt: gatt_write_ccc_rsp: err 0
+[00:00:09.824,066] <dbg> bt_gatt: att_err_from_int: 0
+[00:00:10.269,897] <dbg> bt_gatt: bt_gatt_read: handle 0x0120
+[00:00:10.269,927] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:10.269,958] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:10.269,989] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 3
+[00:00:10.269,989] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:00:10.270,019] <dbg> bt_att: chan_send: code 0x0a
+[00:00:10.270,111] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:10.270,141] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:00:10.270,141] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:10.270,172] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:10.270,172] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:10.270,263] <inf> main: Battery level: 0%
+[00:00:10.323,944] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:00:10.323,974] <dbg> bt_att: att_handle_read_rsp: 
+[00:00:10.324,005] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:00:10.324,035] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:10.324,035] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:00:10.324,066] <inf> battery_reader: Battery level read: 20%
+[00:00:12.224,975] <inf> vcp_controller: VCP discovered
+[00:00:15.270,385] <dbg> bt_gatt: bt_gatt_write: handle 0x00d8 length 2
+[00:00:15.270,385] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:15.270,446] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:15.270,446] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:15.270,477] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:15.270,477] <dbg> bt_att: chan_send: code 0x12
+[00:00:15.270,568] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:15.270,599] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:15.270,629] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:15.270,629] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:15.270,660] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:15.270,782] <dbg> vcp_controller: vcp_volume_up: Current security before VCP change: 2
+[00:00:15.270,782] <dbg> vcp_controller: vcp_volume_up: Volume up initiated
+[00:00:15.270,812] <dbg> bt_gatt: bt_gatt_read: handle 0x0120
+[00:00:15.270,812] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:15.270,843] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:15.270,874] <inf> main: Battery level: 20%
+[00:00:15.423,950] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x01 len 4
+[00:00:15.423,980] <dbg> bt_att: att_error_rsp: request 0x12 handle 0x00d8 error 0x80
+[00:00:15.424,041] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 128 len 0: 
+[00:00:15.424,041] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:15.424,072] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 3
+[00:00:15.424,072] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:00:15.424,102] <dbg> bt_att: chan_send: code 0x0a
+[00:00:15.424,133] <dbg> bt_gatt: gatt_write_rsp: err 128
+[00:00:15.424,133] <dbg> bt_gatt: att_err_from_int: 128
+[00:00:15.424,163] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x80
+[00:00:15.424,194] <dbg> bt_gatt: bt_gatt_read: handle 0x00d5
+[00:00:15.424,194] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:15.424,224] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:15.424,255] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:15.424,346] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:15.424,377] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:00:15.424,377] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:15.424,407] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:15.424,407] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:15.523,956] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:00:15.523,956] <dbg> bt_att: att_handle_read_rsp: 
+[00:00:15.524,017] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:00:15.524,017] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:15.524,047] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 3
+[00:00:15.524,047] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:00:15.524,078] <dbg> bt_att: chan_send: code 0x0a
+[00:00:15.524,108] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:00:15.524,108] <inf> battery_reader: Battery level read: 20%
+[00:00:15.524,200] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:15.524,230] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:00:15.524,230] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:15.524,261] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:15.524,261] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:15.623,962] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 3
+[00:00:15.623,962] <dbg> bt_att: att_handle_read_rsp: 
+[00:00:15.624,023] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 3: e800eb
+[00:00:15.624,023] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:15.624,053] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:00:15.624,084] <dbg> bt_vcp_vol_ctlr: internal_read_vol_state_cb: Volume 232, mute 0, counter 235
+[00:00:15.624,084] <dbg> bt_gatt: bt_gatt_write: handle 0x00d8 length 2
+[00:00:15.624,114] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:15.624,114] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:15.624,145] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:15.624,176] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:15.624,206] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:15.624,206] <dbg> bt_att: chan_send: code 0x12
+[00:00:15.624,298] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:15.624,328] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:15.624,359] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:15.624,359] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:15.624,389] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:15.723,968] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x01 len 4
+[00:00:15.723,968] <dbg> bt_att: att_error_rsp: request 0x12 handle 0x00d8 error 0x80
+[00:00:15.724,029] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 128 len 0: 
+[00:00:15.724,029] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:15.724,060] <dbg> bt_gatt: gatt_write_rsp: err 128
+[00:00:15.724,060] <dbg> bt_gatt: att_err_from_int: 128
+[00:00:15.724,090] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x80
+[00:00:15.724,090] <dbg> bt_vcp_vol_ctlr: vcs_cp_notify_app: 0x20005670 opcode 1 err 128
+[00:00:15.724,121] <err> vcp_controller: VCP volume up error (err 128)
+[00:00:20.270,996] <dbg> bt_gatt: bt_gatt_write: handle 0x00d8 length 2
+[00:00:20.270,996] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:20.271,057] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:20.271,057] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:20.271,087] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:20.271,087] <dbg> bt_att: chan_send: code 0x12
+[00:00:20.271,179] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:20.271,209] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:20.271,240] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:20.271,240] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:20.271,270] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:20.271,392] <dbg> vcp_controller: vcp_volume_up: Current security before VCP change: 2
+[00:00:20.271,392] <dbg> vcp_controller: vcp_volume_up: Volume up initiated
+[00:00:20.271,423] <dbg> bt_gatt: bt_gatt_read: handle 0x0120
+[00:00:20.271,423] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:20.271,453] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:20.271,484] <inf> main: Battery level: 20%
+[00:00:20.523,956] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x13 len 0
+[00:00:20.523,986] <dbg> bt_att: att_handle_write_rsp: 
+[00:00:20.524,017] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 0: 
+[00:00:20.524,047] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:20.524,047] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 3
+[00:00:20.524,078] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:00:20.524,078] <dbg> bt_att: chan_send: code 0x0a
+[00:00:20.524,108] <dbg> bt_gatt: gatt_write_rsp: err 0
+[00:00:20.524,139] <dbg> bt_gatt: att_err_from_int: 0
+[00:00:20.524,139] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x00
+[00:00:20.524,261] <dbg> bt_vcp_vol_ctlr: vcs_cp_notify_app: 0x20005670 opcode 1 err 0
+[00:00:20.524,261] <inf> vcp_controller: Volume up success
+[00:00:20.524,444] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:20.524,475] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:00:20.524,475] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:20.524,475] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:20.524,505] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:20.524,566] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x1b len 5
+[00:00:20.524,597] <dbg> bt_att: att_notify: chan 0x2000a9c0 handle 0x00d5
+[00:00:20.524,627] <dbg> bt_gatt: bt_gatt_notification: handle 0x00d5 length 3
+[00:00:20.524,627] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_notify_handler: Volume 255, mute 0, counter 236
+[00:00:20.524,658] <inf> vcp_controller: VCP state - Volume: 100%, Mute: 0
+[00:00:20.623,931] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:00:20.623,962] <dbg> bt_att: att_handle_read_rsp: 
+[00:00:20.623,992] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:00:20.624,023] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:20.624,053] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:00:20.624,053] <inf> battery_reader: Battery level read: 20%
 *** Booting Zephyr OS build v4.2.0-3326-g8e6077e3e507 ***
 [00:00:00.266,021] <inf> fs_nvs: 6 Sectors of 4096 bytes
 [00:00:00.266,021] <inf> fs_nvs: alloc wra: 0, fb8
 [00:00:00.266,021] <inf> fs_nvs: data wra: 0, 6c
-[00:00:00.266,693] <inf> vcp_controller: VCP controller initialized
-[00:00:00.267,974] <inf> bt_hci_core: HW Platform: Nordic Semiconductor (0x0002)
-[00:00:00.268,005] <inf> bt_hci_core: HW Variant: nRF52x (0x0002)
-[00:00:00.268,035] <inf> bt_hci_core: Firmware: Standard Bluetooth controller (0x00) Version 4.2 Build 99
-[00:00:00.268,249] <inf> bt_hci_core: No ID address. App must call settings_load()
-[00:00:00.268,249] <inf> ble_manager: Bluetooth initialized
-[00:00:00.268,280] <dbg> ble_manager: ble_manager_init: Initializing connect work
-[00:00:00.268,310] <inf> csip: CSIP Set Coordinator initialized
-[00:00:00.268,310] <inf> ble_manager: BLE manager initialized
-[00:00:00.268,737] <inf> bt_hci_core: HCI transport: Controller
-[00:00:00.268,829] <inf> bt_hci_core: Identity: D0:26:7A:4D:45:9E (random)
-[00:00:00.268,859] <inf> bt_hci_core: HCI: version 5.4 (0x0d) revision 0x0000, manufacturer 0x05f1
-[00:00:00.268,890] <inf> bt_hci_core: LMP: version 5.4 (0x0d) subver 0xffff
-[00:00:00.269,073] <inf> ble_manager: Found bonded device: CC:89:6C:EE:40:F3 (public)
-[00:00:00.269,104] <dbg> ble_manager: bt_ready_cb: Scheduling auto-connect to bonded device
-[00:00:00.269,439] <inf> ble_manager: Connecting to previously bonded device
-[00:00:00.269,714] <inf> ble_manager: BLE command thread started
-[00:00:00.269,744] <inf> vcp_controller: VCP command thread started
-[00:00:00.699,798] <dbg> ble_manager: is_bonded_device: Checking if device CC:89:6C:EE:40:F3 (public) is bonded
-[00:00:00.699,798] <dbg> ble_manager: is_bonded_device_cb: Found bonded device
-[00:00:00.699,859] <inf> ble_manager: Connected to bonded device CC:89:6C:EE:40:F3 (public)
-[00:00:00.699,859] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 0
-[00:00:00.700,347] <dbg> ble_manager: ble_execute_command: Executing BLE command type 0
-[00:00:00.700,378] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=0
-[00:00:00.700,408] <dbg> ble_manager: security_request_handler: Requesting security level 2
-[00:00:00.700,500] <dbg> ble_manager: security_request_handler: Security request initiated
-[00:00:00.700,561] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=0
-[00:00:01.550,842] <dbg> ble_manager: security_changed_cb: Security changed: CC:89:6C:EE:40:F3 (public) level 2
-[00:00:01.550,872] <dbg> ble_manager: security_changed_cb: Encryption established at level 2
-[00:00:01.550,872] <dbg> ble_manager: security_changed_cb: Bonded device encrypted - starting service discovery
-[00:00:01.550,903] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 11
-[00:00:01.550,933] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=0
-[00:00:01.550,933] <dbg> ble_manager: ble_execute_command: Executing BLE command type 11
-[00:00:01.551,086] <inf> csip: Starting CSIP discovery on CC:89:6C:EE:40:F3 (public)
-[00:00:01.551,177] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=11
-[00:00:01.551,177] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=11
-[00:00:01.551,452] <wrn> bt_l2cap: Ignoring data for unknown channel ID 0x002a
-[00:00:01.901,306] <err> csip: CSIP discovery failed on CC:89:6C:EE:40:F3 (public) (err -12)
-[00:00:01.901,336] <err> ble_manager: BLE command failed: type=11, err=-12 (VCP already retried if appropriate)
-[00:00:01.901,336] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-*** Booting Zephyr OS build v4.2.0-3326-g8e6077e3e507 ***
-[00:00:00.265,838] <inf> fs_nvs: 6 Sectors of 4096 bytes
-[00:00:00.265,869] <inf> fs_nvs: alloc wra: 0, fb8
-[00:00:00.265,869] <inf> fs_nvs: data wra: 0, 6c
-[00:00:00.266,510] <inf> vcp_controller: VCP controller initialized
-[00:00:00.267,822] <inf> bt_hci_core: HW Platform: Nordic Semiconductor (0x0002)
-[00:00:00.267,852] <inf> bt_hci_core: HW Variant: nRF52x (0x0002)
-[00:00:00.267,852] <inf> bt_hci_core: Firmware: Standard Bluetooth controller (0x00) Version 4.2 Build 99
-[00:00:00.268,066] <inf> bt_hci_core: No ID address. App must call settings_load()
-[00:00:00.268,066] <inf> ble_manager: Bluetooth initialized
-[00:00:00.268,096] <dbg> ble_manager: ble_manager_init: Initializing connect work
-[00:00:00.268,157] <inf> csip: CSIP Set Coordinator initialized
-[00:00:00.268,157] <inf> ble_manager: BLE manager initialized
-[00:00:00.268,554] <inf> bt_hci_core: HCI transport: Controller
-[00:00:00.268,646] <inf> bt_hci_core: Identity: D0:26:7A:4D:45:9E (random)
-[00:00:00.268,676] <inf> bt_hci_core: HCI: version 5.4 (0x0d) revision 0x0000, manufacturer 0x05f1
-[00:00:00.268,707] <inf> bt_hci_core: LMP: version 5.4 (0x0d) subver 0xffff
-[00:00:00.268,920] <inf> ble_manager: Found bonded device: CC:89:6C:EE:40:F3 (public)
-[00:00:00.268,920] <dbg> ble_manager: bt_ready_cb: Scheduling auto-connect to bonded device
-[00:00:00.269,256] <inf> ble_manager: Connecting to previously bonded device
-[00:00:00.269,500] <inf> ble_manager: BLE command thread started
-[00:00:00.269,531] <inf> vcp_controller: VCP command thread started
-[00:00:00.311,553] <dbg> ble_manager: is_bonded_device: Checking if device CC:89:6C:EE:40:F3 (public) is bonded
-[00:00:00.311,584] <dbg> ble_manager: is_bonded_device_cb: Found bonded device
-[00:00:00.311,614] <inf> ble_manager: Connected to bonded device CC:89:6C:EE:40:F3 (public)
-[00:00:00.311,645] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 0
-[00:00:00.312,103] <dbg> ble_manager: ble_execute_command: Executing BLE command type 0
-[00:00:00.312,164] <dbg> ble_manager: security_request_handler: Requesting security level 2
-[00:00:00.312,255] <dbg> ble_manager: security_request_handler: Security request initiated
-[00:00:00.312,316] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=0
-[00:00:00.312,347] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=0
-[00:00:01.162,597] <dbg> ble_manager: security_changed_cb: Security changed: CC:89:6C:EE:40:F3 (public) level 2
-[00:00:01.162,628] <dbg> ble_manager: security_changed_cb: Encryption established at level 2
-[00:00:01.162,628] <dbg> ble_manager: security_changed_cb: Bonded device encrypted - starting service discovery
-[00:00:01.162,658] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 11
-[00:00:01.162,689] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=0
-[00:00:01.162,689] <dbg> ble_manager: ble_execute_command: Executing BLE command type 11
-[00:00:01.162,780] <inf> csip: Starting CSIP discovery on CC:89:6C:EE:40:F3 (public)
-[00:00:01.162,872] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=11
-[00:00:01.162,902] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=11
-[00:00:01.212,707] <wrn> bt_l2cap: Ignoring data for unknown channel ID 0x002a
-[00:00:01.463,073] <err> csip: CSIP discovery failed on CC:89:6C:EE:40:F3 (public) (err -12)
-[00:00:01.463,104] <err> ble_manager: BLE command failed: type=11, err=-12
-[00:00:01.463,104] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-*** Booting Zephyr OS build v4.2.0-3326-g8e6077e3e507 ***
-[00:00:00.266,174] <inf> fs_nvs: 6 Sectors of 4096 bytes
-[00:00:00.266,174] <inf> fs_nvs: alloc wra: 0, fb8
-[00:00:00.266,174] <inf> fs_nvs: data wra: 0, 6c
-[00:00:00.266,448] <dbg> bt_gatt: db_hash_set: Stored Hash: 
+[00:00:00.266,052] <dbg> settings: settings_nvs_backend_init: Initialized
+[00:00:00.266,235] <dbg> bt_keys: keys_set: name cc896cee40f30 val 10102200000000000000000000000fdc2d3bec20d909c9402275392bb89288375043bce1b450b50b97b8b1938f71b9c408016a53
+[00:00:00.266,357] <dbg> bt_keys: bt_keys_get_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:00.266,448] <dbg> bt_keys: bt_keys_get_addr: created 0x20005630 for CC:89:6C:EE:40:F3 (public)
+[00:00:00.266,540] <dbg> bt_keys: keys_set: Successfully restored keys for CC:89:6C:EE:40:F3 (public)
+[00:00:00.266,571] <dbg> settings: settings_call_set_handler: set-value OK. key: bt/keys/cc896cee40f30
+[00:00:00.266,723] <dbg> bt_gatt: db_hash_set: Stored Hash: 
                                   f9 2f d7 62 a8 ef ce 6d  17 7e ef 46 4b c1 87 43 |./.b...m .~.FK..C
-[00:00:00.266,815] <dbg> bt_gatt: db_hash_gen: Hash: 
+[00:00:00.266,754] <dbg> settings: settings_call_set_handler: set-value OK. key: bt/hash
+[00:00:00.267,181] <dbg> bt_gatt: db_hash_gen: Hash: 
                                   f9 2f d7 62 a8 ef ce 6d  17 7e ef 46 4b c1 87 43 |./.b...m .~.FK..C
-[00:00:00.266,845] <dbg> bt_gatt: do_db_hash: Database Hash matches
-[00:00:00.266,937] <inf> vcp_controller: VCP controller initialized
-[00:00:00.268,249] <inf> bt_hci_core: HW Platform: Nordic Semiconductor (0x0002)
-[00:00:00.268,280] <inf> bt_hci_core: HW Variant: nRF52x (0x0002)
-[00:00:00.268,310] <inf> bt_hci_core: Firmware: Standard Bluetooth controller (0x00) Version 4.2 Build 99
-[00:00:00.268,524] <inf> bt_hci_core: No ID address. App must call settings_load()
-[00:00:00.268,524] <inf> ble_manager: Bluetooth initialized
-[00:00:00.268,554] <dbg> ble_manager: ble_manager_init: Initializing connect work
-[00:00:00.268,585] <inf> csip: CSIP Set Coordinator initialized
-[00:00:00.268,615] <inf> ble_manager: BLE manager initialized
-[00:00:00.268,829] <dbg> bt_gatt: db_hash_set: Stored Hash: 
+[00:00:00.267,211] <dbg> bt_gatt: do_db_hash: Database Hash matches
+[00:00:00.268,615] <inf> bt_hci_core: HW Platform: Nordic Semiconductor (0x0002)
+[00:00:00.268,615] <inf> bt_hci_core: HW Variant: nRF52x (0x0002)
+[00:00:00.268,646] <inf> bt_hci_core: Firmware: Standard Bluetooth controller (0x00) Version 4.2 Build 99
+[00:00:00.268,890] <dbg> bt_smp: bt_smp_init: LE SC enabled
+[00:00:00.268,890] <inf> bt_hci_core: No ID address. App must call settings_load()
+[00:00:00.268,920] <inf> ble_manager: Bluetooth initialized
+[00:00:00.268,920] <inf> vcp_controller: VCP controller initialized
+[00:00:00.268,951] <dbg> ble_manager: ble_manager_init: Initializing connect work
+[00:00:00.268,981] <inf> ble_manager: BLE manager initialized
+[00:00:00.269,165] <dbg> bt_keys: keys_set: name cc896cee40f30 val 10102200000000000000000000000fdc2d3bec20d909c9402275392bb89288375043bce1b450b50b97b8b1938f71b9c408016a53
+[00:00:00.269,256] <dbg> bt_keys: bt_keys_get_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:00.269,348] <dbg> bt_keys: keys_set: Successfully restored keys for CC:89:6C:EE:40:F3 (public)
+[00:00:00.269,409] <dbg> settings: settings_call_set_handler: set-value OK. key: bt/keys/cc896cee40f30
+[00:00:00.269,531] <dbg> bt_gatt: db_hash_set: Stored Hash: 
                                   f9 2f d7 62 a8 ef ce 6d  17 7e ef 46 4b c1 87 43 |./.b...m .~.FK..C
-[00:00:00.269,042] <inf> bt_hci_core: HCI transport: Controller
-[00:00:00.269,134] <inf> bt_hci_core: Identity: D0:26:7A:4D:45:9E (random)
-[00:00:00.269,165] <inf> bt_hci_core: HCI: version 5.4 (0x0d) revision 0x0000, manufacturer 0x05f1
-[00:00:00.269,195] <inf> bt_hci_core: LMP: version 5.4 (0x0d) subver 0xffff
-[00:00:00.269,409] <inf> ble_manager: Found bonded device: CC:89:6C:EE:40:F3 (public)
-[00:00:00.269,409] <dbg> ble_manager: bt_ready_cb: Scheduling auto-connect to bonded device
-[00:00:00.269,744] <inf> ble_manager: Connecting to previously bonded device
-[00:00:00.270,019] <inf> ble_manager: BLE command thread started
-[00:00:00.270,019] <inf> vcp_controller: VCP command thread started
-[00:00:00.408,599] <dbg> bt_att: bt_att_accept: conn 0x20004c98 handle 0
-[00:00:00.408,660] <dbg> bt_att: att_chan_attach: att 0x2000d344 chan 0x2000b740 flags 0
-[00:00:00.408,660] <dbg> bt_att: bt_att_connected: chan 0x2000b744 cid 0x0004
-[00:00:00.408,691] <dbg> bt_gatt: bt_gatt_connected: conn 0x20004c98
-[00:00:00.408,905] <dbg> bt_att: bt_att_status: chan 0x2000b744 status 0x2000b754
-[00:00:00.409,057] <dbg> ble_manager: is_bonded_device: Checking if device CC:89:6C:EE:40:F3 (public) is bonded
-[00:00:00.409,088] <dbg> ble_manager: is_bonded_device_cb: Found bonded device
-[00:00:00.409,118] <inf> ble_manager: Connected to bonded device CC:89:6C:EE:40:F3 (public)
-[00:00:00.409,149] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 0
-[00:00:00.409,637] <dbg> ble_manager: ble_execute_command: Executing BLE command type 0
-[00:00:00.409,667] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=0
-[00:00:00.409,667] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=0
-[00:00:00.409,698] <dbg> ble_manager: security_request_handler: Requesting security level 2
-[00:00:00.409,881] <dbg> ble_manager: security_request_handler: Security request initiated
-[00:00:01.359,924] <dbg> bt_att: bt_att_encrypt_change: chan 0x2000b744 conn 0x20004c98 handle 0 sec_level 0x02 status 0x00 
-[00:00:01.359,954] <dbg> bt_gatt: bt_gatt_encrypt_change: conn 0x20004c98
-[00:00:01.360,107] <dbg> ble_manager: security_changed_cb: Security changed: CC:89:6C:EE:40:F3 (public) level 2
-[00:00:01.360,107] <dbg> ble_manager: security_changed_cb: Encryption established at level 2
-[00:00:01.360,107] <dbg> ble_manager: security_changed_cb: Bonded device encrypted - starting service discovery
-[00:00:01.360,137] <dbg> ble_manager: ble_cmd_enqueue: BLE command enqueued, type: 11
-[00:00:01.360,168] <dbg> ble_manager: ble_cmd_complete: BLE command completed successfully: type=0
-[00:00:01.360,168] <dbg> ble_manager: ble_execute_command: Executing BLE command type 11
-[00:00:01.360,290] <inf> csip: Starting CSIP discovery on CC:89:6C:EE:40:F3 (public)
-[00:00:01.360,321] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.360,351] <dbg> bt_att: bt_att_req_alloc: req 0x2000d378
-[00:00:01.360,412] <dbg> bt_gatt: gatt_find_type_encode: uuid 1846 start_handle 0x0001 end_handle 0xffff
-[00:00:01.360,412] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d378
-[00:00:01.360,443] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d378 len 9
-[00:00:01.360,443] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x06
-[00:00:01.360,473] <dbg> bt_att: chan_send: code 0x06
-[00:00:01.360,504] <dbg> ble_manager: ble_execute_command: BLE command initiated successfully: type=11
-[00:00:01.360,534] <dbg> ble_manager: ble_process_next_command: Command waiting for completion: type=11
-[00:00:01.360,626] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.360,656] <dbg> bt_att: att_on_sent_cb: opcode 0x6
-[00:00:01.360,656] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.360,687] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.360,687] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d378
-[00:00:01.410,125] <wrn> bt_l2cap: Ignoring data for unknown channel ID 0x002a
-[00:00:01.410,522] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x08 len 6
-[00:00:01.410,583] <dbg> bt_att: att_read_type_req: start_handle 0x0001 end_handle 0xffff type 2a00
-[00:00:01.410,644] <dbg> bt_att: read_type_cb: handle 0x000b
-[00:00:01.410,675] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 11
-[00:00:01.410,675] <dbg> bt_att: chan_send: code 0x09
-[00:00:01.410,766] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.410,797] <dbg> bt_att: att_on_sent_cb: opcode 0x9
-[00:00:01.410,827] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.410,827] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.460,113] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x07 len 4
-[00:00:01.460,144] <dbg> bt_att: att_handle_find_type_rsp: 
-[00:00:01.460,174] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 4: ec00f700
-[00:00:01.460,205] <dbg> bt_att: bt_att_req_free: req 0x2000d378
-[00:00:01.460,235] <dbg> bt_gatt: gatt_find_type_rsp: err 0
-[00:00:01.460,235] <dbg> bt_gatt: gatt_find_type_rsp: start_handle 0x00ec end_handle 0x00f7
-[00:00:01.460,266] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.460,266] <dbg> bt_att: bt_att_req_alloc: req 0x2000d378
-[00:00:01.460,418] <dbg> bt_gatt: gatt_find_type_encode: uuid 1846 start_handle 0x00f8 end_handle 0xffff
-[00:00:01.460,418] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d378
-[00:00:01.460,449] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d378 len 9
-[00:00:01.460,449] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x06
-[00:00:01.460,479] <dbg> bt_att: chan_send: code 0x06
-[00:00:01.460,662] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.460,693] <dbg> bt_att: att_on_sent_cb: opcode 0x6
-[00:00:01.460,693] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.460,723] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.460,723] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d378
-[00:00:01.510,101] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x06 len 8
-[00:00:01.510,101] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
-[00:00:01.510,162] <dbg> bt_att: find_type_cb: handle 0x0001
-[00:00:01.510,192] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
-[00:00:01.510,223] <dbg> bt_att: find_type_cb: handle 0x0009
-[00:00:01.510,253] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
-[00:00:01.510,284] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.510,375] <dbg> bt_att: chan_send: code 0x01
-[00:00:01.510,467] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.510,467] <dbg> bt_att: att_on_sent_cb: opcode 0x1
-[00:00:01.510,498] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.510,498] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.660,095] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x01 len 4
-[00:00:01.660,095] <dbg> bt_att: att_error_rsp: request 0x06 handle 0x00f8 error 0x0a
-[00:00:01.660,125] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 10 len 0: 
-[00:00:01.660,156] <dbg> bt_att: bt_att_req_free: req 0x2000d378
-[00:00:01.660,186] <dbg> bt_gatt: gatt_find_type_rsp: err 10
-[00:00:01.660,186] <dbg> bt_gatt: gatt_read_type: start_handle 0x00ec end_handle 0x00f7
-[00:00:01.660,217] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.660,217] <dbg> bt_att: bt_att_req_alloc: req 0x2000d378
-[00:00:01.660,247] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d378
-[00:00:01.660,278] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d378 len 7
-[00:00:01.660,308] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x08
-[00:00:01.660,308] <dbg> bt_att: chan_send: code 0x08
-[00:00:01.660,400] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.660,430] <dbg> bt_att: att_on_sent_cb: opcode 0x8
-[00:00:01.660,430] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.660,461] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.660,461] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d378
-[00:00:01.710,052] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x06 len 8
-[00:00:01.710,052] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
-[00:00:01.710,113] <dbg> bt_att: find_type_cb: handle 0x0001
-[00:00:01.710,144] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
-[00:00:01.710,174] <dbg> bt_att: find_type_cb: handle 0x0009
-[00:00:01.710,205] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
-[00:00:01.710,235] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.710,327] <dbg> bt_att: chan_send: code 0x01
-[00:00:01.710,479] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.710,510] <dbg> bt_att: att_on_sent_cb: opcode 0x1
-[00:00:01.710,510] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.710,540] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.760,162] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x09 len 22
-[00:00:01.760,162] <dbg> bt_att: att_handle_read_type_rsp: 
-[00:00:01.760,223] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 22: 07ed0012ee00842bf00012f100852bf3001af400862b
-[00:00:01.760,253] <dbg> bt_att: bt_att_req_free: req 0x2000d378
-[00:00:01.760,253] <dbg> bt_gatt: gatt_read_type_rsp: err 0
-[00:00:01.760,314] <dbg> bt_gatt: parse_characteristic: handle 0x00ed uuid 2b84 properties 0x12
-[00:00:01.760,345] <dbg> bt_gatt: gatt_find_info: start_handle 0x00ee end_handle 0x00f7
-[00:00:01.760,375] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.760,375] <dbg> bt_att: bt_att_req_alloc: req 0x2000d378
-[00:00:01.760,406] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d378
-[00:00:01.760,437] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d378 len 5
-[00:00:01.760,467] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x04
-[00:00:01.760,467] <dbg> bt_att: chan_send: code 0x04
-[00:00:01.760,528] <dbg> bt_gatt: parse_characteristic: handle 0x00f0 uuid 2b85 properties 0x12
-[00:00:01.760,589] <dbg> bt_gatt: gatt_find_info: start_handle 0x00f1 end_handle 0x00f7
-[00:00:01.760,589] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.760,589] <dbg> bt_att: bt_att_req_alloc: req 0x2000d394
-[00:00:01.760,650] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d394
-[00:00:01.760,711] <dbg> bt_gatt: parse_characteristic: handle 0x00f3 uuid 2b86 properties 0x1a
-[00:00:01.760,742] <dbg> bt_gatt: gatt_find_info: start_handle 0x00f4 end_handle 0x00f7
-[00:00:01.760,742] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.760,772] <dbg> bt_att: bt_att_req_alloc: req 0x2000d3b0
-[00:00:01.760,803] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d3b0
-[00:00:01.760,833] <dbg> bt_gatt: gatt_read_type: start_handle 0x00f4 end_handle 0x00f7
-[00:00:01.760,833] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.760,864] <dbg> bt_att: bt_att_req_alloc: No space for req
-[00:00:01.760,864] <dbg> bt_gatt: bt_gatt_read: handle 0x00ee
-[00:00:01.760,894] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.760,894] <dbg> bt_att: bt_att_req_alloc: No space for req
-[00:00:01.761,016] <err> csip: CSIP discovery failed on CC:89:6C:EE:40:F3 (public) (err -12)
-[00:00:01.761,016] <err> ble_manager: BLE command failed: type=11, err=-12
-[00:00:01.761,047] <dbg> ble_manager: ble_process_next_command: No BLE commands in queue
-[00:00:01.761,108] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.761,138] <dbg> bt_att: att_on_sent_cb: opcode 0x4
-[00:00:01.761,169] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.761,169] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.761,199] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d378
-[00:00:01.810,150] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x06 len 22
-[00:00:01.810,180] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
-[00:00:01.810,211] <dbg> bt_att: find_type_cb: handle 0x0001
-[00:00:01.810,241] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
-[00:00:01.810,272] <dbg> bt_att: find_type_cb: handle 0x0009
-[00:00:01.810,302] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
-[00:00:01.810,333] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.810,363] <dbg> bt_att: chan_send: code 0x01
-[00:00:01.810,455] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:01.810,485] <dbg> bt_att: att_on_sent_cb: opcode 0x1
-[00:00:01.810,485] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.810,516] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.860,137] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x05 len 21
-[00:00:01.860,168] <dbg> bt_att: att_handle_find_info_rsp: 
-[00:00:01.860,229] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 21: 01ee00842bef000229f0000328f100852bf2000229
-[00:00:01.860,229] <dbg> bt_att: bt_att_req_free: req 0x2000d378
-[00:00:01.860,260] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d394 len 5
-[00:00:01.860,290] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x04
-[00:00:01.860,290] <dbg> bt_att: chan_send: code 0x04
-[00:00:01.860,321] <dbg> bt_gatt: gatt_find_info_rsp: err 0
-[00:00:01.860,382] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00ee uuid 2b84
-[00:00:01.860,443] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00ef uuid 2902
-[00:00:01.860,443] <dbg> bt_gatt: gatt_write_ccc: handle 0x00ef value 0x0001
-[00:00:01.860,473] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.860,473] <dbg> bt_att: bt_att_req_alloc: req 0x2000d378
-[00:00:01.860,534] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d378
-[00:00:01.860,595] <dbg> bt_att: att_tx_destroy: 0x2000d2f4
-[00:00:01.860,626] <dbg> bt_att: att_on_sent_cb: opcode 0x4
-[00:00:01.860,656] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.860,656] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.860,687] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d394
-[00:00:01.960,052] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x05 len 21
-[00:00:01.960,052] <dbg> bt_att: att_handle_find_info_rsp: 
-[00:00:01.960,113] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 21: 01f100852bf2000229f3000328f400862bf5000229
-[00:00:01.960,144] <dbg> bt_att: bt_att_req_free: req 0x2000d394
-[00:00:01.960,144] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d3b0 len 5
-[00:00:01.960,174] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x04
-[00:00:01.960,174] <dbg> bt_att: chan_send: code 0x04
-[00:00:01.960,205] <dbg> bt_gatt: gatt_find_info_rsp: err 0
-[00:00:01.960,266] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00f1 uuid 2b85
-[00:00:01.960,327] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00f2 uuid 2902
-[00:00:01.960,357] <dbg> bt_gatt: gatt_write_ccc: handle 0x00f2 value 0x0001
-[00:00:01.960,357] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:01.960,388] <dbg> bt_att: bt_att_req_alloc: req 0x2000d394
-[00:00:01.960,418] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d394
-[00:00:01.960,510] <dbg> bt_att: att_tx_destroy: 0x2000d31c
-[00:00:01.960,510] <dbg> bt_att: att_on_sent_cb: opcode 0x4
-[00:00:01.960,540] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:01.960,540] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:01.960,571] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d3b0
-[00:00:02.060,058] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x05 len 17
-[00:00:02.060,089] <dbg> bt_att: att_handle_find_info_rsp: 
-[00:00:02.060,119] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 17: 01f400862bf5000229f6000328f700872b
-[00:00:02.060,150] <dbg> bt_att: bt_att_req_free: req 0x2000d3b0
-[00:00:02.060,180] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d378 len 5
-[00:00:02.060,180] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x12
-[00:00:02.060,211] <dbg> bt_att: chan_send: code 0x12
-[00:00:02.060,241] <dbg> bt_gatt: gatt_find_info_rsp: err 0
-[00:00:02.060,272] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00f4 uuid 2b86
-[00:00:02.060,333] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00f5 uuid 2902
-[00:00:02.060,363] <dbg> bt_gatt: gatt_write_ccc: handle 0x00f5 value 0x0001
-[00:00:02.060,394] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
-[00:00:02.060,394] <dbg> bt_att: bt_att_req_alloc: req 0x2000d3b0
-[00:00:02.060,424] <dbg> bt_att: bt_att_req_send: conn 0x20004c98 req 0x2000d3b0
-[00:00:02.060,516] <dbg> bt_att: att_tx_destroy: 0x2000d2cc
-[00:00:02.060,546] <dbg> bt_att: att_on_sent_cb: opcode 0x12
-[00:00:02.060,546] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:02.060,577] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:02.060,577] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d378
-[00:00:02.160,003] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x13 len 0
-[00:00:02.160,003] <dbg> bt_att: att_handle_write_rsp: 
-[00:00:02.160,034] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 0: 
-[00:00:02.160,064] <dbg> bt_att: bt_att_req_free: req 0x2000d378
-[00:00:02.160,095] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d394 len 5
-[00:00:02.160,095] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x12
-[00:00:02.160,125] <dbg> bt_att: chan_send: code 0x12
-[00:00:02.160,156] <dbg> bt_gatt: gatt_write_ccc_rsp: err 0
-[00:00:02.160,156] <dbg> bt_gatt: att_err_from_int: 0
-[00:00:02.160,247] <dbg> bt_att: att_tx_destroy: 0x2000d2f4
-[00:00:02.160,247] <dbg> bt_att: att_on_sent_cb: opcode 0x12
-[00:00:02.160,278] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:02.160,278] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:02.160,308] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d394
-[00:00:02.259,979] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x13 len 0
-[00:00:02.260,009] <dbg> bt_att: att_handle_write_rsp: 
-[00:00:02.260,040] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 0: 
-[00:00:02.260,070] <dbg> bt_att: bt_att_req_free: req 0x2000d394
-[00:00:02.260,070] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000b740 req 0x2000d3b0 len 5
-[00:00:02.260,101] <dbg> bt_att: bt_att_chan_send: chan 0x2000b740 flags 1 code 0x12
-[00:00:02.260,101] <dbg> bt_att: chan_send: code 0x12
-[00:00:02.260,131] <dbg> bt_gatt: gatt_write_ccc_rsp: err 0
-[00:00:02.260,162] <dbg> bt_gatt: att_err_from_int: 0
-[00:00:02.260,253] <dbg> bt_att: att_tx_destroy: 0x2000d31c
-[00:00:02.260,253] <dbg> bt_att: att_on_sent_cb: opcode 0x12
-[00:00:02.260,284] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004c98 chan 0x2000b744
-[00:00:02.260,284] <dbg> bt_att: bt_att_sent: chan 0x2000b740
-[00:00:02.260,314] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000b740 chan->req 0x2000d3b0
-[00:00:02.359,985] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000b740 code 0x13 len 0
-[00:00:02.360,015] <dbg> bt_att: att_handle_write_rsp: 
-[00:00:02.360,046] <dbg> bt_att: att_handle_rsp: chan 0x2000b740 err 0 len 0: 
-[00:00:02.360,076] <dbg> bt_att: bt_att_req_free: req 0x2000d3b0
-[00:00:02.360,076] <dbg> bt_gatt: gatt_write_ccc_rsp: err 0
-[00:00:02.360,107] <dbg> bt_gatt: att_err_from_int: 0
+[00:00:00.269,592] <dbg> settings: settings_call_set_handler: set-value OK. key: bt/hash
+[00:00:00.269,775] <dbg> bt_smp: smp_d1: key bbc6d7035671c8e577d7e73fd39503a4 d 1 r 0
+[00:00:00.269,836] <dbg> bt_smp: smp_d1: res 48ccf4848f2815bb750c0e276ced67ae
+[00:00:00.269,866] <inf> bt_hci_core: HCI transport: Controller
+[00:00:00.269,958] <inf> bt_hci_core: Identity: D0:26:7A:4D:45:9E (random)
+[00:00:00.269,989] <inf> bt_hci_core: HCI: version 5.4 (0x0d) revision 0x0000, manufacturer 0x05f1
+[00:00:00.270,019] <inf> bt_hci_core: LMP: version 5.4 (0x0d) subver 0xffff
+[00:00:00.270,233] <inf> ble_manager: Found bonded device: CC:89:6C:EE:40:F3 (public)
+[00:00:00.270,263] <dbg> ble_manager: bt_ready_cb: Scheduling auto-connect to bonded device
+[00:00:00.270,599] <inf> ble_manager: Connecting to previously bonded device
+[00:00:00.270,690] <dbg> bt_rpa: ah: irk 48ccf4848f2815bb750c0e276ced67ae
+[00:00:00.270,721] <dbg> bt_rpa: ah: r 2b127b
+[00:00:00.270,812] <dbg> bt_rpa: bt_rpa_create: Created RPA 7B:12:2B:0A:1C:A4
+[00:00:00.271,820] <dbg> bt_rpa: ah: irk 88375043bce1b450b50b97b8b1938f71
+[00:00:00.271,850] <dbg> bt_rpa: ah: r f7615d
+[00:00:00.271,942] <dbg> bt_rpa: bt_rpa_create: Created RPA 5D:61:F7:C4:3B:43
+[00:00:00.272,216] <dbg> bt_rpa: ah: irk 48ccf4848f2815bb750c0e276ced67ae
+[00:00:00.272,247] <dbg> bt_rpa: ah: r 0c374c
+[00:00:00.272,338] <dbg> bt_rpa: bt_rpa_create: Created RPA 4C:37:0C:40:AD:DC
+[00:00:00.284,790] <dbg> bt_smp: bt_smp_accept: conn 0x20004a68 handle 0
+[00:00:00.284,790] <dbg> bt_smp: bt_smp_connected: chan 0x20004d34 cid 0x0006
+[00:00:00.284,820] <dbg> bt_att: bt_att_accept: conn 0x20004a68 handle 0
+[00:00:00.284,881] <dbg> bt_att: att_chan_attach: att 0x2000bd24 chan 0x2000a9c0 flags 0
+[00:00:00.284,912] <dbg> bt_att: bt_att_connected: chan 0x2000a9c4 cid 0x0004
+[00:00:00.284,912] <dbg> bt_gatt: bt_gatt_connected: conn 0x20004a68
+[00:00:00.285,003] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:00.285,217] <dbg> bt_att: bt_att_status: chan 0x2000a9c4 status 0x2000a9d4
+[00:00:00.285,369] <dbg> ble_manager: is_bonded_device: Checking if device CC:89:6C:EE:40:F3 (public) is bonded
+[00:00:00.285,400] <dbg> ble_manager: is_bonded_device_cb: Found bonded device
+[00:00:00.285,430] <inf> ble_manager: Connected to bonded device CC:89:6C:EE:40:F3 (public)
+[00:00:00.721,801] <dbg> bt_smp: bt_smp_pkey_ready: 
+[00:00:00.785,491] <dbg> ble_manager: security_request_handler: Requesting security level 2
+[00:00:00.785,583] <dbg> bt_keys: bt_keys_find: type 32 CC:89:6C:EE:40:F3 (public)
+[00:00:01.186,126] <dbg> bt_smp: bt_smp_encrypt_change: chan 0x20004d34 conn 0x20004a68 handle 0 encrypt 0x01 hci status 0x00 
+[00:00:01.186,187] <dbg> bt_att: bt_att_encrypt_change: chan 0x2000a9c4 conn 0x20004a68 handle 0 sec_level 0x02 status 0x00 
+[00:00:01.186,218] <dbg> bt_gatt: bt_gatt_encrypt_change: conn 0x20004a68
+[00:00:01.186,279] <dbg> bt_keys: bt_keys_find_addr: CC:89:6C:EE:40:F3 (public)
+[00:00:01.186,462] <dbg> ble_manager: security_changed_cb: Security changed: CC:89:6C:EE:40:F3 (public) level 2
+[00:00:01.186,492] <dbg> ble_manager: security_changed_cb: Encryption established at level 2
+[00:00:01.186,492] <dbg> ble_manager: security_changed_cb: Bonded device encrypted - starting service discovery
+[00:00:01.186,523] <dbg> vcp_controller: vcp_discover: Current security before VCP discover: 2
+[00:00:01.186,553] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.186,553] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:01.186,645] <dbg> bt_gatt: gatt_find_type_encode: uuid 1844 start_handle 0x0001 end_handle 0xffff
+[00:00:01.186,676] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:01.186,676] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 9
+[00:00:01.186,706] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x06
+[00:00:01.186,706] <dbg> bt_att: chan_send: code 0x06
+[00:00:01.186,737] <dbg> vcp_controller: vcp_discover: VCP discovery initiated
+[00:00:01.186,767] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.186,798] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd6c
+[00:00:01.186,920] <dbg> bt_gatt: gatt_find_type_encode: uuid 180f start_handle 0x0001 end_handle 0xffff
+[00:00:01.186,950] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd6c
+[00:00:01.187,164] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:01.187,164] <dbg> bt_att: att_on_sent_cb: opcode 0x6
+[00:00:01.187,194] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.187,194] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.187,225] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:01.187,286] <wrn> bt_l2cap: Ignoring data for unknown channel ID 0x002a
+[00:00:01.187,377] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x08 len 6
+[00:00:01.187,469] <dbg> bt_att: att_read_type_req: start_handle 0x0001 end_handle 0xffff type 2a00
+[00:00:01.187,530] <dbg> bt_att: read_type_cb: handle 0x000b
+[00:00:01.187,561] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 11
+[00:00:01.187,561] <dbg> bt_att: chan_send: code 0x09
+[00:00:01.187,652] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:01.187,683] <dbg> bt_att: att_on_sent_cb: opcode 0x9
+[00:00:01.187,713] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.187,713] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.286,163] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x07 len 4
+[00:00:01.286,193] <dbg> bt_att: att_handle_find_type_rsp: 
+[00:00:01.286,224] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 4: d100db00
+[00:00:01.286,254] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:01.286,254] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd6c len 9
+[00:00:01.286,285] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x06
+[00:00:01.286,285] <dbg> bt_att: chan_send: code 0x06
+[00:00:01.286,315] <dbg> bt_gatt: gatt_find_type_rsp: err 0
+[00:00:01.286,346] <dbg> bt_gatt: gatt_find_type_rsp: start_handle 0x00d1 end_handle 0x00db
+[00:00:01.286,346] <dbg> bt_vcp_vol_ctlr: primary_discover_func: [ATTRIBUTE] handle 0x00D1
+[00:00:01.286,376] <dbg> bt_vcp_vol_ctlr: primary_discover_func: Primary discover complete
+[00:00:01.286,376] <dbg> bt_gatt: gatt_read_type: start_handle 0x00d2 end_handle 0x00db
+[00:00:01.286,468] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.286,499] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:01.286,529] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:01.286,712] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:01.286,743] <dbg> bt_att: att_on_sent_cb: opcode 0x6
+[00:00:01.286,743] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.286,773] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.286,773] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd6c
+[00:00:01.286,865] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x06 len 8
+[00:00:01.286,865] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
+[00:00:01.286,895] <dbg> bt_att: find_type_cb: handle 0x0001
+[00:00:01.286,926] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:01.286,956] <dbg> bt_att: find_type_cb: handle 0x0009
+[00:00:01.286,987] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:01.287,017] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:01.287,078] <dbg> bt_att: chan_send: code 0x01
+[00:00:01.287,170] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:01.287,170] <dbg> bt_att: att_on_sent_cb: opcode 0x1
+[00:00:01.287,200] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.287,200] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.386,260] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x07 len 4
+[00:00:01.386,291] <dbg> bt_att: att_handle_find_type_rsp: 
+[00:00:01.386,352] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 4: 1e012101
+[00:00:01.386,383] <dbg> bt_att: bt_att_req_free: req 0x2000bd6c
+[00:00:01.386,383] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 7
+[00:00:01.386,413] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x08
+[00:00:01.386,413] <dbg> bt_att: chan_send: code 0x08
+[00:00:01.386,444] <dbg> bt_gatt: gatt_find_type_rsp: err 0
+[00:00:01.386,474] <dbg> bt_gatt: gatt_find_type_rsp: start_handle 0x011e end_handle 0x0121
+[00:00:01.386,535] <dbg> bt_gatt: gatt_read_type: start_handle 0x011f end_handle 0x0121
+[00:00:01.386,535] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.386,566] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd6c
+[00:00:01.386,596] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd6c
+[00:00:01.386,688] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:01.386,718] <dbg> bt_att: att_on_sent_cb: opcode 0x8
+[00:00:01.386,718] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.386,749] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.386,749] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:01.436,309] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x06 len 8
+[00:00:01.436,309] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
+[00:00:01.436,340] <dbg> bt_att: find_type_cb: handle 0x0001
+[00:00:01.436,370] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:01.436,401] <dbg> bt_att: find_type_cb: handle 0x0009
+[00:00:01.436,431] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:01.436,462] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:01.436,523] <dbg> bt_att: chan_send: code 0x01
+[00:00:01.436,706] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:01.436,706] <dbg> bt_att: att_on_sent_cb: opcode 0x1
+[00:00:01.436,737] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.436,737] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.486,297] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x09 len 22
+[00:00:01.486,328] <dbg> bt_att: att_handle_read_type_rsp: 
+[00:00:01.486,389] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 22: 07d40012d5007d2bd70008d8007e2bd90012da007f2b
+[00:00:01.486,419] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:01.486,419] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd6c len 7
+[00:00:01.486,450] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x08
+[00:00:01.486,450] <dbg> bt_att: chan_send: code 0x08
+[00:00:01.486,511] <dbg> bt_gatt: gatt_read_type_rsp: err 0
+[00:00:01.486,602] <dbg> bt_gatt: parse_characteristic: handle 0x00d4 uuid 2b7d properties 0x12
+[00:00:01.486,633] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: [ATTRIBUTE] handle 0x00D4
+[00:00:01.486,633] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Volume state
+[00:00:01.486,663] <dbg> bt_gatt: gatt_find_info: start_handle 0x00d5 end_handle 0x00db
+[00:00:01.486,694] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.486,694] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:01.486,755] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:01.486,755] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Subscribed to handle 0x00D4
+[00:00:01.486,816] <dbg> bt_gatt: parse_characteristic: handle 0x00d7 uuid 2b7e properties 0x08
+[00:00:01.486,846] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: [ATTRIBUTE] handle 0x00D7
+[00:00:01.486,846] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Control Point
+[00:00:01.486,907] <dbg> bt_gatt: parse_characteristic: handle 0x00d9 uuid 2b7f properties 0x12
+[00:00:01.486,938] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: [ATTRIBUTE] handle 0x00D9
+[00:00:01.486,938] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Volume Flags
+[00:00:01.486,968] <dbg> bt_gatt: gatt_find_info: start_handle 0x00da end_handle 0x00db
+[00:00:01.486,999] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.486,999] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:01.487,030] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:01.487,060] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Subscribed to handle 0x00D9
+[00:00:01.487,091] <dbg> bt_gatt: gatt_read_type: start_handle 0x00da end_handle 0x00db
+[00:00:01.487,091] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.487,121] <dbg> bt_att: bt_att_req_alloc: No space for req
+[00:00:01.487,121] <dbg> bt_vcp_vol_ctlr: vcs_discover_func: Setup complete for vol_ctlr
+[00:00:01.487,121] <inf> vcp_controller: VCP discovery complete - VOCS: 0, AICS: 0
+[00:00:01.487,152] <dbg> bt_gatt: bt_gatt_read: handle 0x00d5
+[00:00:01.487,152] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.487,182] <dbg> bt_att: bt_att_req_alloc: No space for req
+[00:00:01.487,182] <err> vcp_controller: Failed to read VCP state (err -12)
+[00:00:01.487,213] <dbg> bt_gatt: bt_gatt_read: handle 0x00da
+[00:00:01.487,213] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.487,243] <dbg> bt_att: bt_att_req_alloc: No space for req
+[00:00:01.487,243] <err> vcp_controller: Failed to read VCP flags (err -12)
+[00:00:01.487,396] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:01.487,426] <dbg> bt_att: att_on_sent_cb: opcode 0x8
+[00:00:01.487,426] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.487,457] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.487,457] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd6c
+[00:00:01.536,346] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x06 len 22
+[00:00:01.536,376] <dbg> bt_att: att_find_type_req: start_handle 0x0001 end_handle 0xffff type 10240
+[00:00:01.536,407] <dbg> bt_att: find_type_cb: handle 0x0001
+[00:00:01.536,437] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:01.536,468] <dbg> bt_att: find_type_cb: handle 0x0009
+[00:00:01.536,499] <dbg> bt_gatt: bt_gatt_attr_read: handle 0x0000 offset 0 length 2
+[00:00:01.536,529] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:01.536,590] <dbg> bt_att: chan_send: code 0x01
+[00:00:01.536,682] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:01.536,682] <dbg> bt_att: att_on_sent_cb: opcode 0x1
+[00:00:01.536,712] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.536,712] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.586,303] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x09 len 8
+[00:00:01.586,303] <dbg> bt_att: att_handle_read_type_rsp: 
+[00:00:01.586,364] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 8: 071f01122001192a
+[00:00:01.586,364] <dbg> bt_att: bt_att_req_free: req 0x2000bd6c
+[00:00:01.586,395] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 5
+[00:00:01.586,395] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x04
+[00:00:01.586,425] <dbg> bt_att: chan_send: code 0x04
+[00:00:01.586,456] <dbg> bt_gatt: gatt_read_type_rsp: err 0
+[00:00:01.586,517] <dbg> bt_gatt: parse_characteristic: handle 0x011f uuid 2a19 properties 0x12
+[00:00:01.586,547] <dbg> bt_gatt: gatt_find_info: start_handle 0x0121 end_handle 0x0121
+[00:00:01.586,547] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.586,578] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd6c
+[00:00:01.586,608] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd6c
+[00:00:01.586,700] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:01.586,700] <dbg> bt_att: att_on_sent_cb: opcode 0x4
+[00:00:01.586,730] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.586,730] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.586,761] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:01.686,218] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x05 len 21
+[00:00:01.686,248] <dbg> bt_att: att_handle_find_info_rsp: 
+[00:00:01.686,309] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 21: 01d5007d2bd6000229d7000328d8007e2bd9000328
+[00:00:01.686,309] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:01.686,340] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:01.686,370] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x04
+[00:00:01.686,370] <dbg> bt_att: chan_send: code 0x04
+[00:00:01.686,401] <dbg> bt_gatt: gatt_find_info_rsp: err 0
+[00:00:01.686,462] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00d5 uuid 2b7d
+[00:00:01.686,523] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00d6 uuid 2902
+[00:00:01.686,553] <dbg> bt_gatt: gatt_write_ccc: handle 0x00d6 value 0x0001
+[00:00:01.686,553] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.686,584] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:01.686,614] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:01.686,706] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:01.686,737] <dbg> bt_att: att_on_sent_cb: opcode 0x4
+[00:00:01.686,737] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.686,767] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.686,767] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:01.786,224] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x05 len 9
+[00:00:01.786,254] <dbg> bt_att: att_handle_find_info_rsp: 
+[00:00:01.786,285] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 9: 01da007f2bdb000229
+[00:00:01.786,315] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:01.786,315] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd6c len 5
+[00:00:01.786,346] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x04
+[00:00:01.786,346] <dbg> bt_att: chan_send: code 0x04
+[00:00:01.786,376] <dbg> bt_gatt: gatt_find_info_rsp: err 0
+[00:00:01.786,437] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00da uuid 2b7f
+[00:00:01.786,499] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x00db uuid 2902
+[00:00:01.786,529] <dbg> bt_gatt: gatt_write_ccc: handle 0x00db value 0x0001
+[00:00:01.786,560] <dbg> bt_att: bt_att_req_alloc: Timeout discarded. No blocking on BT RX WQ or SYS WQ threads.
+[00:00:01.786,560] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:01.786,590] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:01.786,682] <dbg> bt_att: att_tx_destroy: 0x2000bcd4
+[00:00:01.786,712] <dbg> bt_att: att_on_sent_cb: opcode 0x4
+[00:00:01.786,712] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.786,743] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.786,773] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd6c
+[00:00:01.886,199] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x05 len 5
+[00:00:01.886,230] <dbg> bt_att: att_handle_find_info_rsp: 
+[00:00:01.886,260] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 5: 0121010229
+[00:00:01.886,291] <dbg> bt_att: bt_att_req_free: req 0x2000bd6c
+[00:00:01.886,291] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 5
+[00:00:01.886,322] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:01.886,322] <dbg> bt_att: chan_send: code 0x12
+[00:00:01.886,383] <dbg> bt_gatt: gatt_find_info_rsp: err 0
+[00:00:01.886,413] <dbg> bt_gatt: gatt_find_info_rsp: handle 0x0121 uuid 2902
+[00:00:01.886,444] <wrn> battery_reader: CCC descriptor not found - notifications not available
+[00:00:01.886,505] <dbg> bt_att: att_tx_destroy: 0x2000bcac
+[00:00:01.886,535] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:01.886,566] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.886,566] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.886,596] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:01.986,175] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x13 len 0
+[00:00:01.986,206] <dbg> bt_att: att_handle_write_rsp: 
+[00:00:01.986,236] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 0: 
+[00:00:01.986,267] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:01.986,267] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:01.986,297] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:01.986,328] <dbg> bt_att: chan_send: code 0x12
+[00:00:01.986,358] <dbg> bt_gatt: gatt_write_ccc_rsp: err 0
+[00:00:01.986,358] <dbg> bt_gatt: att_err_from_int: 0
+[00:00:01.986,450] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:01.986,450] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:01.986,480] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:01.986,480] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:01.986,511] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:02.086,181] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x13 len 0
+[00:00:02.086,212] <dbg> bt_att: att_handle_write_rsp: 
+[00:00:02.086,242] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 0: 
+[00:00:02.086,273] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:02.086,273] <dbg> bt_gatt: gatt_write_ccc_rsp: err 0
+[00:00:02.086,303] <dbg> bt_gatt: att_err_from_int: 0
+[00:00:04.487,304] <inf> vcp_controller: VCP discovered
+[00:00:05.271,087] <dbg> bt_gatt: bt_gatt_write: handle 0x00d8 length 2
+[00:00:05.271,087] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:05.271,118] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:05.271,148] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 5
+[00:00:05.271,179] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:05.271,179] <dbg> bt_att: chan_send: code 0x12
+[00:00:05.271,270] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:05.271,301] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:05.271,301] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:05.271,331] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:05.271,362] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:05.271,453] <dbg> vcp_controller: vcp_volume_up: Current security before VCP change: 2
+[00:00:05.271,484] <dbg> vcp_controller: vcp_volume_up: Volume up initiated
+[00:00:05.271,484] <dbg> bt_gatt: bt_gatt_read: handle 0x0120
+[00:00:05.271,514] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:05.271,545] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:05.271,575] <inf> main: Battery level: 0%
+[00:00:05.386,199] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x13 len 0
+[00:00:05.386,199] <dbg> bt_att: att_handle_write_rsp: 
+[00:00:05.386,230] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 0: 
+[00:00:05.386,260] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:05.386,291] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 3
+[00:00:05.386,291] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:00:05.386,322] <dbg> bt_att: chan_send: code 0x0a
+[00:00:05.386,352] <dbg> bt_gatt: gatt_write_rsp: err 0
+[00:00:05.386,352] <dbg> bt_gatt: att_err_from_int: 0
+[00:00:05.386,383] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x00
+[00:00:05.386,383] <dbg> bt_vcp_vol_ctlr: vcs_cp_notify_app: 0x20005670 opcode 1 err 0
+[00:00:05.386,413] <inf> vcp_controller: Volume up success
+[00:00:05.386,474] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:05.386,505] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:00:05.386,535] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:05.386,535] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:05.386,566] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:05.486,175] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:00:05.486,206] <dbg> bt_att: att_handle_read_rsp: 
+[00:00:05.486,236] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:00:05.486,267] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:05.486,297] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:00:05.486,297] <inf> battery_reader: Battery level read: 20%
+[00:00:10.271,697] <dbg> bt_gatt: bt_gatt_write: handle 0x00d8 length 2
+[00:00:10.271,697] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd50
+[00:00:10.271,759] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd50
+[00:00:10.271,759] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd50 len 5
+[00:00:10.271,789] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x12
+[00:00:10.271,789] <dbg> bt_att: chan_send: code 0x12
+[00:00:10.271,881] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:10.271,911] <dbg> bt_att: att_on_sent_cb: opcode 0x12
+[00:00:10.271,942] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:10.271,942] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:10.271,972] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd50
+[00:00:10.272,094] <dbg> vcp_controller: vcp_volume_up: Current security before VCP change: 2
+[00:00:10.272,094] <dbg> vcp_controller: vcp_volume_up: Volume up initiated
+[00:00:10.272,125] <dbg> bt_gatt: bt_gatt_read: handle 0x0120
+[00:00:10.272,125] <dbg> bt_att: bt_att_req_alloc: req 0x2000bd88
+[00:00:10.272,155] <dbg> bt_att: bt_att_req_send: conn 0x20004a68 req 0x2000bd88
+[00:00:10.272,186] <inf> main: Battery level: 20%
+[00:00:10.536,193] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x01 len 4
+[00:00:10.536,224] <dbg> bt_att: att_error_rsp: request 0x12 handle 0x00d8 error 0x0f
+[00:00:10.536,285] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 15 len 0: 
+[00:00:10.536,285] <dbg> bt_att: bt_att_req_free: req 0x2000bd50
+[00:00:10.536,315] <dbg> bt_att: bt_att_chan_req_send: chan 0x2000a9c0 req 0x2000bd88 len 3
+[00:00:10.536,315] <dbg> bt_att: bt_att_chan_send: chan 0x2000a9c0 flags 1 code 0x0a
+[00:00:10.536,346] <dbg> bt_att: chan_send: code 0x0a
+[00:00:10.536,376] <dbg> bt_gatt: gatt_write_rsp: err 15
+[00:00:10.536,376] <dbg> bt_gatt: att_err_from_int: 15
+[00:00:10.536,407] <dbg> bt_vcp_vol_ctlr: vcp_vol_ctlr_write_vcs_cp_cb: err: 0x0F
+[00:00:10.536,437] <dbg> bt_vcp_vol_ctlr: vcs_cp_notify_app: 0x20005670 opcode 1 err 15
+[00:00:10.536,437] <err> vcp_controller: VCP volume up error (err 15)
+[00:00:10.536,529] <dbg> bt_att: att_tx_destroy: 0x2000bcfc
+[00:00:10.536,560] <dbg> bt_att: att_on_sent_cb: opcode 0xa
+[00:00:10.536,560] <dbg> bt_att: att_on_sent_cb: UATT bearer, calling bt_att_sent: conn 0x20004a68 chan 0x2000a9c4
+[00:00:10.536,590] <dbg> bt_att: bt_att_sent: chan 0x2000a9c0
+[00:00:10.536,590] <dbg> bt_att: chan_rebegin_att_timeout: chan 0x2000a9c0 chan->req 0x2000bd88
+[00:00:10.636,199] <dbg> bt_att: bt_att_recv: Received ATT chan 0x2000a9c0 code 0x0b len 1
+[00:00:10.636,199] <dbg> bt_att: att_handle_read_rsp: 
+[00:00:10.636,260] <dbg> bt_att: att_handle_rsp: chan 0x2000a9c0 err 0 len 1: 14
+[00:00:10.636,260] <dbg> bt_att: bt_att_req_free: req 0x2000bd88
+[00:00:10.636,291] <dbg> bt_gatt: gatt_read_rsp: err 0
+[00:00:10.636,291] <inf> battery_reader: Battery level read: 20%

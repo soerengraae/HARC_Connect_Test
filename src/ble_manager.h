@@ -62,9 +62,6 @@ enum ble_cmd_type {
     /* Battery Service commands */
     BLE_CMD_BAS_DISCOVER,
     BLE_CMD_BAS_READ_LEVEL,
-
-    /* CSIP commands */
-    BLE_CMD_CSIP_DISCOVER,
 };
 
 /* BLE command structure */
@@ -100,8 +97,6 @@ int ble_cmd_vcp_read_flags(void);
 
 int ble_cmd_bas_discover(void);
 int ble_cmd_bas_read_level(void);
-
-int ble_cmd_csip_discover(void);
 
 void ble_manager_cmd_queue_reset(void);
 

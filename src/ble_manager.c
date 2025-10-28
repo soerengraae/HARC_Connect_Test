@@ -1,7 +1,6 @@
 #include "ble_manager.h"
 #include "vcp_controller.h"
 #include "battery_reader.h"
-#include "csip.h"
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -195,7 +194,6 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 				LOG_DBG("Bonded device encrypted - starting service discovery");
 				ble_cmd_vcp_discover();
 				ble_cmd_bas_discover();
-				ble_cmd_csip_discover();
 			} else {
 				LOG_DBG("New device - waiting for pairing completion");
 				conn_ctx->state = CONN_STATE_PAIRING;
@@ -275,7 +273,6 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	ble_manager_cmd_queue_reset();
 	vcp_controller_reset();
 	battery_reader_reset();
-	csip_reset();
 
 	if (conn_ctx->state == CONN_STATE_BONDED) {
 		conn_ctx->state = CONN_STATE_DISCONNECTED;
@@ -319,30 +316,9 @@ static bool device_found(struct bt_data *data, void *user_data)
 			info->name[BT_NAME_MAX_LEN - 1] = '\0'; // Ensure null-termination
 			info->connect = true;
 			LOG_DBG("Will attempt to connect to %s", info->name);
-
-			/* Also check if this could be a set member based on name pattern */
-			char addr_str[BT_ADDR_LE_STR_LEN];
-			bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
-
-			/* If we have known sets, check if this device could be a member based on name */
-			if (csip_get_known_set_count() > 0) {
-				LOG_INF("Found another HARC HI device: %s - could be set member", addr_str);
-				csip_suggest_potential_member(&info->addr, name);
-			}
-
 			return false; // Stop parsing further
 		}
 
-		break;
-
-	case BT_DATA_CSIS_RSI:
-		LOG_INF("Found CSIP RSI data from %s (len %u)", addr_str, data->data_len);
-		/* Check if this device is a member of any known sets and add it */
-		if (csip_check_and_add_set_member(&info->addr, data)) {
-			LOG_INF("Device %s identified as set member via device_found!", addr_str);
-		} else {
-			LOG_DBG("RSI from %s did not match any known sets", addr_str);
-		}
 		break;
 
 	default:
@@ -388,51 +364,6 @@ static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 	info.connect = false;
 
 	bt_data_parse(ad, device_found, &info);
-
-	/* Always check if this device is a set member (regardless of connection intent) */
-	/* Use the entire advertisement buffer for set member check */
-	struct net_buf_simple ad_copy = *ad;
-	bool found_rsi = false;
-
-	LOG_DBG("Scanning advertisement from %s for RSI data", addr_str);
-
-	while (ad_copy.len > 0) {
-		uint8_t len = net_buf_simple_pull_u8(&ad_copy);
-		if (len == 0 || len > ad_copy.len) {
-			LOG_DBG("Invalid advertisement length, stopping parse");
-			break;
-		}
-
-		uint8_t type = net_buf_simple_pull_u8(&ad_copy);
-		uint8_t *data_ptr = ad_copy.data;
-
-		LOG_DBG("Advertisement element: type=0x%02x, len=%u", type, len - 1);
-
-		if (type == BT_DATA_CSIS_RSI && len >= 2) {
-			found_rsi = true;
-			struct bt_data rsi_data = {
-				.type = BT_DATA_CSIS_RSI,
-				.data_len = len - 1,
-				.data = data_ptr
-			};
-			LOG_INF("Found RSI data from %s (len %u), checking against known sets",
-				   addr_str, rsi_data.data_len);
-
-			if (csip_check_and_add_set_member(addr, &rsi_data)) {
-				LOG_INF("Successfully identified %s as set member!", addr_str);
-			} else {
-				LOG_INF("RSI from %s does not match any known sets", addr_str);
-			}
-		}
-
-		if (len > 1) {
-			net_buf_simple_pull(&ad_copy, len - 1);
-		}
-	}
-
-	if (!found_rsi) {
-		LOG_DBG("No RSI data found in advertisement from %s", addr_str);
-	}
 
 	if (info.connect) {
 		if (connect(info)) {
@@ -527,13 +458,6 @@ int ble_manager_init(void)
 	k_work_init_delayable(&security_request_work, security_request_handler);
 	k_work_init_delayable(&auto_connect_work, auto_connect_work_handler);
 	k_work_init_delayable(&auto_connect_timeout_work, auto_connect_timeout_handler);
-
-	/* Initialize CSIP */
-	err = csip_init();
-	if (err) {
-		LOG_ERR("CSIP init failed (err %d)", err);
-		return err;
-	}
 
 	LOG_INF("BLE manager initialized");
 	return 0;
@@ -651,11 +575,6 @@ static int ble_execute_command(struct ble_cmd *cmd)
         err = battery_read_level(conn_ctx);
         break;
 
-    /* CSIP commands */
-    case BLE_CMD_CSIP_DISCOVER:
-        err = csip_discover(conn_ctx->conn);
-        break;
-
     default:
         LOG_ERR("Unknown BLE command type: %d", cmd->type);
         err = -EINVAL;
@@ -705,7 +624,7 @@ void ble_cmd_complete(int err)
     }
 
     if (err) {
-        LOG_ERR("BLE command failed: type=%d, err=%d",
+        LOG_ERR("BLE command failed: type=%d, err=%d (VCP already retried if appropriate)",
                 current_ble_cmd->type, err);
     } else {
         LOG_DBG("BLE command completed successfully: type=%d", current_ble_cmd->type);
@@ -731,6 +650,10 @@ static void ble_process_next_command(void)
 
     current_ble_cmd = cmd;
     ble_cmd_in_progress = true;
+
+    // Check if this is a BAS command (they complete immediately)
+    bool is_bas_cmd = (cmd->type == BLE_CMD_BAS_DISCOVER ||
+                       cmd->type == BLE_CMD_BAS_READ_LEVEL);
 
     // Execute the command
     int err = ble_execute_command(cmd);
@@ -887,17 +810,6 @@ int ble_cmd_bas_read_level(void)
     }
 
     cmd->type = BLE_CMD_BAS_READ_LEVEL;
-    return ble_cmd_enqueue(cmd);
-}
-
-int ble_cmd_csip_discover(void)
-{
-    struct ble_cmd *cmd = ble_cmd_alloc();
-    if (!cmd) {
-        return -ENOMEM;
-    }
-
-    cmd->type = BLE_CMD_CSIP_DISCOVER;
     return ble_cmd_enqueue(cmd);
 }
 
