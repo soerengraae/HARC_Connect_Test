@@ -17,7 +17,6 @@ static uint32_t button_down_count = 0;
 /* VCP state for display */
 static uint8_t current_volume = 0;
 static bool current_mute = false;
-static bool display_needs_update = false;
 
 /* Work queue for display updates from interrupt context */
 static struct k_work display_update_work;
