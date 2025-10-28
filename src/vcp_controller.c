@@ -2,6 +2,9 @@
 
 LOG_MODULE_REGISTER(vcp_controller, LOG_LEVEL_INF);
 
+/* External function to update volume display (from main.c) */
+extern void main_update_volume_display(uint8_t volume, bool mute);
+
 /* Global state variables */
 struct bt_vcp_vol_ctlr *vol_ctlr;
 bool vcp_discovered = false;
@@ -429,9 +432,12 @@ static void vcp_state_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err,
         vcp_cmd_complete(err);
         return;
     }
-    
+
     float volume_percent = (float)volume * 100.0f / 255.0f;
     LOG_INF("VCP state - Volume: %u%%, Mute: %u", (uint8_t)(volume_percent), mute);
+
+    /* Update OLED display with current volume state (via work queue) */
+    main_update_volume_display(volume, mute);
 
     if (volume >= 255) {
         volume_direction = false;

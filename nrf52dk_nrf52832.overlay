@@ -1,0 +1,29 @@
+/*
+ * Device Tree Overlay for nRF52DK with nRF52832
+ * Configures I2C for OLED display (JMD0.96C)
+ * Note: Button aliases (sw0, sw1) are already defined in the base board DTS
+ */
+
+/* Pin Configuration for I2C0 */
+&pinctrl {
+    i2c0_default: i2c0_default {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 26)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 27)>;
+        };
+    };
+
+    i2c0_sleep: i2c0_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 26)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 27)>;
+            low-power-enable;
+        };
+    };
+};
+
+/* I2C0 Configuration for OLED Display */
+&i2c0 {
+    status = "okay";
+    clock-frequency = <I2C_BITRATE_STANDARD>;
+};
