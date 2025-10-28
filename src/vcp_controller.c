@@ -55,7 +55,7 @@ static void vcp_state_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err, uint8_t volu
     }
     
     float volume_percent = (float)volume * 100.0f / 255.0f;
-    LOG_INF("VCP state%s- Volume: %u%%, Mute: %u", (current_ble_cmd && current_ble_cmd->type == BLE_CMD_VCP_READ_STATE) ? "" : " (Notification)",
+    LOG_INF("VCP state%s- Volume: %u%%, Mute: %u", (current_ble_cmd && current_ble_cmd->type == BLE_CMD_VCP_READ_STATE) ? " " : " (Notification)",
                                                    (uint8_t)(volume_percent), mute);
 
     if (volume >= 255) {
