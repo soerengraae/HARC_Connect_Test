@@ -79,7 +79,7 @@ struct ble_cmd {
 
 /* BLE scanner functions */
 int ble_manager_init(void);
-void ble_manager_scan_start(void);
+void ble_manager_scan_for_HIs(void);
 void bt_ready_cb(int err);
 bool is_bonded_device(const bt_addr_le_t *addr);
 void disconnect(struct bt_conn *conn, void *data);

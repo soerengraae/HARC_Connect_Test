@@ -228,7 +228,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 
 		if (err == BT_HCI_ERR_UNKNOWN_CONN_ID) {
 			// Connection failed, retry
-			ble_manager_scan_start();
+			ble_manager_scan_for_HIs();
 		}
 		return;
 	}
@@ -280,7 +280,7 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	} else {
 		conn_ctx->state = CONN_STATE_DISCONNECTED;
 		LOG_DBG("Restarting scan to find bondable devices");
-		ble_manager_scan_start();
+		ble_manager_scan_for_HIs();
 	}
 }
 
@@ -368,13 +368,13 @@ static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 	if (info.connect) {
 		if (connect(info)) {
 			LOG_DBG("Restarting scan");
-			ble_manager_scan_start();
+			ble_manager_scan_for_HIs();
 		}
 	}
 }
 
 /* Start BLE scanning */
-void ble_manager_scan_start(void)
+void ble_manager_scan_for_HIs(void)
 {
 	int err;
 	err = bt_le_scan_stop();
@@ -407,7 +407,7 @@ static void auto_connect_timeout_handler(struct k_work *work)
 	k_sleep(K_MSEC(100));
 
 	LOG_DBG("Starting active scan for devices");
-	ble_manager_scan_start();
+	ble_manager_scan_for_HIs();
 }
 
 static void auto_connect_work_handler(struct k_work *work)
@@ -416,7 +416,7 @@ static void auto_connect_work_handler(struct k_work *work)
 
 	if (!conn_ctx->info.connect) {
 		LOG_WRN("No bonded device stored - scanning for devices");
-		ble_manager_scan_start();
+		ble_manager_scan_for_HIs();
 		return;
 	}
 
@@ -425,7 +425,7 @@ static void auto_connect_work_handler(struct k_work *work)
 	if (err) {
 		LOG_ERR("Failed to set auto-connect (err %d)", err);
 		LOG_DBG("Starting active scan for devices");
-		ble_manager_scan_start();
+		ble_manager_scan_for_HIs();
 		return;
 	}
 
@@ -497,7 +497,7 @@ void bt_ready_cb(int err)
 		k_work_schedule(&auto_connect_work, K_MSEC(0));
 	} else {
 		LOG_INF("No previously bonded device found");
-		ble_manager_scan_start();
+		ble_manager_scan_for_HIs();
 	}
 }
 
@@ -650,10 +650,6 @@ static void ble_process_next_command(void)
 
     current_ble_cmd = cmd;
     ble_cmd_in_progress = true;
-
-    // Check if this is a BAS command (they complete immediately)
-    bool is_bas_cmd = (cmd->type == BLE_CMD_BAS_DISCOVER ||
-                       cmd->type == BLE_CMD_BAS_READ_LEVEL);
 
     // Execute the command
     int err = ble_execute_command(cmd);
