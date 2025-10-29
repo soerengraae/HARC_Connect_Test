@@ -81,26 +81,29 @@ extern struct ble_cmd *current_ble_cmd;
 
 /* BLE scanner functions */
 int ble_manager_init(void);
-void ble_manager_scan_for_HIs(void);
+int connect_to_bonded_device(void);
+void scan_for_HIs(void);
 void bt_ready_cb(int err);
 bool is_bonded_device(const bt_addr_le_t *addr);
-void disconnect(struct bt_conn *conn, void *data);
+void disconnect(struct bt_conn *conn, void *data); // void *data ensures compatibility with bt_conn_foreach
+
+char *command_type_to_string(enum ble_cmd_type type);
 
 /* BLE command queue API */
 int ble_cmd_request_security(void);
-int ble_cmd_vcp_discover(void);
-int ble_cmd_vcp_volume_up(void);
-int ble_cmd_vcp_volume_down(void);
-int ble_cmd_vcp_set_volume(uint8_t volume);
-int ble_cmd_vcp_mute(void);
-int ble_cmd_vcp_unmute(void);
-int ble_cmd_vcp_read_state(void);
-int ble_cmd_vcp_read_flags(void);
+int ble_cmd_vcp_discover(bool high_priority);
+int ble_cmd_vcp_volume_up(bool high_priority);
+int ble_cmd_vcp_volume_down(bool high_priority);
+int ble_cmd_vcp_set_volume(uint8_t volume, bool high_priority);
+int ble_cmd_vcp_mute(bool high_priority);
+int ble_cmd_vcp_unmute(bool high_priority);
+int ble_cmd_vcp_read_state(bool high_priority);
+int ble_cmd_vcp_read_flags(bool high_priority);
 
-int ble_cmd_bas_discover(void);
-int ble_cmd_bas_read_level(void);
+int ble_cmd_bas_discover(bool high_priority);
+int ble_cmd_bas_read_level(bool high_priority);
 
-void ble_manager_cmd_queue_reset(void);
+void ble_cmd_queue_reset(void);
 
 /* Command completion notification from subsystems */
 void ble_cmd_complete(int err);

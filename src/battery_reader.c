@@ -132,13 +132,12 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
 				int err = bt_gatt_discover(conn, &discover_params);
 				if (err) {
 					LOG_WRN("Failed to discover CCC (err %d) - proceeding without notifications", err);
-					battery_discovered = true;
 				}
 			} else {
 				LOG_WRN("Characteristic does not support notifications");
-				battery_discovered = true;
 			}
-			
+
+			battery_discovered = true;
 			return BT_GATT_ITER_STOP;
 		}
 	} else if (params->type == BT_GATT_DISCOVER_DESCRIPTOR) {

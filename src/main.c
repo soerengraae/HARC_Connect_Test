@@ -37,20 +37,18 @@ int main(void)
         return err;
     }
 
+    ble_cmd_bas_read_level(false);
+
     while (1) {
         k_sleep(K_SECONDS(5));
 
         if (vcp_discovered && vol_ctlr) {
             LOG_DBG("Queueing VCP Volume Change");
             if (volume_direction) {
-                ble_cmd_vcp_volume_up();
+                ble_cmd_vcp_volume_up(false);
             } else {
-                ble_cmd_vcp_volume_down();
+                ble_cmd_vcp_volume_down(false);
             }
-        }
-
-        if (battery_discovered) {
-            ble_cmd_bas_read_level();
         }
     }
 

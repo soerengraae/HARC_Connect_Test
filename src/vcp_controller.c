@@ -55,8 +55,11 @@ static void vcp_state_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err, uint8_t volu
     }
     
     float volume_percent = (float)volume * 100.0f / 255.0f;
-    LOG_INF("VCP state%s- Volume: %u%%, Mute: %u", (current_ble_cmd && current_ble_cmd->type == BLE_CMD_VCP_READ_STATE) ? " " : " (Notification)",
-                                                   (uint8_t)(volume_percent), mute);
+    if (current_ble_cmd && current_ble_cmd->type == BLE_CMD_VCP_READ_STATE) {
+        LOG_INF("VCP state read: Volume: %u%%, Mute: %u", (uint8_t)(volume_percent), mute);
+    } else {
+        LOG_DBG("VCP state notification: Volume: %u%%, Mute: %u", (uint8_t)(volume_percent), mute);
+    }
 
     if (volume >= 255) {
         volume_direction = false;
@@ -96,18 +99,17 @@ static void vcp_discover_cb(struct bt_vcp_vol_ctlr *vcp_vol_ctlr, int err,
         return;
     }
 
-    LOG_INF("VCP discovery complete - VOCS: %u, AICS: %u", vocs_count, aics_count);
+    LOG_INF("VCP discovery complete");
 
     vol_ctlr = vcp_vol_ctlr;
 
 	vcp_discovered = true;
 
+    // Initial flag read
+	ble_cmd_vcp_read_flags(true);
+
 	// Mark discovery command as complete
 	ble_cmd_complete(0);
-
-	// Initial reads
-	ble_cmd_vcp_read_flags();
-	ble_cmd_vcp_read_state();
 }
 
 static void vcp_vol_down_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err)
@@ -117,7 +119,7 @@ static void vcp_vol_down_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err)
     } else {
         LOG_INF("Volume down success");
     }
-
+    
     ble_cmd_complete(err);
 }
 
