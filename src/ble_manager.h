@@ -66,6 +66,7 @@ enum ble_cmd_type {
 
 /* BLE command structure */
 struct ble_cmd {
+    struct bt_conn *conn;
     enum ble_cmd_type type;
     uint8_t d0;  // Data parameter (e.g., volume level)
     uint8_t retry_count;
@@ -76,7 +77,6 @@ extern struct ble_cmd *current_ble_cmd;
 
 /* Command queue configuration */
 #define BLE_CMD_QUEUE_SIZE 10
-#define BLE_CMD_MAX_RETRIES 3
 #define BLE_CMD_TIMEOUT_MS 5000
 
 /* BLE scanner functions */
@@ -111,6 +111,6 @@ void ble_cmd_complete(int err);
 /* Connection management */
 extern struct bt_conn_cb conn_callbacks;
 extern struct bt_conn *auth_conn;
-extern struct connection_context *conn_ctx;
+extern struct connection_context *current_conn_ctx;
 
 #endif /* BLE_MANAGER_H */

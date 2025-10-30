@@ -6,9 +6,10 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/hci.h>
 
-LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
-struct connection_context *conn_ctx;
+static struct connection_context *conn_ctx;
+struct connection_context *current_conn_ctx;
 static struct k_work_delayable auto_connect_work;
 static struct k_work_delayable auto_connect_timeout_work;
 static struct k_work_delayable security_request_work;
@@ -28,6 +29,12 @@ K_MEM_SLAB_DEFINE(ble_cmd_slab, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4);
 /* Forward declarations */
 static void ble_process_next_command(void);
 static void ble_cmd_timeout_handler(struct k_work *work);
+
+static void select_ble_conn_ctx(uint8_t choice)
+{
+	current_conn_ctx = &conn_ctx[choice];
+	LOG_DBG("Selected connection context: %d", choice);
+}
 
 static void activate_ble_cmd_queue(void)
 {
@@ -119,14 +126,8 @@ static struct ble_cmd *ble_cmd_dequeue(void)
 
 static void security_request_handler(struct k_work *work)
 {
-	if (!conn_ctx->conn)
-	{
-		LOG_WRN("No connection to secure");
-		return;
-	}
-
 	LOG_DBG("Requesting security level %d", BT_SECURITY_WANTED);
-	int err = bt_conn_set_security(conn_ctx->conn, BT_SECURITY_WANTED);
+	int err = bt_conn_set_security(current_conn_ctx->conn, BT_SECURITY_WANTED);
 	if (err)
 	{
 		LOG_ERR("Failed to set security (err %d)", err);
@@ -170,13 +171,13 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 	if (!bonded)
 	{
 		LOG_ERR("Pairing did not result in bonding!");
-		conn_ctx->state = CONN_STATE_DISCONNECTED;
+		current_conn_ctx->state = CONN_STATE_DISCONNECTED;
 		return;
 	}
 
-	conn_ctx->state = CONN_STATE_BONDED;
+	current_conn_ctx->state = CONN_STATE_BONDED;
 
-	if (conn_ctx->info.is_new_device)
+	if (current_conn_ctx->info.is_new_device)
 	{
 		LOG_INF("New device paired successfully - saving and disconnecting");
 		// Save the bond
@@ -187,7 +188,7 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 		}
 
 		LOG_DBG("Ensuring device is now in bonded list:");
-		bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &conn_ctx->info);
+		bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &current_conn_ctx->info);
 
 		// Disconnect to complete initial pairing flow
 		disconnect(conn, NULL);
@@ -212,10 +213,8 @@ struct bt_conn_auth_info_cb auth_info_callbacks = {
 
 void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
 {
-	conn_ctx->conn = conn;
-
 	char addr[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(bt_conn_get_dst(conn_ctx->conn), addr, sizeof(addr));
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
 	if (!err)
 	{
@@ -226,7 +225,7 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			LOG_DBG("Encryption established at level %u", level);
 
 			// Only proceed with VCP if this is a reconnection (not new pairing)
-			if (conn_ctx->state == CONN_STATE_BONDED)
+			if (current_conn_ctx->state == CONN_STATE_BONDED)
 			{
 				LOG_DBG("Bonded device encrypted - starting service discovery");
 				ble_cmd_vcp_discover(true);
@@ -236,7 +235,7 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			else
 			{
 				LOG_DBG("New device - waiting for pairing completion");
-				conn_ctx->state = CONN_STATE_PAIRING;
+				current_conn_ctx->state = CONN_STATE_PAIRING;
 			}
 		}
 	}
@@ -250,12 +249,9 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 
 void disconnect(struct bt_conn *conn, void *data)
 {
-	conn_ctx->conn = conn;
-
 	LOG_INF("Disconnecting connection");
-	bt_conn_disconnect(conn_ctx->conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
-	bt_conn_unref(conn_ctx->conn);
-	conn_ctx->conn = NULL;
+	bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+	bt_conn_unref(conn);
 }
 
 static void connected_cb(struct bt_conn *conn, uint8_t err)
@@ -263,7 +259,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 	if (err)
 	{
 		LOG_ERR("Connection failed (err 0x%02X)", err);
-		conn_ctx->state = CONN_STATE_DISCONNECTED;
+		current_conn_ctx->state = CONN_STATE_DISCONNECTED;
 
 		// Cancel auto-connect if it was active
 		bt_conn_create_auto_stop();
@@ -284,26 +280,22 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
 
-	// Store connection reference
-	if (conn_ctx->conn)
-	{
-		bt_conn_unref(conn_ctx->conn);
-	}
-	conn_ctx->conn = bt_conn_ref(conn);
-	bt_addr_le_copy(&conn_ctx->info.addr, addr);
+	// Here with empty slot
+	current_conn_ctx->conn = bt_conn_ref(conn);
+	bt_addr_le_copy(&current_conn_ctx->info.addr, addr);
 
 	// Check if this device is already bonded
-	conn_ctx->info.is_new_device = !is_bonded_device(addr);
+	current_conn_ctx->info.is_new_device = !is_bonded_device(addr);
 
-	if (conn_ctx->info.is_new_device)
+	if (current_conn_ctx->info.is_new_device)
 	{
 		LOG_DBG("Connected to new device %s - expecting pairing", addr_str);
-		conn_ctx->state = CONN_STATE_PAIRING;
+		current_conn_ctx->state = CONN_STATE_PAIRING;
 	}
 	else
 	{
 		LOG_INF("Connected to bonded device %s", addr_str);
-		conn_ctx->state = CONN_STATE_BONDED;
+		current_conn_ctx->state = CONN_STATE_BONDED;
 	}
 
 	ble_cmd_request_security();
@@ -314,10 +306,20 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 {
 	LOG_INF("Disconnected (reason 0x%02X)", reason);
 
-	if (conn_ctx->conn)
+	select_ble_conn_ctx(0);
+	if (bt_addr_le_cmp(bt_conn_get_dst(current_conn_ctx->conn), bt_conn_get_dst(conn)) == 0)
 	{
-		bt_conn_unref(conn_ctx->conn);
-		conn_ctx->conn = NULL;
+		bt_conn_unref(current_conn_ctx->conn);
+		current_conn_ctx->conn = NULL;
+	}
+	else
+	{
+		select_ble_conn_ctx(1);
+		if (bt_addr_le_cmp(bt_conn_get_dst(current_conn_ctx->conn), bt_conn_get_dst(conn)) == 0)
+		{
+			bt_conn_unref(current_conn_ctx->conn);
+			current_conn_ctx->conn = NULL;
+		}
 	}
 
 	if (queue_is_active)
@@ -325,14 +327,14 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	vcp_controller_reset();
 	battery_reader_reset();
 
-	if (conn_ctx->state == CONN_STATE_BONDED)
+	if (current_conn_ctx->state == CONN_STATE_BONDED)
 	{
-		conn_ctx->state = CONN_STATE_DISCONNECTED;
+		(current_conn_ctx)->state = CONN_STATE_DISCONNECTED;
 		connect_to_bonded_device();
 	}
 	else
 	{
-		conn_ctx->state = CONN_STATE_DISCONNECTED;
+		(current_conn_ctx)->state = CONN_STATE_DISCONNECTED;
 		LOG_DBG("Restarting scan to find bondable devices");
 		scan_for_HIs();
 	}
@@ -386,16 +388,30 @@ static bool device_found(struct bt_data *data, void *user_data)
 
 static uint8_t connect(struct deviceInfo info)
 {
+	select_ble_conn_ctx(0);
+	if ((current_conn_ctx)->conn != NULL)
+	{
+		LOG_WRN("Connection already exists in first slot, moving to second slot");
+	}
+	else
+	{
+		select_ble_conn_ctx(1);
+		if ((current_conn_ctx)->conn != NULL)
+		{
+			LOG_ERR("Connection already exists in second slot as well");
+			return -1;
+		}
+	}
+
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(&info.addr, addr_str, sizeof(addr_str));
 	LOG_INF("Connecting to %s (with address %s)", info.name, addr_str);
 
 	bt_le_scan_stop();
-	conn_ctx->state = CONN_STATE_CONNECTING;
+	(current_conn_ctx)->state = CONN_STATE_CONNECTING;
 
 	// BT_CONN_LE_CREATE_CONN uses 100% duty cycle
-	int err = bt_conn_le_create(&info.addr, BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT,
-								&conn_ctx->conn);
+	int err = bt_conn_le_create(&info.addr, BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT, &(current_conn_ctx)->conn);
 	if (err)
 	{
 		LOG_ERR("Create conn to %s failed (err %d)", info.name, err);
@@ -443,8 +459,8 @@ void scan_for_HIs(void)
 		return;
 	}
 
-	bt_conn_unref(conn_ctx->conn);
-	conn_ctx->conn = NULL;
+	// bt_conn_unref(conn_ctx->conn);
+	// conn_ctx->conn = NULL;
 
 	err = bt_le_scan_start(BT_LE_SCAN_ACTIVE_CAP_RAP, device_found_cb);
 	if (err)
@@ -476,7 +492,7 @@ static void auto_connect_work_handler(struct k_work *work)
 {
 	(void)work;
 
-	if (!conn_ctx->info.connect)
+	if (!current_conn_ctx->info.connect)
 	{
 		LOG_WRN("No bonded device stored - scanning for devices");
 		scan_for_HIs();
@@ -513,12 +529,14 @@ int ble_manager_init(void)
 		return err;
 	}
 
-	conn_ctx = (struct connection_context *)k_calloc(1, sizeof(struct connection_context));
+	conn_ctx = (struct connection_context *)k_calloc(2, sizeof(struct connection_context));
 	if (!conn_ctx)
 	{
-		LOG_ERR("Failed to allocate memory for connection context");
+		LOG_ERR("Failed to allocate memory for connection contexts");
 		return -ENOMEM;
 	}
+
+	select_ble_conn_ctx(0);
 
 	LOG_DBG("Initializing connection works");
 	k_work_init_delayable(&security_request_work, security_request_handler);
@@ -726,7 +744,7 @@ void ble_cmd_complete(int err)
 			{
 				queue_is_active = false;
 				LOG_ERR("VCP command failed due to insufficient authentication - reconnecting");
-				disconnect(conn_ctx->conn, NULL);
+				disconnect(current_ble_cmd->conn, NULL);
 				switch (current_ble_cmd->type) {
 					case BLE_CMD_VCP_VOLUME_UP:
 						ble_cmd_vcp_volume_up(true);

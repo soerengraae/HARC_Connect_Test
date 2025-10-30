@@ -8,7 +8,7 @@ bool volume_direction = true;
 
 int vcp_cmd_discover(void)
 {
-    return bt_vcp_vol_ctlr_discover(conn_ctx->conn, &vol_ctlr);
+    return bt_vcp_vol_ctlr_discover(current_conn_ctx->conn, &vol_ctlr);
 }
 
 int vcp_cmd_read_state(void)

@@ -1,5 +1,8 @@
 {
   "nrf-connect.applications": [
     "${workspaceFolder}"
-  ]
+  ],
+  "files.associations": {
+    "hci.h": "c"
+  }
 }

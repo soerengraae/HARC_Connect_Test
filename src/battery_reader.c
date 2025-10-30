@@ -190,11 +190,11 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 }
 
 /* Discover Battery Service on connected device */
-int battery_discover(struct connection_context *ctx)
+int battery_discover()
 {
-	if (ctx->state != CONN_STATE_BONDED)
+	if (current_conn_ctx->state != CONN_STATE_BONDED)
 	{
-		LOG_WRN("Not starting Battery Service discovery - wrong state: %d", ctx->state);
+		LOG_WRN("Not starting Battery Service discovery - wrong state: %d", current_conn_ctx->state);
 		return -EINVAL;
 	}
 
@@ -210,7 +210,7 @@ int battery_discover(struct connection_context *ctx)
 		discover_params.end_handle = BT_ATT_LAST_ATTRIBUTE_HANDLE;
 		discover_params.func = discover_service_cb;
 
-		int err = bt_gatt_discover(ctx->conn, &discover_params);
+		int err = bt_gatt_discover(current_conn_ctx->conn, &discover_params);
 		if (err)
 		{
 			LOG_ERR("Battery Service discovery failed (err %d)", err);

@@ -19,10 +19,9 @@
 /**
  * @brief Discover Battery Service on a connected device
  * 
- * @param ctx Pointer to the connection context
  * @return 0 on success, negative error code on failure
  */
-int battery_discover(struct connection_context *ctx);
+int battery_discover();
 
 /**
  * @brief Read battery level from discovered battery service
