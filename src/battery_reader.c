@@ -96,6 +96,8 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
 		/* If we have the characteristic handle, mark discovery as complete */
 		if (battery_level_handle != 0) {
 			battery_discovered = true;
+			// Complete the discovery command
+			ble_cmd_complete(0);
 			LOG_DBG("Battery Service discovery complete (handle: 0x%04x, CCC: 0x%04x)", 
 			        battery_level_handle, battery_level_ccc_handle);
 		} else {
@@ -130,13 +132,12 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
 				int err = bt_gatt_discover(conn, &discover_params);
 				if (err) {
 					LOG_WRN("Failed to discover CCC (err %d) - proceeding without notifications", err);
-					battery_discovered = true;
 				}
 			} else {
 				LOG_WRN("Characteristic does not support notifications");
-				battery_discovered = true;
 			}
-			
+
+			battery_discovered = true;
 			return BT_GATT_ITER_STOP;
 		}
 	} else if (params->type == BT_GATT_DISCOVER_DESCRIPTOR) {
@@ -189,11 +190,11 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 }
 
 /* Discover Battery Service on connected device */
-int battery_discover(struct connection_context *ctx)
+int battery_discover()
 {
-	if (ctx->state != CONN_STATE_BONDED)
+	if (current_conn_ctx->state != CONN_STATE_BONDED)
 	{
-		LOG_WRN("Not starting Battery Service discovery - wrong state: %d", ctx->state);
+		LOG_WRN("Not starting Battery Service discovery - wrong state: %d", current_conn_ctx->state);
 		return -EINVAL;
 	}
 
@@ -209,7 +210,7 @@ int battery_discover(struct connection_context *ctx)
 		discover_params.end_handle = BT_ATT_LAST_ATTRIBUTE_HANDLE;
 		discover_params.func = discover_service_cb;
 
-		int err = bt_gatt_discover(ctx->conn, &discover_params);
+		int err = bt_gatt_discover(current_conn_ctx->conn, &discover_params);
 		if (err)
 		{
 			LOG_ERR("Battery Service discovery failed (err %d)", err);

@@ -1,0 +1,4 @@
+#ifndef CSIP_COORDINATOR_H
+#define CSIP_COORDINATOR_H
+
+#endif /* CSIP_COORDINATOR_H */

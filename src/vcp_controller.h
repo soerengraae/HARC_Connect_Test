@@ -8,31 +8,6 @@
 #include <zephyr/bluetooth/audio/vcp.h>
 #include <zephyr/logging/log.h>
 
-/* VCP command types */
-enum vcp_cmd_type {
-    VCP_CMD_DISCOVER,
-    VCP_CMD_VOLUME_UP,
-    VCP_CMD_VOLUME_DOWN,
-    VCP_CMD_SET_VOLUME,
-    VCP_CMD_MUTE,
-    VCP_CMD_UNMUTE,
-    VCP_CMD_READ_STATE,
-    VCP_CMD_READ_FLAGS,
-};
-
-/* VCP command structure */
-struct vcp_cmd {
-    enum vcp_cmd_type type;
-    uint8_t d0;  // Data parameter
-    uint8_t retry_count;
-    sys_snode_t node;  // For linked list
-};
-
-/* Command queue configuration */
-#define VCP_CMD_QUEUE_SIZE 10
-#define VCP_CMD_MAX_RETRIES 3
-#define VCP_CMD_TIMEOUT_MS 5000
-
 int vcp_controller_init(void);
 int vcp_cmd_discover(void);
 int vcp_cmd_volume_up(void);
