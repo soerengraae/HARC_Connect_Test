@@ -78,7 +78,7 @@ static void on_volume_up_button(void)
 
     if (vcp_discovered && vol_ctlr) {
         /* Send volume up command - display will update when VCP responds */
-        ble_cmd_vcp_volume_up();
+        ble_cmd_vcp_volume_up(false);
     } else {
         /* Show button test feedback when not connected */
         show_button_test_feedback();
@@ -92,7 +92,7 @@ static void on_volume_down_button(void)
 
     if (vcp_discovered && vol_ctlr) {
         /* Send volume down command - display will update when VCP responds */
-        ble_cmd_vcp_volume_down();
+        ble_cmd_vcp_volume_down(false);
     } else {
         /* Show button test feedback when not connected */
         show_button_test_feedback();
@@ -171,7 +171,7 @@ int main(void)
 
         /* Periodically read battery level if connected */
         if (battery_discovered) {
-            ble_cmd_bas_read_level();
+            ble_cmd_bas_read_level(false);
         }
 
         /* Refresh display if not connected (but don't overwrite too frequently) */
