@@ -10,68 +10,65 @@
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
 struct device_context *device_ctx;
-static struct device_context *current_device_ctx;
-static struct k_work_delayable auto_connect_work;
-static struct k_work_delayable auto_connect_timeout_work;
-static struct k_work_delayable security_request_work;
+static struct k_work_delayable auto_connect_work[2];
+static struct k_work_delayable auto_connect_timeout_work[2];
+static struct k_work_delayable security_request_work[2];
 
 /* BLE Command queue state */
-static sys_slist_t ble_cmd_queue;
-static struct k_mutex ble_queue_mutex;
-static struct k_sem ble_cmd_sem;
-static struct k_work_delayable ble_cmd_timeout_work;
-static bool ble_cmd_in_progress = false;
-static bool queue_is_active = false;
-struct ble_cmd *current_ble_cmd;
+static sys_slist_t ble_cmd_queue[2];
+static struct k_mutex ble_queue_mutex[2];
+static struct k_sem ble_cmd_sem[2];
+static struct k_work_delayable ble_cmd_timeout_work[2];
+static bool ble_cmd_in_progress[2] = {false, false};
+static bool queue_is_active[2] = {false, false};
 
 /* Memory pool for BLE commands */
-K_MEM_SLAB_DEFINE(ble_cmd_slab, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4);
+K_MEM_SLAB_DEFINE(ble_cmd_slab_0, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4);
+K_MEM_SLAB_DEFINE(ble_cmd_slab_1, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4);
 
 /* Forward declarations */
-static void ble_process_next_command(void);
+static void ble_process_next_command(uint8_t queue_id);
 static void ble_cmd_timeout_handler(struct k_work *work);
 static bool is_bonded_device(const bt_addr_le_t *addr);
 static void disconnect(struct bt_conn *conn, void *data); // void *data ensures compatibility with bt_conn_foreach
-static int connect_to_bonded_device(void);
+static int connect_to_bonded_device(uint8_t device_id);
 static void scan_for_HIs(void);
 static char *command_type_to_string(enum ble_cmd_type type);
 
-static void select_device_ctx(uint8_t choice)
+static void activate_ble_cmd_queue(uint8_t queue_id)
 {
-	current_device_ctx = &device_ctx[choice];
-	LOG_DBG("Selected device context: %d", choice);
-}
-
-static void activate_ble_cmd_queue(void)
-{
-	if (!queue_is_active)
+	if (!queue_is_active[queue_id])
 	{
-		queue_is_active = true;
-		LOG_DBG("Activating BLE command queue");
-		k_sem_give(&ble_cmd_sem);
+		queue_is_active[queue_id] = true;
+		LOG_DBG("Activating BLE command queue %d", queue_id);
+		k_sem_give(&ble_cmd_sem[queue_id]);
 	}
 }
 
 /* Command queue initialization */
-static int ble_queue_init(void)
+static int ble_queues_init(void)
 {
-	sys_slist_init(&ble_cmd_queue);
-	k_mutex_init(&ble_queue_mutex);
-	k_sem_init(&ble_cmd_sem, 0, 1);
-	k_work_init_delayable(&ble_cmd_timeout_work, ble_cmd_timeout_handler);
-	current_ble_cmd = NULL;
+	for (ssize_t i = 0; i < 2; i++)
+	{
+		sys_slist_init(&ble_cmd_queue[i]);
+		k_mutex_init(&ble_queue_mutex[i]);
+		k_sem_init(&ble_cmd_sem[i], 0, 1);
+		k_work_init_delayable(&ble_cmd_timeout_work[i], ble_cmd_timeout_handler);
+		device_ctx[i].current_ble_cmd = NULL;
+	}
 
 	return 0;
 }
 
 /* Allocate a command from memory pool */
-static struct ble_cmd *ble_cmd_alloc(void)
+static struct ble_cmd *ble_cmd_alloc(uint8_t device_id)
 {
 	struct ble_cmd *cmd;
+	struct k_mem_slab *slab = (device_id == 0) ? &ble_cmd_slab_0 : &ble_cmd_slab_1;
 
-	if (k_mem_slab_alloc(&ble_cmd_slab, (void **)&cmd, K_NO_WAIT) != 0)
+	if (k_mem_slab_alloc(slab, (void **)&cmd, K_NO_WAIT) != 0)
 	{
-		LOG_ERR("Failed to allocate BLE command - queue full");
+		LOG_ERR("Failed to allocate BLE command - queue full [DEVICE ID %d]", device_id);
 		return NULL;
 	}
 
@@ -84,7 +81,7 @@ static void ble_cmd_free(struct ble_cmd *cmd)
 {
 	if (cmd)
 	{
-		k_mem_slab_free(&ble_cmd_slab, (void *)cmd);
+		k_mem_slab_free(&ble_cmd_slab_0, (void *)cmd);
 	}
 }
 
@@ -96,49 +93,50 @@ static int ble_cmd_enqueue(struct ble_cmd *cmd, bool high_priority)
 		return -EINVAL;
 	}
 
-	k_mutex_lock(&ble_queue_mutex, K_FOREVER);
+	k_mutex_lock(&ble_queue_mutex[cmd->device_id], K_FOREVER);
 	if (high_priority)
 	{
-		sys_slist_prepend(&ble_cmd_queue, &cmd->node);
+		sys_slist_prepend(&ble_cmd_queue[cmd->device_id], &cmd->node);
 	}
 	else
 	{
-		sys_slist_append(&ble_cmd_queue, &cmd->node);
+		sys_slist_append(&ble_cmd_queue[cmd->device_id], &cmd->node);
 	}
-	k_mutex_unlock(&ble_queue_mutex);
+	k_mutex_unlock(&ble_queue_mutex[cmd->device_id]);
 
 	// Signal the processing thread
-	k_sem_give(&ble_cmd_sem);
+	k_sem_give(&ble_cmd_sem[cmd->device_id]);
 
-	LOG_DBG("%sBLE command enqueued, type: %s", high_priority ? "High priority " : "", command_type_to_string(cmd->type));
+	LOG_DBG("%sBLE command enqueued, type: %s [DEVICE ID %d]", high_priority ? "High priority " : "", command_type_to_string(cmd->type), cmd->device_id);
 	return 0;
 }
 
 /* Dequeue a command */
-static struct ble_cmd *ble_cmd_dequeue(void)
+static struct ble_cmd *ble_cmd_dequeue(uint8_t device_id)
 {
 	struct ble_cmd *cmd = NULL;
 
-	k_mutex_lock(&ble_queue_mutex, K_FOREVER);
-	sys_snode_t *node = sys_slist_get(&ble_cmd_queue);
+	k_mutex_lock(&ble_queue_mutex[device_id], K_FOREVER);
+	sys_snode_t *node = sys_slist_get(&ble_cmd_queue[device_id]);
 	if (node)
 	{
 		cmd = CONTAINER_OF(node, struct ble_cmd, node);
 	}
-	k_mutex_unlock(&ble_queue_mutex);
+	k_mutex_unlock(&ble_queue_mutex[device_id]);
 
 	return cmd;
 }
 
 static void security_request_handler(struct k_work *work)
 {
-	LOG_DBG("Requesting security level %d", BT_SECURITY_WANTED);
-	int err = bt_conn_set_security(current_device_ctx->conn, BT_SECURITY_WANTED);
+	uint8_t device_id = (work == &security_request_work[0].work) ? 0 : 1;
+	LOG_DBG("Requesting security level %d [DEVICE ID %d]", BT_SECURITY_WANTED, device_id);
+	int err = bt_conn_set_security(device_ctx[device_id].conn, BT_SECURITY_WANTED);
 	if (err)
 	{
-		LOG_ERR("Failed to set security (err %d)", err);
+		LOG_ERR("Failed to set security (err %d) [DEVICE ID %d]", err, device_id);
 	}
-	LOG_DBG("Security request initiated");
+	LOG_DBG("Security request initiated [DEVICE ID %d]", device_id);
 }
 
 /* Callback for iterating bonded devices to find the first one */
@@ -173,28 +171,30 @@ static void get_bonded_devices(const struct bt_bond_info *info, void *user_data)
 
 void pairing_complete(struct bt_conn *conn, bool bonded)
 {
-	LOG_DBG("Pairing complete. Bonded: %d", bonded);
+	struct device_context *ctx = get_device_context_by_conn(conn);
+
+	LOG_DBG("Pairing complete. Bonded: %d [DEVICE ID %d]", bonded, ctx->device_id);
 	if (!bonded)
 	{
-		LOG_ERR("Pairing did not result in bonding!");
-		current_device_ctx->state = CONN_STATE_DISCONNECTED;
+		LOG_ERR("Pairing did not result in bonding! [DEVICE ID %d]", ctx->device_id);
+		ctx->state = CONN_STATE_DISCONNECTED;
 		return;
 	}
 
-	current_device_ctx->state = CONN_STATE_BONDED;
+	ctx->state = CONN_STATE_BONDED;
 
-	if (current_device_ctx->info.is_new_device)
+	if (ctx->info.is_new_device)
 	{
-		LOG_INF("New device paired successfully - saving and disconnecting");
+		LOG_INF("New device paired successfully - saving and disconnecting [DEVICE ID %d]", ctx->device_id);
 		// Save the bond
 		if (IS_ENABLED(CONFIG_SETTINGS))
 		{
-			LOG_DBG("Saving bond information to flash");
+			LOG_DBG("Saving bond information to flash [DEVICE ID %d]", ctx->device_id);
 			settings_save();
 		}
 
-		LOG_DBG("Ensuring device is now in bonded list:");
-		bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &current_device_ctx->info);
+		LOG_DBG("Ensuring device is now in bonded list [DEVICE ID %d]:", ctx->device_id);
+		bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &ctx->info);
 
 		// Disconnect to complete initial pairing flow
 		disconnect(conn, NULL);
@@ -202,13 +202,14 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 	else
 	{
 		// This shouldn't happen for already bonded devices
-		LOG_WRN("Unexpected pairing_complete for already bonded device");
+		LOG_WRN("Unexpected pairing_complete for already bonded device [DEVICE ID %d]", ctx->device_id);
 	}
 }
 
 void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
 {
-	LOG_ERR("Pairing failed: %d", reason);
+	struct device_context *ctx = get_device_context_by_conn(conn);
+	LOG_ERR("Pairing failed: %d [DEVICE ID %d]", reason, ctx->device_id);
 	disconnect(conn, NULL);
 }
 
@@ -222,54 +223,59 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 	char addr[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
+	struct device_context *ctx = get_device_context_by_conn(conn);
+
 	if (!err)
 	{
-		LOG_DBG("Security changed: %s level %u", addr, level);
+		LOG_DBG("Security changed: %s level %u [DEVICE ID %d]", addr, level, ctx->device_id);
 
 		if (level >= BT_SECURITY_L2)
 		{
-			LOG_DBG("Encryption established at level %u", level);
+			LOG_DBG("Encryption established at level %u [DEVICE ID %d]", level, ctx->device_id);
 
 			// Only proceed with VCP if this is a reconnection (not new pairing)
-			if (current_device_ctx->state == CONN_STATE_BONDED)
+			if (ctx->state == CONN_STATE_BONDED)
 			{
-				LOG_DBG("Bonded device encrypted - starting service discovery");
-				ble_cmd_vcp_discover(current_device_ctx->device_id, true);
-				ble_cmd_bas_discover(current_device_ctx->device_id, true);
-				activate_ble_cmd_queue();
+				LOG_DBG("Bonded device encrypted - starting service discovery [DEVICE ID %d]", ctx->device_id);
+				ble_cmd_vcp_discover(ctx->device_id, true);
+				ble_cmd_bas_discover(ctx->device_id, true);
+				activate_ble_cmd_queue(ctx->device_id);
 			}
 			else
 			{
-				LOG_DBG("New device - waiting for pairing completion");
-				current_device_ctx->state = CONN_STATE_PAIRING;
+				LOG_DBG("New device - waiting for pairing completion [DEVICE ID %d]", ctx->device_id);
+				ctx->state = CONN_STATE_PAIRING;
 			}
 		}
 	}
 	else
 	{
-		LOG_ERR("Security failed: %s level %u err %d", addr, level, err);
+		LOG_ERR("Security failed: %s level %u err %d [DEVICE ID %d]", addr, level, err, ctx->device_id);
 	}
 
-	ble_cmd_complete(err);
+	ble_cmd_complete(ctx->device_id, err);
 }
 
 static void disconnect(struct bt_conn *conn, void *data)
 {
-	LOG_INF("Disconnecting connection");
+	struct device_context *ctx = get_device_context_by_conn(conn);
+	LOG_INF("Disconnecting connection [DEVICE ID %d]", ctx->device_id);
 	bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
 	bt_conn_unref(conn);
 }
 
 static void connected_cb(struct bt_conn *conn, uint8_t err)
 {
+	struct device_context *ctx = get_device_context_by_conn(conn);
+
 	if (err)
 	{
 		LOG_ERR("Connection failed (err 0x%02X)", err);
-		current_device_ctx->state = CONN_STATE_DISCONNECTED;
+		ctx->state = CONN_STATE_DISCONNECTED;
 
 		// Cancel auto-connect if it was active
 		bt_conn_create_auto_stop();
-		k_work_cancel_delayable(&auto_connect_timeout_work);
+		k_work_cancel_delayable(&auto_connect_timeout_work[ctx->device_id]);
 
 		if (err == BT_HCI_ERR_UNKNOWN_CONN_ID)
 		{
@@ -280,68 +286,57 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 	}
 
 	// Cancel the timeout since we connected successfully
-	k_work_cancel_delayable(&auto_connect_timeout_work);
+	k_work_cancel_delayable(&auto_connect_timeout_work[ctx->device_id]);
 
 	const bt_addr_le_t *addr = bt_conn_get_dst(conn);
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
 
 	// Here with empty slot
-	current_device_ctx->conn = bt_conn_ref(conn);
-	bt_addr_le_copy(&current_device_ctx->info.addr, addr);
+	ctx->conn = bt_conn_ref(conn);
+	bt_addr_le_copy(&ctx->info.addr, addr);
 
 	// Check if this device is already bonded
-	current_device_ctx->info.is_new_device = !is_bonded_device(addr);
+	ctx->info.is_new_device = !is_bonded_device(addr);
 
-	if (current_device_ctx->info.is_new_device)
+	if (ctx->info.is_new_device)
 	{
-		LOG_DBG("Connected to new device %s - expecting pairing", addr_str);
-		current_device_ctx->state = CONN_STATE_PAIRING;
+		LOG_DBG("Connected to new device %s - expecting pairing [DEVICE ID %d]", addr_str, ctx->device_id);
+		ctx->state = CONN_STATE_PAIRING;
 	}
 	else
 	{
-		LOG_INF("Connected to bonded device %s", addr_str);
-		current_device_ctx->state = CONN_STATE_BONDED;
+		LOG_INF("Connected to bonded device %s [DEVICE ID %d]", addr_str, ctx->device_id);
+		ctx->state = CONN_STATE_BONDED;
 	}
 
-	ble_cmd_request_security(current_device_ctx->device_id);
-	activate_ble_cmd_queue();
+	ble_cmd_request_security(ctx->device_id);
+	// activate_ble_cmd_queue(ctx->device_id);
 }
 
 static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 {
-	LOG_INF("Disconnected (reason 0x%02X)", reason);
+	struct device_context *ctx = get_device_context_by_conn(conn);
+	LOG_INF("Disconnected (reason 0x%02X) [DEVICE ID %d]", reason, ctx->device_id);
 
-	select_device_ctx(0);
-	if (bt_addr_le_cmp(bt_conn_get_dst(current_device_ctx->conn), bt_conn_get_dst(conn)) == 0)
+	bt_conn_unref(ctx->conn);
+	ctx->conn = NULL;
+
+	if (queue_is_active[ctx->device_id])
+		ble_cmd_queue_reset(ctx->device_id);
+
+	vcp_controller_reset(ctx);
+	battery_reader_reset(ctx);
+
+	if (ctx->state == CONN_STATE_BONDED)
 	{
-		bt_conn_unref(current_device_ctx->conn);
-		current_device_ctx->conn = NULL;
+		ctx->state = CONN_STATE_DISCONNECTED;
+		connect_to_bonded_device(ctx->device_id);
 	}
 	else
 	{
-		select_device_ctx(1);
-		if (bt_addr_le_cmp(bt_conn_get_dst(current_device_ctx->conn), bt_conn_get_dst(conn)) == 0)
-		{
-			bt_conn_unref(current_device_ctx->conn);
-			current_device_ctx->conn = NULL;
-		}
-	}
-
-	if (queue_is_active)
-		ble_cmd_queue_reset();
-	vcp_controller_reset(current_device_ctx);
-	battery_reader_reset(current_device_ctx);
-
-	if (current_device_ctx->state == CONN_STATE_BONDED)
-	{
-		(current_device_ctx)->state = CONN_STATE_DISCONNECTED;
-		connect_to_bonded_device();
-	}
-	else
-	{
-		(current_device_ctx)->state = CONN_STATE_DISCONNECTED;
-		LOG_DBG("Restarting scan to find bondable devices");
+		ctx->state = CONN_STATE_DISCONNECTED;
+		LOG_DBG("Restarting scan to find bondable devices [DEVICE ID %d]", ctx->device_id);
 		scan_for_HIs();
 	}
 }
@@ -394,12 +389,12 @@ static bool device_found(struct bt_data *data, void *user_data)
 
 static uint8_t connect(struct device_info info)
 {
-	select_device_ctx(0);
-	if ((current_device_ctx)->conn != NULL)
+	struct device_context *ctx = &device_ctx[0];
+	if (ctx->conn != NULL)
 	{
 		LOG_WRN("Connection already exists in first slot, moving to second slot");
-		select_device_ctx(1);
-		if ((current_device_ctx)->conn != NULL)
+		ctx = &device_ctx[1];
+		if (ctx->conn != NULL)
 		{
 			LOG_ERR("Connection already exists in second slot as well");
 			return -1;
@@ -408,16 +403,16 @@ static uint8_t connect(struct device_info info)
 
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(&info.addr, addr_str, sizeof(addr_str));
-	LOG_INF("Connecting to %s (with address %s)", info.name, addr_str);
+	LOG_INF("Connecting to %s (with address %s) [DEVICE ID %d]", info.name, addr_str, ctx->device_id);
 
 	bt_le_scan_stop();
-	(current_device_ctx)->state = CONN_STATE_CONNECTING;
+	(ctx)->state = CONN_STATE_CONNECTING;
 
 	// BT_CONN_LE_CREATE_CONN uses 100% duty cycle
-	int err = bt_conn_le_create(&info.addr, BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT, &(current_device_ctx)->conn);
+	int err = bt_conn_le_create(&info.addr, BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT, &(ctx)->conn);
 	if (err)
 	{
-		LOG_ERR("Create conn to %s failed (err %d)", info.name, err);
+		LOG_ERR("Create conn to %s failed (err %d) [DEVICE ID %d]", info.name, err, ctx->device_id);
 		if (err == -12) // -ENOMEM
 		{
 			bt_conn_foreach(BT_CONN_TYPE_LE, disconnect, NULL);
@@ -443,9 +438,10 @@ static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 
 	if (info.connect)
 	{
-		if (connect(info))
+		int err = connect(info);
+		if (err)
 		{
-			LOG_DBG("Restarting scan");
+			LOG_DBG("Restarting scan (err %d)", err);
 			scan_for_HIs();
 		}
 	}
@@ -493,9 +489,9 @@ static void auto_connect_timeout_handler(struct k_work *work)
 
 static void auto_connect_work_handler(struct k_work *work)
 {
-	(void)work;
+	struct device_context *ctx = (work == &auto_connect_work[0].work) ? &device_ctx[0] : &device_ctx[1];
 
-	if (!current_device_ctx->info.connect)
+	if (!ctx->info.connect)
 	{
 		LOG_WRN("No bonded device stored - scanning for devices");
 		scan_for_HIs();
@@ -513,7 +509,7 @@ static void auto_connect_work_handler(struct k_work *work)
 	}
 
 	// Set a timeout to fall back to active scanning if auto-connect doesn't work
-	k_work_schedule(&auto_connect_timeout_work, K_SECONDS(4));
+	k_work_schedule(&auto_connect_timeout_work[ctx->device_id], K_SECONDS(4));
 }
 
 /** Initialize BLE manager
@@ -525,7 +521,7 @@ int ble_manager_init(void)
 {
 	bt_conn_auth_info_cb_register(&auth_info_callbacks);
 
-	int err = ble_queue_init();
+	int err = ble_queues_init();
 	if (err)
 	{
 		LOG_ERR("BLE queue init failed (err %d)", err);
@@ -541,39 +537,44 @@ int ble_manager_init(void)
 	device_ctx[0].device_id = 0;
 	device_ctx[1].device_id = 1;
 
-	select_device_ctx(0);
+	for (ssize_t i = 0; i < 2; i++)
+	{
+		err = vcp_controller_init(i);
+		if (err)
+		{
+			LOG_ERR("VCP controller init failed (err %d) [DEVICE ID %d]", err, i);
+			return err;
+		}
 
-	err = vcp_controller_init(current_device_ctx);
-	if (err) {
-		LOG_ERR("VCP controller init failed (err %d)", err);
-		return err;
-	}
-
-	err = battery_reader_init(current_device_ctx);
-	if (err) {
-		LOG_ERR("Battery reader init failed (err %d)", err);
-		return err;
+		err = battery_reader_init(i);
+		if (err)
+		{
+			LOG_ERR("Battery reader init failed (err %d) [DEVICE ID %d]", err, i);
+			return err;
+		}
 	}
 
 	LOG_DBG("Initializing connection works");
-	k_work_init_delayable(&security_request_work, security_request_handler);
-	k_work_init_delayable(&auto_connect_work, auto_connect_work_handler);
-	k_work_init_delayable(&auto_connect_timeout_work, auto_connect_timeout_handler);
+	for (ssize_t i = 0; i < 2; i++) {
+		k_work_init_delayable(&security_request_work[i], security_request_handler);
+		k_work_init_delayable(&auto_connect_work[i], auto_connect_work_handler);
+		k_work_init_delayable(&auto_connect_timeout_work[i], auto_connect_timeout_handler);
+	}
 
 	LOG_INF("BLE manager initialized");
 	return 0;
 }
 
-static int connect_to_bonded_device(void)
+static int connect_to_bonded_device(uint8_t device_id)
 {
 	// Check for bonded devices
-	memset(&device_ctx->info, 0, sizeof(device_ctx->info));
-	bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &device_ctx->info);
+	memset(&device_ctx[device_id].info, 0, sizeof(device_ctx[device_id].info));
+	bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &device_ctx[device_id].info);
 
-	if (device_ctx->info.connect)
+	if (device_ctx[device_id].info.connect)
 	{
-		LOG_DBG("Scheduling auto-connect to bonded device");
-		k_work_schedule(&auto_connect_work, K_MSEC(0));
+		LOG_DBG("Scheduling auto-connect to bonded device [DEVICE ID %d]", device_id);
+		k_work_schedule(&auto_connect_work[device_id], K_MSEC(0));
 		return 0;
 	}
 	else
@@ -581,6 +582,12 @@ static int connect_to_bonded_device(void)
 		LOG_INF("No previously bonded device found");
 		return -1;
 	}
+}
+
+static void bond_count_cb(const struct bt_bond_info *info, void *user_data)
+{
+	uint8_t *count = (uint8_t *)user_data;
+	(*count)++;
 }
 
 void bt_ready_cb(int err)
@@ -612,11 +619,25 @@ void bt_ready_cb(int err)
 		}
 	}
 
-	err = connect_to_bonded_device();
-	if (err)
+	uint8_t bond_count = 0;
+    bt_foreach_bond(BT_ID_DEFAULT, bond_count_cb, &bond_count);
+
+	if (bond_count == 0)
 	{
-		LOG_DBG("Starting active scan for devices");
+		LOG_INF("No bonded devices found - starting active scan");
 		scan_for_HIs();
+		return;
+	}
+	else
+	{
+		LOG_INF("Found %d bonded device%s", bond_count, bond_count > 1 ? "s" : "");
+
+		err = connect_to_bonded_device(0);
+		if (err)
+		{
+			LOG_DBG("Starting active scan for devices");
+			scan_for_HIs();
+		}
 	}
 }
 
@@ -656,52 +677,51 @@ static int ble_cmd_execute(struct ble_cmd *cmd)
 {
 	int err = 0;
 
-	select_device_ctx(cmd->device_id);
 	LOG_DBG("Executing BLE command type %s", command_type_to_string(cmd->type));
 
 	switch (cmd->type)
 	{
 	case BLE_CMD_REQUEST_SECURITY:
-		k_work_schedule(&security_request_work, K_MSEC(0));
+		k_work_schedule(&security_request_work[cmd->device_id], K_MSEC(0));
 		break;
 
 	/* VCP */
 	case BLE_CMD_VCP_DISCOVER:
-		err = vcp_cmd_discover(current_device_ctx);
+		err = vcp_cmd_discover(cmd->device_id);
 		break;
 	case BLE_CMD_VCP_VOLUME_UP:
-		err = vcp_cmd_volume_up(current_device_ctx);
+		err = vcp_cmd_volume_up(cmd->device_id);
 		break;
 	case BLE_CMD_VCP_VOLUME_DOWN:
-		err = vcp_cmd_volume_down(current_device_ctx);
+		err = vcp_cmd_volume_down(cmd->device_id);
 		break;
 	case BLE_CMD_VCP_SET_VOLUME:
-		err = vcp_cmd_set_volume(current_device_ctx, cmd->d0);
+		err = vcp_cmd_set_volume(cmd->device_id, cmd->d0);
 		break;
 	case BLE_CMD_VCP_MUTE:
-		err = vcp_cmd_mute(current_device_ctx);
+		err = vcp_cmd_mute(cmd->device_id);
 		break;
 	case BLE_CMD_VCP_UNMUTE:
-		err = vcp_cmd_unmute(current_device_ctx);
+		err = vcp_cmd_unmute(cmd->device_id);
 		break;
 	case BLE_CMD_VCP_READ_STATE:
-		err = vcp_cmd_read_state(current_device_ctx);
+		err = vcp_cmd_read_state(cmd->device_id);
 		break;
 	case BLE_CMD_VCP_READ_FLAGS:
-		err = vcp_cmd_read_flags(current_device_ctx);
+		err = vcp_cmd_read_flags(cmd->device_id);
 		break;
 
 	/* BAS */
 	case BLE_CMD_BAS_DISCOVER:
-		err = battery_discover(current_device_ctx);
+		err = battery_discover(cmd->device_id);
 		break;
 	case BLE_CMD_BAS_READ_LEVEL:
-		err = battery_read_level(current_device_ctx);
+		err = battery_read_level(cmd->device_id);
 		break;
 
 	/* CSIP */
 	case BLE_CMD_CSIP_DISCOVER:
-		err = csip_cmd_discover(current_device_ctx);
+		err = csip_cmd_discover(cmd->device_id);
 		break;
 
 	default:
@@ -712,11 +732,11 @@ static int ble_cmd_execute(struct ble_cmd *cmd)
 
 	if (err)
 	{
-		LOG_ERR("BLE command execution failed: type=%s, err=%d", command_type_to_string(cmd->type), err);
+		LOG_ERR("BLE command execution failed: type=%s, err=%d [DEVICE ID %d]", command_type_to_string(cmd->type), err, cmd->device_id);
 	}
 	else
 	{
-		LOG_DBG("BLE command initiated successfully: type=%s", command_type_to_string(cmd->type));
+		LOG_DBG("BLE command initiated successfully: type=%s [DEVICE ID %d]", command_type_to_string(cmd->type), cmd->device_id);
 	}
 
 	return err;
@@ -725,33 +745,39 @@ static int ble_cmd_execute(struct ble_cmd *cmd)
 /* Handle command timeout */
 static void ble_cmd_timeout_handler(struct k_work *work)
 {
-	if (!current_ble_cmd)
+	struct device_context *ctx = (work == &ble_cmd_timeout_work[0].work) ? &device_ctx[0] : &device_ctx[1];
+
+	if (!ctx->current_ble_cmd)
 	{
 		LOG_WRN("Timeout but no current command");
-		ble_cmd_in_progress = false;
-		ble_process_next_command();
+		ble_cmd_in_progress[ctx->device_id] = false;
 		return;
 	}
+	else
+	{
+		LOG_ERR("BLE command timeout (safety net): type=%d",
+				ctx->current_ble_cmd->type);
 
-	LOG_ERR("BLE command timeout (safety net): type=%d",
-			current_ble_cmd->type);
-
-	// Free the command and move on
-	ble_cmd_free(current_ble_cmd);
-	current_ble_cmd = NULL;
-	ble_cmd_in_progress = false;
+		// Free the command and move on
+		ble_cmd_free(ctx->current_ble_cmd);
+		ctx->current_ble_cmd = NULL;
+		ble_cmd_in_progress[ctx->device_id] = false;
+	}
 
 	// Process next command
-	ble_process_next_command();
+	ble_process_next_command(ctx->device_id);
+	return;
 }
 
 /* Mark command as complete (called when subsystem command completes) */
-void ble_cmd_complete(int err)
+void ble_cmd_complete(uint8_t device_id, int err)
 {
-	// Cancel timeout
-	k_work_cancel_delayable(&ble_cmd_timeout_work);
+	struct device_context *ctx = &device_ctx[device_id];
 
-	if (!current_ble_cmd)
+	// Cancel timeout
+	k_work_cancel_delayable(&ble_cmd_timeout_work[ctx->device_id]);
+
+	if (!ctx->current_ble_cmd)
 	{
 		LOG_WRN("Command complete but no current command");
 		return;
@@ -759,297 +785,330 @@ void ble_cmd_complete(int err)
 
 	if (err)
 	{
-		LOG_ERR("BLE command failed: type=%s, err=%d", command_type_to_string(current_ble_cmd->type), err);
+		LOG_ERR("BLE command failed: type=%s, err=%d", command_type_to_string(ctx->current_ble_cmd->type), err);
 
-		if (current_ble_cmd->type >= 0x2 && current_ble_cmd->type <= 0x8)
+		if (ctx->current_ble_cmd->type >= 0x2 && ctx->current_ble_cmd->type <= 0x8)
 		{
 			if (err == 15)
 			{
-				queue_is_active = false;
+				queue_is_active[ctx->device_id] = false;
 				LOG_ERR("VCP command failed due to insufficient authentication - reconnecting");
-				disconnect(device_ctx[current_ble_cmd->device_id].conn, NULL);
-				switch (current_ble_cmd->type) {
-					case BLE_CMD_VCP_VOLUME_UP:
-						ble_cmd_vcp_volume_up(current_ble_cmd->device_id, true);
-						break;
-					case BLE_CMD_VCP_VOLUME_DOWN:
-						ble_cmd_vcp_volume_down(current_ble_cmd->device_id, true);
-						break;
-					case BLE_CMD_VCP_SET_VOLUME:
-						ble_cmd_vcp_set_volume(current_ble_cmd->device_id, current_ble_cmd->d0, true);
-						break;
-					case BLE_CMD_VCP_MUTE:
-						ble_cmd_vcp_mute(current_ble_cmd->device_id, true);
-						break;
-					case BLE_CMD_VCP_UNMUTE:
-						ble_cmd_vcp_unmute(current_ble_cmd->device_id, true);
-						break;
-					case BLE_CMD_VCP_READ_STATE:
-						ble_cmd_vcp_read_state(current_ble_cmd->device_id, true);
-						break;
-					case BLE_CMD_VCP_READ_FLAGS:
-						ble_cmd_vcp_read_flags(current_ble_cmd->device_id, true);
-						break;
-					default:
-						break;
+				disconnect(device_ctx[ctx->device_id].conn, NULL);
+				switch (ctx->current_ble_cmd->type)
+				{
+				case BLE_CMD_VCP_VOLUME_UP:
+					ble_cmd_vcp_volume_up(ctx->current_ble_cmd->device_id, true);
+					break;
+				case BLE_CMD_VCP_VOLUME_DOWN:
+					ble_cmd_vcp_volume_down(ctx->current_ble_cmd->device_id, true);
+					break;
+				case BLE_CMD_VCP_SET_VOLUME:
+					ble_cmd_vcp_set_volume(ctx->current_ble_cmd->device_id, ctx->current_ble_cmd->d0, true);
+					break;
+				case BLE_CMD_VCP_MUTE:
+					ble_cmd_vcp_mute(ctx->current_ble_cmd->device_id, true);
+					break;
+				case BLE_CMD_VCP_UNMUTE:
+					ble_cmd_vcp_unmute(ctx->current_ble_cmd->device_id, true);
+					break;
+				case BLE_CMD_VCP_READ_STATE:
+					ble_cmd_vcp_read_state(ctx->current_ble_cmd->device_id, true);
+					break;
+				case BLE_CMD_VCP_READ_FLAGS:
+					ble_cmd_vcp_read_flags(ctx->current_ble_cmd->device_id, true);
+					break;
+				default:
+					break;
 				}
 			}
 		}
 	}
 	else
 	{
-		LOG_DBG("BLE command completed successfully: type=%s", command_type_to_string(current_ble_cmd->type));
+		LOG_DBG("BLE command completed successfully: type=%s", command_type_to_string(ctx->current_ble_cmd->type));
 	}
 
 	// Free the command
-	ble_cmd_free(current_ble_cmd);
-	current_ble_cmd = NULL;
-	ble_cmd_in_progress = false;
+	ble_cmd_free(ctx->current_ble_cmd);
+	ctx->current_ble_cmd = NULL;
+	ble_cmd_in_progress[ctx->device_id] = false;
 
 	// Process next command
 	if (!err)
-		ble_process_next_command();
+		ble_process_next_command(ctx->device_id);
 }
 
 /* Process the next command in the queue */
-static void ble_process_next_command(void)
+static void ble_process_next_command(uint8_t device_id)
 {
-	struct ble_cmd *cmd = ble_cmd_dequeue();
+	struct device_context *ctx = &device_ctx[device_id];
+
+	struct ble_cmd *cmd = ble_cmd_dequeue(ctx->device_id);
 	if (!cmd)
 	{
 		LOG_DBG("No BLE commands in queue");
 		return;
 	}
 
-	current_ble_cmd = cmd;
-	ble_cmd_in_progress = true;
+	ctx->current_ble_cmd = cmd;
+	ble_cmd_in_progress[ctx->device_id] = true;
 
 	// Execute the command
-	int err = ble_cmd_execute(current_ble_cmd);
+	int err = ble_cmd_execute(ctx->current_ble_cmd);
 
 	if (err)
 	{
 		// Command failed to initiate
-		LOG_ERR("Failed to initiate BLE command: %d", err);
+		LOG_ERR("Failed to initiate BLE command (err %d)", err);
 
 		if (err == -EBUSY)
 		{
-			LOG_WRN("Server was busy - skipping command: type=%s", command_type_to_string(current_ble_cmd->type));
+			LOG_WRN("Server was busy - skipping command: type=%s", command_type_to_string(ctx->current_ble_cmd->type));
 			ble_cmd_free(cmd);
-		    current_ble_cmd = NULL;
-		    ble_cmd_in_progress = false;
+			ctx->current_ble_cmd = NULL;
+			ble_cmd_in_progress[ctx->device_id] = false;
 		}
 
-		ble_process_next_command();
+		ble_process_next_command(ctx->device_id);
 		return;
 	}
 
 	// Wait for completion callback with timeout
 	LOG_DBG("Command waiting for completion: type=%s", command_type_to_string(cmd->type));
-	k_work_schedule(&ble_cmd_timeout_work, K_MSEC(BLE_CMD_TIMEOUT_MS));
+	k_work_schedule(&ble_cmd_timeout_work[cmd->device_id], K_MSEC(BLE_CMD_TIMEOUT_MS));
 }
 
-int ble_cmd_request_security(uint8_t select_device)
+int ble_cmd_request_security(uint8_t device_id)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct ble_cmd *cmd = ble_cmd_alloc(device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = device_id;
 	cmd->type = BLE_CMD_REQUEST_SECURITY;
 	return ble_cmd_enqueue(cmd, true); // Security requests should always be high priority
 }
 
-/* Public API - VCP Commands */
-int ble_cmd_vcp_discover(uint8_t select_device, bool high_priority)
+int ble_cmd_vcp_discover(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct device_context *ctx = &device_ctx[device_id];
+
+	struct ble_cmd *cmd = ble_cmd_alloc(device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_DISCOVER;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_vcp_volume_up(uint8_t select_device, bool high_priority)
+int ble_cmd_vcp_volume_up(uint8_t device_id, bool high_priority)
 {
-	select_device_ctx(select_device);
-	ble_cmd_vcp_read_state(select_device, false);
+	struct device_context *ctx = &device_ctx[device_id];
+	ble_cmd_vcp_read_state(ctx->device_id, false);
 
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_VOLUME_UP;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_vcp_volume_down(uint8_t select_device, bool high_priority)
+int ble_cmd_vcp_volume_down(uint8_t device_id, bool high_priority)
 {
-	ble_cmd_vcp_read_state(select_device, false);
+	struct device_context *ctx = &device_ctx[device_id];
+	ble_cmd_vcp_read_state(ctx->device_id, false);
 
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_VOLUME_DOWN;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_vcp_set_volume(uint8_t select_device, uint8_t volume, bool high_priority)
+int ble_cmd_vcp_set_volume(uint8_t device_id, uint8_t volume, bool high_priority)
 {
-	ble_cmd_vcp_read_state(select_device, false);
+	struct device_context *ctx = &device_ctx[device_id];
+	ble_cmd_vcp_read_state(ctx->device_id, false);
 
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_SET_VOLUME;
 	cmd->d0 = volume;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_vcp_mute(uint8_t select_device, bool high_priority)
+int ble_cmd_vcp_mute(uint8_t device_id, bool high_priority)
 {
-	ble_cmd_vcp_read_state(select_device, false);
+	struct device_context *ctx = &device_ctx[device_id];
+	ble_cmd_vcp_read_state(ctx->device_id, false);
 
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_MUTE;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_vcp_unmute(uint8_t select_device, bool high_priority)
+int ble_cmd_vcp_unmute(uint8_t device_id, bool high_priority)
 {
-	ble_cmd_vcp_read_state(select_device, false);
-	
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct device_context *ctx = &device_ctx[device_id];
+	ble_cmd_vcp_read_state(ctx->device_id, false);
+
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_UNMUTE;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_vcp_read_state(uint8_t select_device, bool high_priority)
+int ble_cmd_vcp_read_state(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_READ_STATE;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_vcp_read_flags(uint8_t select_device, bool high_priority)
+int ble_cmd_vcp_read_flags(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_VCP_READ_FLAGS;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_bas_discover(uint8_t select_device, bool high_priority)
+int ble_cmd_bas_discover(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_BAS_DISCOVER;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
-int ble_cmd_bas_read_level(uint8_t select_device, bool high_priority)
+int ble_cmd_bas_read_level(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc();
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
-	cmd->device_id = select_device;
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_BAS_READ_LEVEL;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
 /* Reset BLE command queue */
-void ble_cmd_queue_reset(void)
+void ble_cmd_queue_reset(uint8_t device_id)
 {
-	// Clear command queue
-	k_mutex_lock(&ble_queue_mutex, K_FOREVER);
+	struct device_context *ctx = &device_ctx[device_id];
+
+	// Clear command queues
+	k_mutex_lock(&ble_queue_mutex[ctx->device_id], K_FOREVER);
+
 	struct ble_cmd *cmd;
-	while ((cmd = (struct ble_cmd *)sys_slist_get(&ble_cmd_queue)) != NULL)
+	while ((cmd = (struct ble_cmd *)sys_slist_get(&ble_cmd_queue[ctx->device_id])) != NULL)
 	{
 		ble_cmd_free(cmd);
 	}
-	k_mutex_unlock(&ble_queue_mutex);
+	k_mutex_unlock(&ble_queue_mutex[ctx->device_id]);
 
 	// Cancel any pending command
-	if (current_ble_cmd)
+	if (ctx->current_ble_cmd)
 	{
-		ble_cmd_free(current_ble_cmd);
-		current_ble_cmd = NULL;
+		ble_cmd_free(ctx->current_ble_cmd);
+		ctx->current_ble_cmd = NULL;
 	}
 
-	ble_cmd_in_progress = false;
-	k_work_cancel_delayable(&ble_cmd_timeout_work);
+	ble_cmd_in_progress[ctx->device_id] = false;
+	k_work_cancel_delayable(&ble_cmd_timeout_work[ctx->device_id]);
 
 	LOG_DBG("BLE command queue reset");
 }
 
 /* Command processing thread */
-static void ble_cmd_thread(void)
+static void ble_cmd_thread_0(void)
 {
-	LOG_INF("BLE command thread started");
+	LOG_INF("BLE command thread 0 started");
 
 	while (1)
 	{
 		// Wait for a command to be enqueued
-		k_sem_take(&ble_cmd_sem, K_FOREVER);
+		k_sem_take(&ble_cmd_sem[0], K_FOREVER);
 
 		// Process the next command only if nothing is in progress
 		// If a command is already in progress, it will call ble_process_next_command()
 		// when it completes via ble_cmd_complete()
-		if (!ble_cmd_in_progress && queue_is_active)
-			ble_process_next_command();
+		if (!device_ctx[0].current_ble_cmd && queue_is_active[0])
+			ble_process_next_command(0);
+	}
+}
+
+static void ble_cmd_thread_1(void)
+{
+	LOG_INF("BLE command thread 1 started");
+
+	while (1)
+	{
+		// Wait for a command to be enqueued
+		k_sem_take(&ble_cmd_sem[1], K_FOREVER);
+
+		// Process the next command only if nothing is in progress
+		// If a command is already in progress, it will call ble_process_next_command_1()
+		// when it completes via ble_cmd_complete()
+		if (!device_ctx[1].current_ble_cmd && queue_is_active[1])
+			ble_process_next_command(1);
 	}
 }
 
 /* Command thread */
-K_THREAD_DEFINE(ble_cmd_thread_id, 1024, ble_cmd_thread, NULL, NULL, NULL, 7, 0, 0);
+K_THREAD_DEFINE(ble_cmd_thread_0_id, 1024, ble_cmd_thread_0, NULL, NULL, NULL, 7, 0, 0);
+K_THREAD_DEFINE(ble_cmd_thread_1_id, 1024, ble_cmd_thread_1, NULL, NULL, NULL, 7, 0, 0);
 
 static char *command_type_to_string(enum ble_cmd_type type)
 {
@@ -1087,18 +1146,37 @@ static char *command_type_to_string(enum ble_cmd_type type)
 /* Called from the battery_reader notification cb*/
 void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t level)
 {
-	if (bt_addr_le_cmp(bt_conn_get_dst(device_ctx[0].conn), bt_conn_get_dst(conn)) == 0)
-	{
-		select_device_ctx(0);
-	} else if (bt_addr_le_cmp(bt_conn_get_dst(device_ctx[1].conn), bt_conn_get_dst(conn)) == 0)
-	{
-		select_device_ctx(1);
-	} 
-	else
+	struct device_context *ctx = get_device_context_by_conn(conn);
+	if (!ctx)
 	{
 		LOG_WRN("Battery level update from unknown connection");
 		return;
 	}
 
-	current_device_ctx->bas_ctlr.battery_level = level;
+	ctx->bas_ctlr.battery_level = level;
+}
+
+struct device_context *get_device_context_by_conn(struct bt_conn *conn)
+{
+	if (bt_addr_le_cmp(bt_conn_get_dst(device_ctx[0].conn), bt_conn_get_dst(conn)) == 0)
+	{
+		return &device_ctx[0];
+	}
+	else if (bt_addr_le_cmp(bt_conn_get_dst(device_ctx[1].conn), bt_conn_get_dst(conn)) == 0)
+	{
+		return &device_ctx[1];
+	}
+	else
+	{
+		LOG_WRN("Connection does not match any known device context");
+		return NULL;
+	}
+}
+
+struct device_context *get_device_context_by_id(uint8_t device_id) {
+	if (device_id != 1 && device_id != 0) {
+		LOG_ERR("Invalid device ID: %d", device_id);
+		return NULL;
+	}
+	return &device_ctx[device_id];
 }

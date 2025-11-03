@@ -8,7 +8,7 @@
 #include <zephyr/bluetooth/audio/csip.h>
 #include <zephyr/logging/log.h>
 
-int csip_cmd_discover(struct device_context *conn_ctx);
+int csip_cmd_discover(uint8_t device_id);
 
 /* Global state */
 extern bool csip_discovered;

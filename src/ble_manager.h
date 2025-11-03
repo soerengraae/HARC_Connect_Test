@@ -57,6 +57,7 @@ struct device_context {
     struct device_info info;
     struct bt_vcp_vol_ctlr *vol_ctlr;
     struct bt_bas_ctlr bas_ctlr;
+    struct ble_cmd *current_ble_cmd;
 };
 
 /* BLE command types */
@@ -90,16 +91,16 @@ struct ble_cmd {
     sys_snode_t node;  // For linked list
 };
 
-extern struct ble_cmd *current_ble_cmd;
-
 /* Command queue configuration */
-#define BLE_CMD_QUEUE_SIZE 10
+#define BLE_CMD_QUEUE_SIZE 5
 #define BLE_CMD_TIMEOUT_MS 5000
 
 /* BLE manager public functions */
 int ble_manager_init(void);
 void bt_ready_cb(int err);
 void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t level);
+struct device_context *get_device_context_by_conn(struct bt_conn *conn);
+struct device_context *get_device_context_by_id(uint8_t device_id);
 
 /* BLE command queue API */
 int ble_cmd_request_security(uint8_t select_device);
@@ -115,10 +116,10 @@ int ble_cmd_vcp_read_flags(uint8_t select_device, bool high_priority);
 int ble_cmd_bas_discover(uint8_t select_device, bool high_priority);
 int ble_cmd_bas_read_level(uint8_t select_device, bool high_priority);
 
-void ble_cmd_queue_reset(void);
+void ble_cmd_queue_reset(uint8_t queue_id);
 
 /* Command completion notification from subsystems */
-void ble_cmd_complete(int err);
+void ble_cmd_complete(uint8_t device_id, int err);
 
 /* Connection management */
 extern struct bt_conn_cb conn_callbacks;
