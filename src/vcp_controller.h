@@ -8,7 +8,7 @@
 #include <zephyr/bluetooth/audio/vcp.h>
 #include <zephyr/logging/log.h>
 
-int vcp_controller_init();
+int vcp_controller_init(void);
 int vcp_cmd_discover(uint8_t device_id);
 int vcp_cmd_volume_up(uint8_t device_id);
 int vcp_cmd_volume_down(uint8_t device_id);
@@ -17,7 +17,7 @@ int vcp_cmd_mute(uint8_t device_id);
 int vcp_cmd_unmute(uint8_t device_id);
 int vcp_cmd_read_state(uint8_t device_id);
 int vcp_cmd_read_flags(uint8_t device_id);
-void vcp_controller_reset(struct device_context *ctx);
+void vcp_controller_reset(uint8_t device_id);
 
 /* Global state */
 extern bool volume_direction;

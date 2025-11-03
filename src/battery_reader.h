@@ -21,7 +21,7 @@
  * 
  * @return 0 on success, negative error code on failure
  */
-int battery_discover();
+int battery_discover(uint8_t device_id);
 
 /**
  * @brief Read battery level from discovered battery service

@@ -24,6 +24,24 @@
 #define BT_NAME_MAX_LEN 12
 #define BT_SECURITY_WANTED BT_SECURITY_L2
 
+/* CSIP Set Information */
+#define CSIP_SIRK_SIZE 16
+
+struct bonded_device_entry {
+    bt_addr_le_t addr;
+    char name[BT_NAME_MAX_LEN];
+    uint8_t sirk[CSIP_SIRK_SIZE];
+    bool has_sirk;
+    uint8_t set_rank;  // 1 = left, 2 = right
+    uint32_t last_connected_timestamp;
+    bool is_set_member;
+};
+
+struct bond_collection {
+    struct bonded_device_entry devices[CONFIG_BT_MAX_PAIRED];
+    uint8_t count;
+};
+
 struct device_info
 {
 	bt_addr_le_t addr;
@@ -125,5 +143,8 @@ void ble_cmd_complete(uint8_t device_id, int err);
 extern struct bt_conn_cb conn_callbacks;
 extern struct bt_conn *auth_conn;
 extern struct device_context *device_ctx;
+
+/* Bond enumeration and management */
+int enumerate_bonded_devices(struct bond_collection *collection);
 
 #endif /* BLE_MANAGER_H */

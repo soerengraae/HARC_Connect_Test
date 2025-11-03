@@ -31,17 +31,17 @@ static void ble_process_next_command(uint8_t queue_id);
 static void ble_cmd_timeout_handler(struct k_work *work);
 static bool is_bonded_device(const bt_addr_le_t *addr);
 static void disconnect(struct bt_conn *conn, void *data); // void *data ensures compatibility with bt_conn_foreach
-static int connect_to_bonded_device(uint8_t device_id);
+static int connect_to_bonded_device(void);
 static void scan_for_HIs(void);
 static char *command_type_to_string(enum ble_cmd_type type);
 
-static void activate_ble_cmd_queue(uint8_t queue_id)
+static void activate_ble_cmd_queue(uint8_t device_id)
 {
-	if (!queue_is_active[queue_id])
+	if (!queue_is_active[device_id])
 	{
-		queue_is_active[queue_id] = true;
-		LOG_DBG("Activating BLE command queue %d", queue_id);
-		k_sem_give(&ble_cmd_sem[queue_id]);
+		queue_is_active[device_id] = true;
+		LOG_DBG("Activating BLE command queue [DEVICE ID %d]", device_id);
+		k_sem_give(&ble_cmd_sem[device_id]);
 	}
 }
 
@@ -139,34 +139,68 @@ static void security_request_handler(struct k_work *work)
 	LOG_DBG("Security request initiated [DEVICE ID %d]", device_id);
 }
 
-/* Callback for iterating bonded devices to find the first one */
-static void get_bonded_devices(const struct bt_bond_info *info, void *user_data)
+/* Callback for comprehensive bond enumeration */
+static void enumerate_bonds_cb(const struct bt_bond_info *info, void *user_data)
 {
-	struct device_info *device = (struct device_info *)user_data;
+	struct bond_collection *collection = (struct bond_collection *)user_data;
 
-	if (!device->connect)
-	{ // Only copy first bonded device
-		bt_addr_le_copy(&device->addr, &info->addr);
-		device->connect = true;
-		device->is_new_device = false;
-
-		// Add to filter accept list for auto-connect
-		int err = bt_le_filter_accept_list_add(&device->addr);
-		if (err && err != -EALREADY)
-		{
-			LOG_ERR("Failed to add device to filter accept list (err %d)", err);
-		}
-
-		err = bt_le_set_rpa_timeout(900); // Set RPA timeout
-		if (err)
-		{
-			LOG_WRN("Failed to set RPA timeout (err %d)", err);
-		}
-
-		char addr_str[BT_ADDR_LE_STR_LEN];
-		bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
-		LOG_INF("Found bonded device: %s", addr_str);
+	if (collection->count >= CONFIG_BT_MAX_PAIRED) {
+		LOG_WRN("Bond collection full, skipping device");
+		return;
 	}
+
+	struct bonded_device_entry *entry = &collection->devices[collection->count];
+
+	// Copy address
+	bt_addr_le_copy(&entry->addr, &info->addr);
+
+	// Try to load CSIP information from settings
+	entry->has_sirk = false;
+	entry->is_set_member = false;
+	entry->set_rank = 0;
+	entry->last_connected_timestamp = 0;
+	memset(entry->sirk, 0, CSIP_SIRK_SIZE);
+	memset(entry->name, 0, BT_NAME_MAX_LEN);
+
+	// Load SIRK and rank from settings if available
+	uint8_t rank = 0;
+	if (csip_settings_load_sirk(&entry->addr, entry->sirk, &rank) == 0) {
+		entry->has_sirk = true;
+		entry->is_set_member = true;
+		entry->set_rank = rank;
+	}
+
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(&entry->addr, addr_str, sizeof(addr_str));
+	LOG_DBG("Enumerated bonded device %d: %s (SIRK: %s, Rank: %d)",
+	        collection->count, addr_str,
+	        entry->has_sirk ? "yes" : "no",
+	        entry->set_rank);
+
+	collection->count++;
+}
+
+/**
+ * @brief Enumerate all bonded devices and collect their metadata
+ *
+ * @param collection Pointer to bond_collection structure to fill
+ * @return 0 on success, negative error code on failure
+ */
+int enumerate_bonded_devices(struct bond_collection *collection)
+{
+	if (!collection) {
+		return -EINVAL;
+	}
+
+	memset(collection, 0, sizeof(struct bond_collection));
+
+	// Iterate through all bonded devices
+	bt_foreach_bond(BT_ID_DEFAULT, enumerate_bonds_cb, collection);
+
+	LOG_INF("Enumerated %d bonded device%s", collection->count,
+	        collection->count == 1 ? "" : "s");
+
+	return 0;
 }
 
 void pairing_complete(struct bt_conn *conn, bool bonded)
@@ -192,9 +226,6 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 			LOG_DBG("Saving bond information to flash [DEVICE ID %d]", ctx->device_id);
 			settings_save();
 		}
-
-		LOG_DBG("Ensuring device is now in bonded list [DEVICE ID %d]:", ctx->device_id);
-		bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &ctx->info);
 
 		// Disconnect to complete initial pairing flow
 		disconnect(conn, NULL);
@@ -267,6 +298,11 @@ static void disconnect(struct bt_conn *conn, void *data)
 static void connected_cb(struct bt_conn *conn, uint8_t err)
 {
 	struct device_context *ctx = get_device_context_by_conn(conn);
+	if (!ctx)
+	{
+		LOG_DBG("Using first slot for new connection");
+		ctx = &device_ctx[0];
+	}
 
 	if (err)
 	{
@@ -297,7 +333,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 	bt_addr_le_copy(&ctx->info.addr, addr);
 
 	// Check if this device is already bonded
-	ctx->info.is_new_device = !is_bonded_device(addr);
+	// ctx->info.is_new_device = !is_bonded_device(addr);
 
 	if (ctx->info.is_new_device)
 	{
@@ -311,7 +347,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 	}
 
 	ble_cmd_request_security(ctx->device_id);
-	// activate_ble_cmd_queue(ctx->device_id);
+	activate_ble_cmd_queue(ctx->device_id);
 }
 
 static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
@@ -325,13 +361,13 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	if (queue_is_active[ctx->device_id])
 		ble_cmd_queue_reset(ctx->device_id);
 
-	vcp_controller_reset(ctx);
-	battery_reader_reset(ctx);
+	vcp_controller_reset(ctx->device_id);
+	battery_reader_reset(ctx->device_id);
 
 	if (ctx->state == CONN_STATE_BONDED)
 	{
 		ctx->state = CONN_STATE_DISCONNECTED;
-		connect_to_bonded_device(ctx->device_id);
+		connect_to_bonded_device();
 	}
 	else
 	{
@@ -537,21 +573,18 @@ int ble_manager_init(void)
 	device_ctx[0].device_id = 0;
 	device_ctx[1].device_id = 1;
 
-	for (ssize_t i = 0; i < 2; i++)
+	err = vcp_controller_init();
+	if (err)
 	{
-		err = vcp_controller_init(i);
-		if (err)
-		{
-			LOG_ERR("VCP controller init failed (err %d) [DEVICE ID %d]", err, i);
-			return err;
-		}
+		LOG_ERR("VCP controller init failed (err %d)", err);
+		return err;
+	}
 
-		err = battery_reader_init(i);
-		if (err)
-		{
-			LOG_ERR("Battery reader init failed (err %d) [DEVICE ID %d]", err, i);
-			return err;
-		}
+	err = battery_reader_init();
+	if (err)
+	{
+		LOG_ERR("Battery reader init failed (err %d)", err);
+		return err;
 	}
 
 	LOG_DBG("Initializing connection works");
@@ -565,29 +598,64 @@ int ble_manager_init(void)
 	return 0;
 }
 
-static int connect_to_bonded_device(uint8_t device_id)
+static int connect_to_bonded_device(void)
 {
-	// Check for bonded devices
-	memset(&device_ctx[device_id].info, 0, sizeof(device_ctx[device_id].info));
-	bt_foreach_bond(BT_ID_DEFAULT, get_bonded_devices, &device_ctx[device_id].info);
+	// Enumerate all bonded devices
+	struct bond_collection collection;
+	int err = enumerate_bonded_devices(&collection);
 
-	if (device_ctx[device_id].info.connect)
+	if (err || collection.count == 0)
 	{
-		LOG_DBG("Scheduling auto-connect to bonded device [DEVICE ID %d]", device_id);
-		k_work_schedule(&auto_connect_work[device_id], K_MSEC(0));
-		return 0;
+		LOG_INF("No bonded devices found");
+		return -ENOENT;
 	}
-	else
-	{
-		LOG_INF("No previously bonded device found");
-		return -1;
-	}
-}
 
-static void bond_count_cb(const struct bt_bond_info *info, void *user_data)
-{
-	uint8_t *count = (uint8_t *)user_data;
-	(*count)++;
+	struct device_context *ctx = &device_ctx[0];
+	if (ctx->conn != NULL)
+	{
+		LOG_WRN("Connection already exists in first slot, moving to second slot");
+		ctx = &device_ctx[1];
+		if (ctx->conn != NULL)
+		{
+			LOG_ERR("Connection already exists in second slot as well");
+			return -EALREADY;
+		}
+	}
+
+	// For now, connect to the first bonded device
+	// TODO: This will be replaced by connection strategy in Step 2
+	struct bonded_device_entry *entry = &collection.devices[0];
+
+	// Copy to device context
+	memset(&ctx->info, 0, sizeof(ctx->info));
+	bt_addr_le_copy(&ctx->info.addr, &entry->addr);
+	ctx->info.connect = true;
+	ctx->info.is_new_device = false;
+	strncpy(ctx->info.name, entry->name, BT_NAME_MAX_LEN - 1);
+
+	// Add to filter accept list for auto-connect
+	err = bt_le_filter_accept_list_add(&entry->addr);
+	if (err && err != -EALREADY)
+	{
+		LOG_ERR("Failed to add device to filter accept list (err %d)", err);
+	}
+
+	err = bt_le_set_rpa_timeout(900); // Set RPA timeout
+	if (err)
+	{
+		LOG_WRN("Failed to set RPA timeout (err %d)", err);
+	}
+
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(&entry->addr, addr_str, sizeof(addr_str));
+	LOG_INF("Connecting to bonded device: %s (SIRK: %s, Rank: %d)",
+	        addr_str,
+	        entry->has_sirk ? "yes" : "no",
+	        entry->set_rank);
+
+	LOG_DBG("Scheduling auto-connect to bonded device [DEVICE ID %d]", ctx->device_id);
+	k_work_schedule(&auto_connect_work[ctx->device_id], K_MSEC(0));
+	return 0;
 }
 
 void bt_ready_cb(int err)
@@ -619,25 +687,32 @@ void bt_ready_cb(int err)
 		}
 	}
 
-	uint8_t bond_count = 0;
-    bt_foreach_bond(BT_ID_DEFAULT, bond_count_cb, &bond_count);
+	// uint8_t bond_count = 0;
+  // bt_foreach_bond(BT_ID_DEFAULT, bond_count_cb, &bond_count);
 
-	if (bond_count == 0)
+	// if (bond_count == 0)
+	// {
+	// 	LOG_INF("No bonded devices found - starting active scan");
+	// 	scan_for_HIs();
+	// 	return;
+	// }
+	// else
+	// {
+	// 	LOG_INF("Found %d bonded device%s", bond_count, bond_count > 1 ? "s" : "");
+
+	// 	err = connect_to_bonded_device(0);
+	// 	if (err)
+	// 	{
+	// 		LOG_DBG("Starting active scan for devices");
+	// 		scan_for_HIs();
+	// 	}
+	// }
+
+	err = connect_to_bonded_device();
+	if (err)
 	{
-		LOG_INF("No bonded devices found - starting active scan");
+		LOG_DBG("Starting active scan for devices");
 		scan_for_HIs();
-		return;
-	}
-	else
-	{
-		LOG_INF("Found %d bonded device%s", bond_count, bond_count > 1 ? "s" : "");
-
-		err = connect_to_bonded_device(0);
-		if (err)
-		{
-			LOG_DBG("Starting active scan for devices");
-			scan_for_HIs();
-		}
 	}
 }
 
@@ -677,7 +752,7 @@ static int ble_cmd_execute(struct ble_cmd *cmd)
 {
 	int err = 0;
 
-	LOG_DBG("Executing BLE command type %s", command_type_to_string(cmd->type));
+	LOG_DBG("Executing BLE command type %s [DEVICE ID %d]", command_type_to_string(cmd->type), cmd->device_id);
 
 	switch (cmd->type)
 	{
@@ -779,20 +854,20 @@ void ble_cmd_complete(uint8_t device_id, int err)
 
 	if (!ctx->current_ble_cmd)
 	{
-		LOG_WRN("Command complete but no current command");
+		LOG_WRN("Command complete but no current command [DEVICE ID %d]", device_id);
 		return;
 	}
 
 	if (err)
 	{
-		LOG_ERR("BLE command failed: type=%s, err=%d", command_type_to_string(ctx->current_ble_cmd->type), err);
+		LOG_ERR("BLE command failed: type=%s, err=%d [DEVICE ID %d]", command_type_to_string(ctx->current_ble_cmd->type), err, device_id);
 
 		if (ctx->current_ble_cmd->type >= 0x2 && ctx->current_ble_cmd->type <= 0x8)
 		{
 			if (err == 15)
 			{
 				queue_is_active[ctx->device_id] = false;
-				LOG_ERR("VCP command failed due to insufficient authentication - reconnecting");
+				LOG_ERR("VCP command failed due to insufficient authentication - reconnecting [DEVICE ID %d]", ctx->device_id);
 				disconnect(device_ctx[ctx->device_id].conn, NULL);
 				switch (ctx->current_ble_cmd->type)
 				{
@@ -825,7 +900,7 @@ void ble_cmd_complete(uint8_t device_id, int err)
 	}
 	else
 	{
-		LOG_DBG("BLE command completed successfully: type=%s", command_type_to_string(ctx->current_ble_cmd->type));
+		LOG_DBG("BLE command completed successfully: type=%s [DEVICE ID %d]", command_type_to_string(ctx->current_ble_cmd->type), ctx->device_id);
 	}
 
 	// Free the command
@@ -846,7 +921,7 @@ static void ble_process_next_command(uint8_t device_id)
 	struct ble_cmd *cmd = ble_cmd_dequeue(ctx->device_id);
 	if (!cmd)
 	{
-		LOG_DBG("No BLE commands in queue");
+		LOG_DBG("No BLE commands in queue [DEVICE ID %d]", device_id);
 		return;
 	}
 
@@ -859,11 +934,11 @@ static void ble_process_next_command(uint8_t device_id)
 	if (err)
 	{
 		// Command failed to initiate
-		LOG_ERR("Failed to initiate BLE command (err %d)", err);
+		LOG_ERR("Failed to initiate BLE command (err %d) [DEVICE ID %d]", err, device_id);
 
 		if (err == -EBUSY)
 		{
-			LOG_WRN("Server was busy - skipping command: type=%s", command_type_to_string(ctx->current_ble_cmd->type));
+			LOG_WRN("Server was busy - skipping command: type=%s [DEVICE ID %d]", command_type_to_string(ctx->current_ble_cmd->type), device_id);
 			ble_cmd_free(cmd);
 			ctx->current_ble_cmd = NULL;
 			ble_cmd_in_progress[ctx->device_id] = false;
@@ -874,7 +949,7 @@ static void ble_process_next_command(uint8_t device_id)
 	}
 
 	// Wait for completion callback with timeout
-	LOG_DBG("Command waiting for completion: type=%s", command_type_to_string(cmd->type));
+	LOG_DBG("Command waiting for completion: type=%s [DEVICE ID %d]", command_type_to_string(cmd->type), device_id);
 	k_work_schedule(&ble_cmd_timeout_work[cmd->device_id], K_MSEC(BLE_CMD_TIMEOUT_MS));
 }
 

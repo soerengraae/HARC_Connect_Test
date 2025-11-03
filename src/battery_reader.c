@@ -210,8 +210,10 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 }
 
 /* Discover Battery Service on connected device */
-int battery_discover(struct device_context *ctx)
+int battery_discover(uint8_t device_id)
 {
+	struct device_context *ctx = get_device_context_by_id(device_id);
+	
 	if (!ctx || !ctx->conn)
 	{
 		LOG_ERR("Invalid connection context [DEVICE ID %d]", ctx->device_id);
@@ -293,7 +295,7 @@ void battery_reader_reset(uint8_t device_id)
 	LOG_DBG("Battery reader state reset [DEVICE ID %d]", ctx->device_id);
 }
 
-int battery_reader_init() {
+int battery_reader_init(void) {
 	// This does nothing but I wanted consistency lol, feel free to remove if you want :)
 	LOG_INF("Battery reader initialized");
 

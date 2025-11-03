@@ -215,7 +215,7 @@ static struct bt_vcp_vol_ctlr_cb vcp_callbacks = {
 };
 
 /* Initialize VCP controller */
-int vcp_controller_init()
+int vcp_controller_init(void)
 {
     int err;
 
@@ -231,8 +231,10 @@ int vcp_controller_init()
 }
 
 /* Reset VCP controller state */
-void vcp_controller_reset(struct device_context *ctx)
+void vcp_controller_reset(uint8_t device_id)
 {
+    struct device_context *ctx = get_device_context_by_id(device_id);
+
     ctx->info.vcp_discovered = false;
     ctx->vol_ctlr = NULL;
 }
