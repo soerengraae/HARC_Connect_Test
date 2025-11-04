@@ -51,6 +51,7 @@ struct device_info
     bool vcp_discovered;
     bool bas_discovered;
     bool csip_discovered;
+    bool searching_for_pair;  // True when actively searching for set pair
 };
 
 enum connection_state {
@@ -121,18 +122,20 @@ struct device_context *get_device_context_by_conn(struct bt_conn *conn);
 struct device_context *get_device_context_by_id(uint8_t device_id);
 
 /* BLE command queue API */
-int ble_cmd_request_security(uint8_t select_device);
-int ble_cmd_vcp_discover(uint8_t select_device, bool high_priority);
-int ble_cmd_vcp_volume_up(uint8_t select_device, bool high_priority);
-int ble_cmd_vcp_volume_down(uint8_t select_device, bool high_priority);
-int ble_cmd_vcp_set_volume(uint8_t select_device, uint8_t volume, bool high_priority);
-int ble_cmd_vcp_mute(uint8_t select_device, bool high_priority);
-int ble_cmd_vcp_unmute(uint8_t select_device, bool high_priority);
-int ble_cmd_vcp_read_state(uint8_t select_device, bool high_priority);
-int ble_cmd_vcp_read_flags(uint8_t select_device, bool high_priority);
+int ble_cmd_request_security(uint8_t device_id);
+int ble_cmd_vcp_discover(uint8_t device_id, bool high_priority);
+int ble_cmd_vcp_volume_up(uint8_t device_id, bool high_priority);
+int ble_cmd_vcp_volume_down(uint8_t device_id, bool high_priority);
+int ble_cmd_vcp_set_volume(uint8_t device_id, uint8_t volume, bool high_priority);
+int ble_cmd_vcp_mute(uint8_t device_id, bool high_priority);
+int ble_cmd_vcp_unmute(uint8_t device_id, bool high_priority);
+int ble_cmd_vcp_read_state(uint8_t device_id, bool high_priority);
+int ble_cmd_vcp_read_flags(uint8_t device_id, bool high_priority);
 
-int ble_cmd_bas_discover(uint8_t select_device, bool high_priority);
-int ble_cmd_bas_read_level(uint8_t select_device, bool high_priority);
+int ble_cmd_bas_discover(uint8_t device_id, bool high_priority);
+int ble_cmd_bas_read_level(uint8_t device_id, bool high_priority);
+
+int ble_cmd_csip_discover(uint8_t device_id, bool high_priority);
 
 void ble_cmd_queue_reset(uint8_t queue_id);
 
@@ -146,5 +149,11 @@ extern struct device_context *device_ctx;
 
 /* Bond enumeration and management */
 int enumerate_bonded_devices(struct bond_collection *collection);
+
+/* Scanning */
+void scan_for_HIs(void);
+
+/* Connection initiation */
+int schedule_auto_connect(uint8_t device_id);
 
 #endif /* BLE_MANAGER_H */

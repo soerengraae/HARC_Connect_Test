@@ -2,6 +2,7 @@
 #include "vcp_controller.h"
 #include "battery_reader.h"
 #include "csip_coordinator.h"
+#include "connection_strategy.h"
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -29,10 +30,9 @@ K_MEM_SLAB_DEFINE(ble_cmd_slab_1, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4)
 /* Forward declarations */
 static void ble_process_next_command(uint8_t queue_id);
 static void ble_cmd_timeout_handler(struct k_work *work);
-static bool is_bonded_device(const bt_addr_le_t *addr);
+// static bool is_bonded_device(const bt_addr_le_t *addr);
 static void disconnect(struct bt_conn *conn, void *data); // void *data ensures compatibility with bt_conn_foreach
 static int connect_to_bonded_device(void);
-static void scan_for_HIs(void);
 static char *command_type_to_string(enum ble_cmd_type type);
 
 static void activate_ble_cmd_queue(uint8_t device_id)
@@ -267,9 +267,10 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			// Only proceed with VCP if this is a reconnection (not new pairing)
 			if (ctx->state == CONN_STATE_BONDED)
 			{
-				LOG_DBG("Bonded device encrypted - starting service discovery [DEVICE ID %d]", ctx->device_id);
-				ble_cmd_vcp_discover(ctx->device_id, true);
-				ble_cmd_bas_discover(ctx->device_id, true);
+				LOG_DBG("Bonded device encrypted - starting csip service discovery [DEVICE ID %d]", ctx->device_id);
+				// ble_cmd_vcp_discover(ctx->device_id, true);
+				// ble_cmd_bas_discover(ctx->device_id, true);
+				ble_cmd_csip_discover(ctx->device_id, true);
 				activate_ble_cmd_queue(ctx->device_id);
 			}
 			else
@@ -484,7 +485,7 @@ static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 }
 
 /* Start BLE scanning */
-static void scan_for_HIs(void)
+void scan_for_HIs(void)
 {
 	int err;
 	err = bt_le_scan_stop();
@@ -534,7 +535,7 @@ static void auto_connect_work_handler(struct k_work *work)
 		return;
 	}
 
-	LOG_INF("Connecting to previously bonded device");
+	LOG_INF("Connecting to previously bonded device [DEVICE ID %d]", ctx->device_id);
 	int err = bt_conn_le_create_auto(BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT);
 	if (err)
 	{
@@ -546,6 +547,30 @@ static void auto_connect_work_handler(struct k_work *work)
 
 	// Set a timeout to fall back to active scanning if auto-connect doesn't work
 	k_work_schedule(&auto_connect_timeout_work[ctx->device_id], K_SECONDS(4));
+}
+
+/**
+ * @brief Schedule auto-connect for a device
+ *
+ * @param device_id Device ID (0 or 1)
+ * @return 0 on success, negative error code on failure
+ */
+int schedule_auto_connect(uint8_t device_id)
+{
+	if (device_id > 1) {
+		return -EINVAL;
+	}
+
+	struct device_context *ctx = &device_ctx[device_id];
+
+	if (!ctx->info.connect) {
+		LOG_ERR("Cannot schedule auto-connect - no device info set [DEVICE ID %d]", device_id);
+		return -EINVAL;
+	}
+
+	LOG_DBG("Scheduling auto-connect [DEVICE ID %d]", device_id);
+	k_work_schedule(&auto_connect_work[device_id], K_MSEC(0));
+	return 0;
 }
 
 /** Initialize BLE manager
@@ -584,6 +609,13 @@ int ble_manager_init(void)
 	if (err)
 	{
 		LOG_ERR("Battery reader init failed (err %d)", err);
+		return err;
+	}
+
+	err = csip_coordinator_init();
+	if (err)
+	{
+		LOG_ERR("CSIP coordinator init failed (err %d)", err);
 		return err;
 	}
 
@@ -687,65 +719,54 @@ void bt_ready_cb(int err)
 		}
 	}
 
-	// uint8_t bond_count = 0;
-  // bt_foreach_bond(BT_ID_DEFAULT, bond_count_cb, &bond_count);
-
-	// if (bond_count == 0)
-	// {
-	// 	LOG_INF("No bonded devices found - starting active scan");
-	// 	scan_for_HIs();
-	// 	return;
-	// }
-	// else
-	// {
-	// 	LOG_INF("Found %d bonded device%s", bond_count, bond_count > 1 ? "s" : "");
-
-	// 	err = connect_to_bonded_device(0);
-	// 	if (err)
-	// 	{
-	// 		LOG_DBG("Starting active scan for devices");
-	// 		scan_for_HIs();
-	// 	}
-	// }
-
-	err = connect_to_bonded_device();
+	// Use connection strategy to determine how to proceed
+	struct connection_strategy_context strategy_ctx;
+	err = determine_connection_strategy(&strategy_ctx);
 	if (err)
 	{
-		LOG_DBG("Starting active scan for devices");
+		LOG_ERR("Failed to determine connection strategy (err %d)", err);
+		scan_for_HIs();
+		return;
+	}
+
+	err = execute_connection_strategy(&strategy_ctx);
+	if (err)
+	{
+		LOG_ERR("Failed to execute connection strategy (err %d)", err);
 		scan_for_HIs();
 	}
 }
 
-static void is_bonded_device_cb(const struct bt_bond_info *info, void *user_data)
-{
-	struct check_bonded_data
-	{
-		const bt_addr_le_t *target_addr;
-		bool found;
-	} *data = user_data;
+// static void is_bonded_device_cb(const struct bt_bond_info *info, void *user_data)
+// {
+// 	struct check_bonded_data
+// 	{
+// 		const bt_addr_le_t *target_addr;
+// 		bool found;
+// 	} *data = user_data;
 
-	if (bt_addr_le_eq(&info->addr, data->target_addr))
-	{
-		data->found = true;
-		LOG_DBG("Found bonded device");
-	}
-}
+// 	if (bt_addr_le_eq(&info->addr, data->target_addr))
+// 	{
+// 		data->found = true;
+// 		LOG_DBG("Found bonded device");
+// 	}
+// }
 
-static bool is_bonded_device(const bt_addr_le_t *addr)
-{
-	struct check_bonded_data
-	{
-		const bt_addr_le_t *target_addr;
-		bool found;
-	} check_data = {.target_addr = addr, .found = false};
+// static bool is_bonded_device(const bt_addr_le_t *addr)
+// {
+// 	struct check_bonded_data
+// 	{
+// 		const bt_addr_le_t *target_addr;
+// 		bool found;
+// 	} check_data = {.target_addr = addr, .found = false};
 
-	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
-	LOG_DBG("Checking if device %s is bonded", addr_str);
-	bt_foreach_bond(BT_ID_DEFAULT, is_bonded_device_cb, &check_data);
+// 	char addr_str[BT_ADDR_LE_STR_LEN];
+// 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+// 	LOG_DBG("Checking if device %s is bonded", addr_str);
+// 	bt_foreach_bond(BT_ID_DEFAULT, is_bonded_device_cb, &check_data);
 
-	return check_data.found;
-}
+// 	return check_data.found;
+// }
 
 /* Execute a single BLE command */
 static int ble_cmd_execute(struct ble_cmd *cmd)
@@ -1115,6 +1136,20 @@ int ble_cmd_bas_read_level(uint8_t device_id, bool high_priority)
 
 	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_BAS_READ_LEVEL;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_csip_discover(uint8_t device_id, bool high_priority)
+{
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->device_id = ctx->device_id;
+	cmd->type = BLE_CMD_CSIP_DISCOVER;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 

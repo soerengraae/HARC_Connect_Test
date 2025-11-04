@@ -31,7 +31,7 @@ int main(void)
         return err;
     }
 
-    ble_cmd_bas_read_level(0, false);
+    // ble_cmd_bas_read_level(0, false);
 
     while (1) {
         k_sleep(K_SECONDS(5));
