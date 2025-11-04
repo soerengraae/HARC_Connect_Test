@@ -12,6 +12,20 @@ static int execute_single_bond_strategy(struct connection_strategy_context *ctx)
 static int execute_verified_set_strategy(struct connection_strategy_context *ctx);
 static int execute_unverified_set_strategy(struct connection_strategy_context *ctx);
 static int execute_multiple_sets_strategy(struct connection_strategy_context *ctx);
+static void rsi_scan_timeout_handler(struct k_work *work);
+
+/* State for RSI scanning */
+static struct {
+    bool active;
+    uint8_t searching_device_id;  // Device ID that's searching for its pair
+    uint8_t sirk[CSIP_SIRK_SIZE];
+    bool sirk_valid;
+    struct k_work_delayable timeout_work;
+} rsi_scan_state = {
+    .active = false,
+    .searching_device_id = 0,
+    .sirk_valid = false,
+};
 
 /* External functions from ble_manager */
 extern void scan_for_HIs(void);
@@ -363,6 +377,9 @@ void connection_state_machine_init(void)
     LOG_INF("Initializing connection state machine");
     memset(&g_conn_state_machine, 0, sizeof(g_conn_state_machine));
     g_conn_state_machine.phase = PHASE_IDLE;
+
+    // Initialize RSI scan timeout work
+    k_work_init_delayable(&rsi_scan_state.timeout_work, rsi_scan_timeout_handler);
 }
 
 /**
@@ -528,17 +545,30 @@ void connection_state_machine_on_csip_discovered(uint8_t device_id)
  * RSI Scanning for Pair Discovery
  * ============================================================================ */
 
-/* State for RSI scanning */
-static struct {
-    bool active;
-    uint8_t searching_device_id;  // Device ID that's searching for its pair
-    uint8_t sirk[CSIP_SIRK_SIZE];
-    bool sirk_valid;
-} rsi_scan_state = {
-    .active = false,
-    .searching_device_id = 0,
-    .sirk_valid = false,
-};
+/**
+ * @brief Timeout handler for RSI scanning
+ *
+ * Called when 10 seconds elapse without finding a matching set member.
+ */
+static void rsi_scan_timeout_handler(struct k_work *work)
+{
+    if (!rsi_scan_state.active) {
+        return;
+    }
+
+    LOG_WRN("RSI scan timeout - no matching set member found after 10 seconds [DEVICE ID %d]",
+            rsi_scan_state.searching_device_id);
+
+    // Stop scanning
+    bt_le_scan_stop();
+
+    // Clear scan state
+    rsi_scan_state.active = false;
+    rsi_scan_state.sirk_valid = false;
+
+    // Notify user/application that pair discovery failed
+    // This could trigger fallback behavior or user notification
+}
 
 /**
  * @brief Parse advertisement data for RSI and check if it matches our SIRK
@@ -580,22 +610,63 @@ static bool check_adv_for_rsi_match(struct net_buf_simple *ad, const uint8_t *si
     return false;
 }
 
+static bool rsi_device_found(struct bt_data *data, void *user_data)
+{
+    struct {
+        const bt_addr_le_t *addr;
+        int8_t rssi;
+        uint8_t connect;
+    } *info = user_data;
+
+    char addr_str[BT_ADDR_LE_STR_LEN];
+    bt_addr_le_to_str(info->addr, addr_str, sizeof(addr_str));
+
+    if (!rsi_scan_state.active || !rsi_scan_state.sirk_valid) {
+        return false;
+    }
+
+    // Check if advertisement contains RSI matching our SIRK
+    if (data->type == BT_DATA_CSIS_RSI) {
+        LOG_HEXDUMP_DBG(data->data, data->data_len, "Found RSI data:");
+        LOG_DBG("Found RSI advertisement from %s, rssi: %d", addr_str, info->rssi);
+        LOG_HEXDUMP_DBG(rsi_scan_state.sirk, CSIP_SIRK_SIZE, "Checking against SIRK:");
+        if (bt_csip_set_coordinator_is_set_member(rsi_scan_state.sirk, data)) {
+            LOG_INF("RSI matches SIRK from device %d! Address: %s, RSSI: %d",
+            rsi_scan_state.searching_device_id, addr_str, info->rssi);
+            info->connect = 1;
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /**
  * @brief Scan callback for finding set pair via RSI
  */
-static void rsi_scan_device_found(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
+static void advertisement_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
                                    struct net_buf_simple *ad)
 {
-    if (!rsi_scan_state.active || !rsi_scan_state.sirk_valid) {
-        return;
-    }
-
     char addr_str[BT_ADDR_LE_STR_LEN];
     bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
 
-    // Check if advertisement contains RSI matching our SIRK
-    if (check_adv_for_rsi_match(ad, rsi_scan_state.sirk)) {
+    struct {
+        const bt_addr_le_t *addr;
+        int8_t rssi;
+        uint8_t connect;
+    } info = {
+        .addr = addr,
+        .rssi = rssi,
+        .connect = 0,
+    };
+
+    bt_data_parse(ad, rsi_device_found, &info);
+
+    if (info.connect) {
         LOG_INF("Found set member with matching RSI: %s (RSSI: %d)", addr_str, rssi);
+
+        // Cancel timeout since we found the pair
+        k_work_cancel_delayable(&rsi_scan_state.timeout_work);
 
         // Stop scanning
         bt_le_scan_stop();
@@ -663,12 +734,11 @@ int start_rsi_scan_for_pair(uint8_t device_id)
     // Start active scanning
     struct bt_le_scan_param scan_param = {
         .type = BT_LE_SCAN_TYPE_ACTIVE,
-        .options = BT_LE_SCAN_OPT_FILTER_DUPLICATE,
         .interval = BT_GAP_SCAN_FAST_INTERVAL,
         .window = BT_GAP_SCAN_FAST_WINDOW,
     };
 
-    int err = bt_le_scan_start(&scan_param, rsi_scan_device_found);
+    int err = bt_le_scan_start(&scan_param, advertisement_found_cb);
     if (err) {
         LOG_ERR("Failed to start RSI scan (err %d)", err);
         rsi_scan_state.active = false;
@@ -676,7 +746,10 @@ int start_rsi_scan_for_pair(uint8_t device_id)
         return err;
     }
 
-    LOG_INF("RSI scan started successfully");
+    // Schedule 10-second timeout per CSIP specification
+    k_work_schedule(&rsi_scan_state.timeout_work, K_SECONDS(10));
+
+    LOG_INF("RSI scan started successfully (10 second timeout)");
     return 0;
 }
 
@@ -687,6 +760,7 @@ void stop_rsi_scan_for_pair(void)
 {
     if (rsi_scan_state.active) {
         LOG_INF("Stopping RSI scan");
+        k_work_cancel_delayable(&rsi_scan_state.timeout_work);
         bt_le_scan_stop();
         rsi_scan_state.active = false;
         rsi_scan_state.sirk_valid = false;
