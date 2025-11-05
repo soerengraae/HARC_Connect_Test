@@ -19,7 +19,7 @@ static void display_refresh(void)
 
     // Convert volume from 0-255 to 0-100%
     uint8_t volume_percent = (uint8_t)((current_volume * 100) / 255);
-    snprintf(buf, sizeof(buf), "Vol: %d%%%s", volume_percent);
+    snprintf(buf, sizeof(buf), "Vol: %d%%", volume_percent);
     cfb_print(display_dev, buf, 0, 36);
 
     cfb_framebuffer_finalize(display_dev);
