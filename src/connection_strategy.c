@@ -15,7 +15,7 @@ static int execute_multiple_sets_strategy(struct connection_strategy_context *ct
 static void rsi_scan_timeout_handler(struct k_work *work);
 
 /* State for RSI scanning */
-static struct {
+static struct rsi_scan_state {
     bool active;
     uint8_t searching_device_id;  // Device ID that's searching for its pair
     uint8_t sirk[CSIP_SIRK_SIZE];
@@ -221,9 +221,9 @@ static int execute_no_bonds_strategy(struct connection_strategy_context *ctx)
  *
  * This strategy handles the case where we have one bonded device. The workflow is:
  * 1. Connect to the single bonded device (done here)
- * 2. After connection and encryption, discover CSIP to get the SIRK (Step 3)
- * 3. Start scanning for advertisements with matching RSI (Step 5)
- * 4. Connect to the second device when found (Step 4)
+ * 2. After connection and encryption, discover CSIP to get the SIRK
+ * 3. Start scanning for advertisements with matching RSI
+ * 4. Connect to the second device when found
  */
 static int execute_single_bond_strategy(struct connection_strategy_context *ctx)
 {
@@ -627,8 +627,8 @@ static bool rsi_device_found(struct bt_data *data, void *user_data)
 
     // Check if advertisement contains RSI matching our SIRK
     if (data->type == BT_DATA_CSIS_RSI) {
-        LOG_HEXDUMP_DBG(data->data, data->data_len, "Found RSI data:");
         LOG_DBG("Found RSI advertisement from %s, rssi: %d", addr_str, info->rssi);
+        LOG_HEXDUMP_DBG(data->data, data->data_len, "RSI advertisement:");
         LOG_HEXDUMP_DBG(rsi_scan_state.sirk, CSIP_SIRK_SIZE, "Checking against SIRK:");
         if (bt_csip_set_coordinator_is_set_member(rsi_scan_state.sirk, data)) {
             LOG_INF("RSI matches SIRK from device %d! Address: %s, RSSI: %d",
@@ -732,13 +732,7 @@ int start_rsi_scan_for_pair(uint8_t device_id)
     rsi_scan_state.sirk_valid = true;
 
     // Start active scanning
-    struct bt_le_scan_param scan_param = {
-        .type = BT_LE_SCAN_TYPE_ACTIVE,
-        .interval = BT_GAP_SCAN_FAST_INTERVAL,
-        .window = BT_GAP_SCAN_FAST_WINDOW,
-    };
-
-    int err = bt_le_scan_start(&scan_param, advertisement_found_cb);
+    int err = bt_le_scan_start(BT_LE_SCAN_ACTIVE_CONTINUOUS, advertisement_found_cb);
     if (err) {
         LOG_ERR("Failed to start RSI scan (err %d)", err);
         rsi_scan_state.active = false;

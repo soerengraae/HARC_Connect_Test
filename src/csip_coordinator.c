@@ -92,8 +92,14 @@ static void csip_discover_cb(struct bt_conn *conn, const struct bt_csip_set_coor
     ble_cmd_complete(dev_ctx->device_id, 0);
 }
 
+static void csip_sirk_changed_cb(struct bt_csip_set_coordinator_csis_inst *inst)
+{
+	LOG_WRN("CSIP SIRK changed on remote device.");
+}
+
 static struct bt_csip_set_coordinator_cb csip_callbacks = {
     .discover = csip_discover_cb,
+	.sirk_changed = csip_sirk_changed_cb,
 };
 
 int csip_coordinator_init(void) {
