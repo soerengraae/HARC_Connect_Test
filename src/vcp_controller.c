@@ -1,4 +1,6 @@
 #include "vcp_controller.h"
+#include "devices_manager.h"
+#include "ble_manager.h"
 
 LOG_MODULE_REGISTER(vcp_controller, LOG_LEVEL_DBG);
 
@@ -117,7 +119,7 @@ static void vcp_discover_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err,
     ctx->info.vcp_discovered = true;
 
     // Initial flag read
-    ble_cmd_vcp_read_flags(ctx->device_id, true);
+    // ble_cmd_vcp_read_flags(ctx->device_id, true);
 
 	// Mark discovery command as complete
 	ble_cmd_complete(ctx->device_id, 0);
@@ -237,6 +239,8 @@ void vcp_controller_reset(uint8_t device_id)
 
     ctx->info.vcp_discovered = false;
     ctx->vol_ctlr = NULL;
+
+    LOG_DBG("VCP controller state reset [DEVICE ID %d]", ctx->device_id);
 }
 
 static struct device_context *get_device_context_by_vol_ctlr(struct bt_vcp_vol_ctlr *vol_ctlr)

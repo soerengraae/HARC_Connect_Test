@@ -1,38 +1,9 @@
 #include "battery_reader.h"
+#include "devices_manager.h"
 
 LOG_MODULE_REGISTER(battery_reader, LOG_LEVEL_DBG);
 
-/* Notification callback for battery level updates */
-static uint8_t battery_notify_cb(struct bt_conn *conn,
-								 struct bt_gatt_subscribe_params *params,
-								 const void *data, uint16_t length)
-{
-	struct device_context *ctx = get_device_context_by_conn(conn);
-
-	if (!data)
-	{
-		LOG_WRN("No data, battery level notifications unsubscribed [DEVICE ID %d]", ctx->device_id);
-		params->value_handle = 0;
-		return BT_GATT_ITER_STOP;
-	}
-
-	if (length != 1)
-	{
-		LOG_WRN("Unexpected battery level length: %u [DEVICE ID %d]", length, ctx->device_id);
-		return BT_GATT_ITER_CONTINUE;
-	}
-
-	ble_manager_set_device_ctx_battery_level(conn, *(uint8_t *)data);
-	LOG_INF("Battery level notification: %u%% [DEVICE ID %d]", ctx->bas_ctlr.battery_level, ctx->device_id);
-
-	return BT_GATT_ITER_CONTINUE;
-}
-
-/* Subscription parameters for battery level notifications */
-static struct bt_gatt_subscribe_params battery_subscribe_params = {
-	.notify = battery_notify_cb,
-	.value = BT_GATT_CCC_NOTIFY,
-};
+uint8_t bas_settings_save_ctlr(struct device_context *ctx, struct bt_bas_ctlr *bas_ctlr);
 
 /* Read callback for battery level characteristic */
 static uint8_t battery_read_cb(struct bt_conn *conn, uint8_t err,
@@ -84,23 +55,14 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
 	if (!attr) {
 		LOG_DBG("Discovery complete for type %d [DEVICE ID %d]", params->type, ctx->device_id);
 		
-		if (params->type == BT_GATT_DISCOVER_DESCRIPTOR) {
-			/* We finished searching for CCC descriptor */
-			if (ctx->bas_ctlr.battery_level_ccc_handle == 0) {
-				/* Didn't find CCC - notifications not available */
-				LOG_WRN("CCC descriptor not found - notifications not available [DEVICE ID %d]", ctx->device_id);
-			} else {
-				LOG_DBG("CCC descriptor found at handle 0x%04x [DEVICE ID %d]", ctx->bas_ctlr.battery_level_ccc_handle, ctx->device_id);
-				// battery_subscribe_notifications();
-			}
-		}
-		
 		/* If we have the characteristic handle, mark discovery as complete */
 		if (ctx->bas_ctlr.battery_level_handle != 0) {
 			ctx->info.bas_discovered = true;
+
 			// Complete the discovery command
 			LOG_DBG("Battery Service discovery complete (handle: 0x%04x, CCC: 0x%04x) [DEVICE ID %d]", 
 			        ctx->bas_ctlr.battery_level_handle, ctx->bas_ctlr.battery_level_ccc_handle, ctx->device_id);
+							
 			ble_cmd_complete(ctx->device_id, 0);
 		} else {
 			LOG_ERR("Battery Service discovery completed but no characteristic found [DEVICE ID %d]", ctx->device_id);
@@ -117,55 +79,8 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
 		if (!bt_uuid_cmp(chrc->uuid, BT_UUID_BAS_BATTERY_LEVEL)) {
 			LOG_DBG("Found Battery Level characteristic at handle 0x%04X (properties 0x%02X) [DEVICE ID %d]", chrc->value_handle, chrc->properties, ctx->device_id);
 			ctx->bas_ctlr.battery_level_handle = chrc->value_handle;
-			ctx->info.bas_discovered = true;
 
-			/* Check if notifications are supported based on properties */
-			if (chrc->properties & BT_GATT_CHRC_NOTIFY) {
-				LOG_DBG("Characteristic supports notifications, attempting to subscribe [DEVICE ID %d]", ctx->device_id);
-				battery_subscribe_params.value_handle = ctx->bas_ctlr.battery_level_handle;
-				battery_subscribe_params.ccc_handle = BT_GATT_AUTO_DISCOVER_CCC_HANDLE;
-				battery_subscribe_params.end_handle = ctx->bas_ctlr.battery_service_handle_end;
-				battery_subscribe_params.value = BT_GATT_CCC_NOTIFY;
-				battery_subscribe_params.disc_params = params;
-				atomic_set_bit(battery_subscribe_params.flags, BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
-
-				int err = bt_gatt_subscribe(ctx->conn, &battery_subscribe_params);
-				if (err)
-				{
-					LOG_ERR("Battery notification subscription failed (err %d) [DEVICE ID %d]", err, ctx->device_id);
-					return err;
-				}
-
-				LOG_INF("Successfully subscribed to battery level notifications [DEVICE ID %d]", ctx->device_id);
-				ble_cmd_complete(ctx->device_id, 0);
-			}
-			// 	/* Try to discover CCC descriptor */
-			// 	static struct bt_gatt_discover_params discover_params;
-			// 	memset(&discover_params, 0, sizeof(discover_params));
-			// 	discover_params.uuid = NULL;
-			// 	discover_params.type = BT_GATT_DISCOVER_DESCRIPTOR;
-			// 	discover_params.start_handle = chrc->value_handle;
-			// 	discover_params.end_handle = params->end_handle;
-			// 	discover_params.func = discover_char_cb;
-				
-			// 	int err = bt_gatt_discover(conn, &discover_params);
-			// 	if (err) {
-			// 		LOG_WRN("Failed to discover CCC (err %d) - proceeding without notifications", err);
-			// 	}
-			// } else {
-			// 	LOG_WRN("Characteristic does not support notifications");
-			// }
-
-			return BT_GATT_ITER_STOP;
-		}
-	} else if (params->type == BT_GATT_DISCOVER_DESCRIPTOR) {
-		struct bt_gatt_chrc *chrc = (struct bt_gatt_chrc *)attr->user_data;
-		
-		if (!bt_uuid_cmp(chrc->uuid, BT_UUID_GATT_CCC)) {
-			LOG_DBG("Found CCC descriptor at handle %u [DEVICE ID %d]", attr->handle, ctx->device_id);
-			ctx->bas_ctlr.battery_level_ccc_handle = attr->handle;
-			ctx->info.bas_discovered = true;
-			return BT_GATT_ITER_STOP;
+			// return BT_GATT_ITER_STOP;
 		}
 	}
 

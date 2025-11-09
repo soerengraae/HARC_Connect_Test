@@ -4,7 +4,7 @@
 
 #include "ble_manager.h"
 #include "vcp_controller.h"
-#include "battery_reader.h"
+#include "devices_manager.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 

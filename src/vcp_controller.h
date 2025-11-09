@@ -1,12 +1,16 @@
 #ifndef VCP_CONTROLLER_H
 #define VCP_CONTROLLER_H
 
-#include "ble_manager.h"
 #include <zephyr/kernel.h>
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/audio/vcp.h>
 #include <zephyr/logging/log.h>
+
+struct vcp_load_context {
+  struct bt_vcp_vol_ctlr *vol_ctlr;
+  bool vcp_found;
+};
 
 int vcp_controller_init(void);
 int vcp_cmd_discover(uint8_t device_id);

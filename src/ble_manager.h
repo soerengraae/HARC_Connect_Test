@@ -5,8 +5,12 @@
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/settings/settings.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/bluetooth/uuid.h>
+#include <zephyr/bluetooth/hci.h>
 #include <stdint.h>
 #include <string.h>
+
 
 /**
  * @brief Helper macro for fulfilling scanning parameters
@@ -27,56 +31,12 @@
 /* CSIP Set Information */
 #define CSIP_SIRK_SIZE 16
 
-struct bonded_device_entry {
-    bt_addr_le_t addr;
-    char name[BT_NAME_MAX_LEN];
-    uint8_t sirk[CSIP_SIRK_SIZE];
-    bool has_sirk;
-    uint8_t set_rank;  // 1 = left, 2 = right
-    uint32_t last_connected_timestamp;
-    bool is_set_member;
-};
-
-struct bond_collection {
-    struct bonded_device_entry devices[CONFIG_BT_MAX_PAIRED];
-    uint8_t count;
-};
-
-struct device_info
-{
-	bt_addr_le_t addr;
-	char name[BT_NAME_MAX_LEN];
-	bool connect;
-    bool is_new_device;  // True if not previously bonded
-    bool vcp_discovered;
-    bool bas_discovered;
-    bool csip_discovered;
-    bool searching_for_pair;  // True when actively searching for set pair
-};
-
-enum connection_state {
-    CONN_STATE_DISCONNECTED,
-    CONN_STATE_CONNECTING,
-    CONN_STATE_PAIRING,
-    CONN_STATE_BONDED
-};
-
 struct bt_bas_ctlr {
     uint16_t battery_service_handle;
     uint16_t battery_service_handle_end;
     uint16_t battery_level_handle;
     uint16_t battery_level_ccc_handle;
     uint8_t battery_level;
-};
-
-struct device_context {
-    uint8_t device_id;
-    struct bt_conn *conn;
-    enum connection_state state;
-    struct device_info info;
-    struct bt_vcp_vol_ctlr *vol_ctlr;
-    struct bt_bas_ctlr bas_ctlr;
-    struct ble_cmd *current_ble_cmd;
 };
 
 /* BLE command types */
@@ -118,8 +78,8 @@ struct ble_cmd {
 int ble_manager_init(void);
 void bt_ready_cb(int err);
 void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t level);
-struct device_context *get_device_context_by_conn(struct bt_conn *conn);
-struct device_context *get_device_context_by_id(uint8_t device_id);
+void ble_manager_scan_for_HIs(void);
+int ble_manager_connect_to_bonded_device(struct bt_conn *conn);
 
 /* BLE command queue API */
 int ble_cmd_request_security(uint8_t device_id);
@@ -139,19 +99,12 @@ int ble_cmd_csip_discover(uint8_t device_id, bool high_priority);
 
 void ble_cmd_queue_reset(uint8_t queue_id);
 
-/* Command completion notification from subsystems */
 void ble_cmd_complete(uint8_t device_id, int err);
 
 /* Connection management */
 extern struct bt_conn_cb conn_callbacks;
 extern struct bt_conn *auth_conn;
-extern struct device_context *device_ctx;
-
-/* Bond enumeration and management */
-int enumerate_bonded_devices(struct bond_collection *collection);
-
-/* Scanning */
-void scan_for_HIs(void);
+void disconnect(struct bt_conn *conn, void *data);
 
 /* Connection initiation */
 int schedule_auto_connect(uint8_t device_id);

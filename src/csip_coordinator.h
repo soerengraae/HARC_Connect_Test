@@ -6,6 +6,7 @@
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/audio/csip.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/settings/settings.h>
 
 struct device_context;
 

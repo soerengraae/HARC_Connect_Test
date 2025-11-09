@@ -2,15 +2,12 @@
 #include "vcp_controller.h"
 #include "battery_reader.h"
 #include "csip_coordinator.h"
-#include "connection_strategy.h"
-#include <zephyr/logging/log.h>
-#include <zephyr/sys/byteorder.h>
-#include <zephyr/bluetooth/uuid.h>
-#include <zephyr/bluetooth/hci.h>
+#include "connection_manager.h"
+#include "devices_manager.h"
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
-struct device_context *device_ctx;
+static struct bond_collection *bonded_devices;
 static struct k_work_delayable auto_connect_work[2];
 static struct k_work_delayable auto_connect_timeout_work[2];
 static struct k_work_delayable security_request_work[2];
@@ -31,8 +28,6 @@ K_MEM_SLAB_DEFINE(ble_cmd_slab_1, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4)
 static void ble_process_next_command(uint8_t queue_id);
 static void ble_cmd_timeout_handler(struct k_work *work);
 // static bool is_bonded_device(const bt_addr_le_t *addr);
-static void disconnect(struct bt_conn *conn, void *data); // void *data ensures compatibility with bt_conn_foreach
-static int connect_to_bonded_device(void);
 static char *command_type_to_string(enum ble_cmd_type type);
 
 static void activate_ble_cmd_queue(uint8_t device_id)
@@ -139,70 +134,6 @@ static void security_request_handler(struct k_work *work)
 	LOG_DBG("Security request initiated [DEVICE ID %d]", device_id);
 }
 
-/* Callback for comprehensive bond enumeration */
-static void enumerate_bonds_cb(const struct bt_bond_info *info, void *user_data)
-{
-	struct bond_collection *collection = (struct bond_collection *)user_data;
-
-	if (collection->count >= CONFIG_BT_MAX_PAIRED) {
-		LOG_WRN("Bond collection full, skipping device");
-		return;
-	}
-
-	struct bonded_device_entry *entry = &collection->devices[collection->count];
-
-	// Copy address
-	bt_addr_le_copy(&entry->addr, &info->addr);
-
-	// Try to load CSIP information from settings
-	entry->has_sirk = false;
-	entry->is_set_member = false;
-	entry->set_rank = 0;
-	entry->last_connected_timestamp = 0;
-	memset(entry->sirk, 0, CSIP_SIRK_SIZE);
-	memset(entry->name, 0, BT_NAME_MAX_LEN);
-
-	// Load SIRK and rank from settings if available
-	uint8_t rank = 0;
-	if (csip_settings_load_sirk(&entry->addr, entry->sirk, &rank) == 0) {
-		entry->has_sirk = true;
-		entry->is_set_member = true;
-		entry->set_rank = rank;
-	}
-
-	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(&entry->addr, addr_str, sizeof(addr_str));
-	LOG_DBG("Enumerated bonded device %d: %s (SIRK: %s, Rank: %d)",
-	        collection->count, addr_str,
-	        entry->has_sirk ? "yes" : "no",
-	        entry->set_rank);
-
-	collection->count++;
-}
-
-/**
- * @brief Enumerate all bonded devices and collect their metadata
- *
- * @param collection Pointer to bond_collection structure to fill
- * @return 0 on success, negative error code on failure
- */
-int enumerate_bonded_devices(struct bond_collection *collection)
-{
-	if (!collection) {
-		return -EINVAL;
-	}
-
-	memset(collection, 0, sizeof(struct bond_collection));
-
-	// Iterate through all bonded devices
-	bt_foreach_bond(BT_ID_DEFAULT, enumerate_bonds_cb, collection);
-
-	LOG_INF("Enumerated %d bonded device%s", collection->count,
-	        collection->count == 1 ? "" : "s");
-
-	return 0;
-}
-
 void pairing_complete(struct bt_conn *conn, bool bonded)
 {
 	struct device_context *ctx = get_device_context_by_conn(conn);
@@ -225,10 +156,10 @@ void pairing_complete(struct bt_conn *conn, bool bonded)
 		{
 			LOG_DBG("Saving bond information to flash [DEVICE ID %d]", ctx->device_id);
 			settings_save();
+			disconnect(conn, NULL);
 		}
 
-		// Disconnect to complete initial pairing flow
-		disconnect(conn, NULL);
+		devices_manager_update_bonded_devices_collection();
 	}
 	else
 	{
@@ -264,14 +195,12 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 		{
 			LOG_DBG("Encryption established at level %u [DEVICE ID %d]", level, ctx->device_id);
 
-			// Only proceed with VCP if this is a reconnection (not new pairing)
 			if (ctx->state == CONN_STATE_BONDED)
 			{
-				LOG_DBG("Bonded device encrypted - starting csip service discovery [DEVICE ID %d]", ctx->device_id);
-				// ble_cmd_vcp_discover(ctx->device_id, true);
-				// ble_cmd_bas_discover(ctx->device_id, true);
-				ble_cmd_csip_discover(ctx->device_id, true);
-				activate_ble_cmd_queue(ctx->device_id);
+				LOG_DBG("Bonded device - encryption established [DEVICE ID %d]", ctx->device_id);
+				ble_cmd_vcp_discover(ctx->device_id, true);
+				ble_cmd_bas_discover(ctx->device_id, true);
+				// activate_ble_cmd_queue(ctx->device_id);
 			}
 			else
 			{
@@ -288,7 +217,7 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 	ble_cmd_complete(ctx->device_id, err);
 }
 
-static void disconnect(struct bt_conn *conn, void *data)
+void disconnect(struct bt_conn *conn, void *data)
 {
 	struct device_context *ctx = get_device_context_by_conn(conn);
 	LOG_INF("Disconnecting connection [DEVICE ID %d]", ctx->device_id);
@@ -317,7 +246,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 		if (err == BT_HCI_ERR_UNKNOWN_CONN_ID)
 		{
 			// Connection failed, retry
-			scan_for_HIs();
+			ble_manager_scan_for_HIs();
 		}
 		return;
 	}
@@ -368,13 +297,13 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	if (ctx->state == CONN_STATE_BONDED)
 	{
 		ctx->state = CONN_STATE_DISCONNECTED;
-		connect_to_bonded_device();
+		ble_manager_connect_to_bonded_device(conn);
 	}
 	else
 	{
 		ctx->state = CONN_STATE_DISCONNECTED;
 		LOG_DBG("Restarting scan to find bondable devices [DEVICE ID %d]", ctx->device_id);
-		scan_for_HIs();
+		ble_manager_scan_for_HIs();
 	}
 }
 
@@ -479,13 +408,13 @@ static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 		if (err)
 		{
 			LOG_DBG("Restarting scan (err %d)", err);
-			scan_for_HIs();
+			ble_manager_scan_for_HIs();
 		}
 	}
 }
 
 /* Start BLE scanning */
-void scan_for_HIs(void)
+void ble_manager_scan_for_HIs(void)
 {
 	int err;
 	err = bt_le_scan_stop();
@@ -521,7 +450,7 @@ static void auto_connect_timeout_handler(struct k_work *work)
 	k_sleep(K_MSEC(0));
 
 	LOG_DBG("Starting active scan for devices");
-	scan_for_HIs();
+	ble_manager_scan_for_HIs();
 }
 
 static void auto_connect_work_handler(struct k_work *work)
@@ -531,7 +460,7 @@ static void auto_connect_work_handler(struct k_work *work)
 	if (!ctx->info.connect)
 	{
 		LOG_WRN("No bonded device stored - scanning for devices");
-		scan_for_HIs();
+		ble_manager_scan_for_HIs();
 		return;
 	}
 
@@ -541,7 +470,7 @@ static void auto_connect_work_handler(struct k_work *work)
 	{
 		LOG_ERR("Failed to set auto-connect (err %d)", err);
 		LOG_DBG("Starting active scan for devices");
-		scan_for_HIs();
+		ble_manager_scan_for_HIs();
 		return;
 	}
 
@@ -589,15 +518,6 @@ int ble_manager_init(void)
 		return err;
 	}
 
-	device_ctx = (struct device_context *)k_calloc(2, sizeof(struct device_context));
-	if (!device_ctx)
-	{
-		LOG_ERR("Failed to allocate memory for connection contexts");
-		return -ENOMEM;
-	}
-	device_ctx[0].device_id = 0;
-	device_ctx[1].device_id = 1;
-
 	err = vcp_controller_init();
 	if (err)
 	{
@@ -626,37 +546,84 @@ int ble_manager_init(void)
 		k_work_init_delayable(&auto_connect_timeout_work[i], auto_connect_timeout_handler);
 	}
 
+	err = devices_manager_init();
+	if (err)
+	{
+		LOG_ERR("Devices manager init failed (err %d)", err);
+		return err;
+	}
+
+	bonded_devices = (struct bond_collection *)k_calloc(1, sizeof(struct bond_collection));
+	if (!bonded_devices) {
+		LOG_ERR("Failed to allocate memory for bonded devices");
+		k_free(device_ctx);
+		return -ENOMEM;
+	}
+	err = devices_manager_get_bonded_devices_collection(bonded_devices);
+	if (err)
+	{
+		LOG_ERR("Failed to get bonded devices collection (err %d)", err);
+		return err;
+	}
+
 	LOG_INF("BLE manager initialized");
 	return 0;
 }
 
-static int connect_to_bonded_device(void)
+/** @brief Connect to the first bonded device in the collection
+ * @return 0 on success, negative error code on failure
+ * @note Destroys entry upon use
+ */
+int ble_manager_connect_to_bonded_device(struct bt_conn *conn)
 {
-	// Enumerate all bonded devices
-	struct bond_collection collection;
-	int err = enumerate_bonded_devices(&collection);
-
-	if (err || collection.count == 0)
-	{
-		LOG_INF("No bonded devices found");
-		return -ENOENT;
-	}
-
 	struct device_context *ctx = &device_ctx[0];
-	if (ctx->conn != NULL)
+	if (ctx->conn)
 	{
 		LOG_WRN("Connection already exists in first slot, moving to second slot");
 		ctx = &device_ctx[1];
-		if (ctx->conn != NULL)
+		if (ctx->conn)
 		{
 			LOG_ERR("Connection already exists in second slot as well");
 			return -EALREADY;
 		}
 	}
 
-	// For now, connect to the first bonded device
-	// TODO: This will be replaced by connection strategy in Step 2
-	struct bonded_device_entry *entry = &collection.devices[0];
+	struct bonded_device_entry *entry = NULL;
+	if (!conn) {
+		LOG_DBG("No connection provided, checking if any bonded devices (still) exist");
+		switch (bonded_devices->count)
+		{
+		case 0:
+			LOG_WRN("No bonded devices found to connect to");
+			return -EINVAL;
+		case 1:
+			LOG_DBG("One bonded device found");
+			break;
+		case 2:
+			LOG_DBG("Two bonded devices found");
+			break;
+		default:
+			break;
+		}
+
+		entry = &bonded_devices->devices[0];
+		if (!entry) {
+			LOG_WRN("First bonded device entry is NULL, trying second entry");
+			entry = &bonded_devices->devices[1];
+			if (!entry) {
+				LOG_ERR("Second bonded device entry is also NULL");
+				return -EALREADY;
+			}
+			LOG_DBG("Using second bonded device entry");
+			entry = (struct bonded_device_entry *)k_calloc(1, sizeof(struct bonded_device_entry));
+		}
+	} else {
+		devices_manager_is_conn_in_bonded_devices_collection(conn, &entry);
+		if (!entry) {
+			LOG_ERR("No matching bonded device found for the provided connection");
+			return -EALREADY;
+		}
+	}
 
 	// Copy to device context
 	memset(&ctx->info, 0, sizeof(ctx->info));
@@ -666,7 +633,7 @@ static int connect_to_bonded_device(void)
 	strncpy(ctx->info.name, entry->name, BT_NAME_MAX_LEN - 1);
 
 	// Add to filter accept list for auto-connect
-	err = bt_le_filter_accept_list_add(&entry->addr);
+	int err = bt_le_filter_accept_list_add(&entry->addr);
 	if (err && err != -EALREADY)
 	{
 		LOG_ERR("Failed to add device to filter accept list (err %d)", err);
@@ -687,6 +654,11 @@ static int connect_to_bonded_device(void)
 
 	LOG_DBG("Scheduling auto-connect to bonded device [DEVICE ID %d]", ctx->device_id);
 	k_work_schedule(&auto_connect_work[ctx->device_id], K_MSEC(0));
+
+	// Remove the used entry by setting the entry to zero
+	memset(entry, 0, sizeof(struct bonded_device_entry));
+	bonded_devices->count--;
+
 	return 0;
 }
 
@@ -700,6 +672,17 @@ void bt_ready_cb(int err)
 
 	LOG_INF("Bluetooth initialized");
 
+	if (IS_ENABLED(CONFIG_SETTINGS))
+	{
+		LOG_DBG("Loading BT settings from flash");
+		err = settings_load_subtree("bt");
+		if (err)
+		{
+			LOG_WRN("Failed to load BT settings (err %d)", err);
+		}
+	}
+
+	LOG_DBG("Clearing filter accept list");
 	bt_le_filter_accept_list_clear();
 
 	/* Initialize BLE manager */
@@ -710,34 +693,7 @@ void bt_ready_cb(int err)
 		return;
 	}
 
-	if (IS_ENABLED(CONFIG_SETTINGS))
-	{
-		err = settings_load_subtree("bt");
-		if (err)
-		{
-			LOG_WRN("Failed to load BT settings (err %d)", err);
-		}
-	}
-
-	// Initialize the connection state machine
-	connection_state_machine_init();
-
-	// Use connection strategy to determine how to proceed
-	struct connection_strategy_context strategy_ctx;
-	err = determine_connection_strategy(&strategy_ctx);
-	if (err)
-	{
-		LOG_ERR("Failed to determine connection strategy (err %d)", err);
-		scan_for_HIs();
-		return;
-	}
-
-	err = execute_connection_strategy(&strategy_ctx);
-	if (err)
-	{
-		LOG_ERR("Failed to execute connection strategy (err %d)", err);
-		scan_for_HIs();
-	}
+	connection_manager_init();
 }
 
 // static void is_bonded_device_cb(const struct bt_bond_info *info, void *user_data)
@@ -1267,29 +1223,4 @@ void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t leve
 	}
 
 	ctx->bas_ctlr.battery_level = level;
-}
-
-struct device_context *get_device_context_by_conn(struct bt_conn *conn)
-{
-	if (bt_addr_le_cmp(bt_conn_get_dst(device_ctx[0].conn), bt_conn_get_dst(conn)) == 0)
-	{
-		return &device_ctx[0];
-	}
-	else if (bt_addr_le_cmp(bt_conn_get_dst(device_ctx[1].conn), bt_conn_get_dst(conn)) == 0)
-	{
-		return &device_ctx[1];
-	}
-	else
-	{
-		LOG_WRN("Connection does not match any known device context");
-		return NULL;
-	}
-}
-
-struct device_context *get_device_context_by_id(uint8_t device_id) {
-	if (device_id != 1 && device_id != 0) {
-		LOG_ERR("Invalid device ID: %d", device_id);
-		return NULL;
-	}
-	return &device_ctx[device_id];
 }

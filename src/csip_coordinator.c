@@ -1,7 +1,7 @@
 #include "csip_coordinator.h"
 #include "ble_manager.h"
-#include "connection_strategy.h"
-#include <zephyr/settings/settings.h>
+#include "devices_manager.h"
+
 
 LOG_MODULE_REGISTER(csip_coordinator, LOG_LEVEL_DBG);
 
@@ -87,7 +87,7 @@ static void csip_discover_cb(struct bt_conn *conn, const struct bt_csip_set_coor
 
     // Notify state machine that CSIP discovery is complete
     // The state machine will handle RSI scanning if needed
-    connection_state_machine_on_csip_discovered(dev_ctx->device_id);
+    // connection_state_machine_on_csip_discovered(dev_ctx->device_id);
 
     ble_cmd_complete(dev_ctx->device_id, 0);
 }
@@ -185,8 +185,6 @@ bool csip_verify_set_membership(uint8_t device_id_1, uint8_t device_id_2)
 
     return match;
 }
-
-/* CSIP Settings Management */
 
 /**
  * @brief Store SIRK and rank for a bonded device
