@@ -24,5 +24,7 @@ int csip_settings_clear_device(const bt_addr_le_t *addr);
 bool csip_get_sirk(uint8_t device_id, uint8_t *sirk_out, uint8_t *rank_out);
 bool csip_verify_set_membership(uint8_t device_id_1, uint8_t device_id_2);
 int csip_coordinator_init(void);
+void rsi_scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
+                     struct net_buf_simple *ad);
 
 #endif /* CSIP_COORDINATOR_H */

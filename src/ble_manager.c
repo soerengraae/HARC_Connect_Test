@@ -364,7 +364,7 @@ static uint8_t connect(struct device_info info)
 		if (ctx->conn != NULL)
 		{
 			LOG_ERR("Connection already exists in second slot as well");
-			return -1;
+			return EALREADY;
 		}
 	}
 
@@ -380,7 +380,7 @@ static uint8_t connect(struct device_info info)
 	if (err)
 	{
 		LOG_ERR("Create conn to %s failed (err %d) [DEVICE ID %d]", info.name, err, ctx->device_id);
-		if (err == -12) // -ENOMEM
+		if (err == -ENOMEM)
 		{
 			bt_conn_foreach(BT_CONN_TYPE_LE, disconnect, NULL);
 		}

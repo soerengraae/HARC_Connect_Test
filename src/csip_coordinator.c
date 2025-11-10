@@ -2,8 +2,10 @@
 #include "ble_manager.h"
 #include "devices_manager.h"
 
-
 LOG_MODULE_REGISTER(csip_coordinator, LOG_LEVEL_DBG);
+
+static struct k_work_delayable rsi_scan_timeout_work;
+static void rsi_scan_timeout_handler(struct k_work *work);
 
 /* CSIP coordinator context per device */
 struct csip_coordinator_context {
@@ -15,6 +17,17 @@ struct csip_coordinator_context {
 };
 
 static struct csip_coordinator_context csip_ctx[2];  // One per device
+
+static struct rsi_scan_context {
+	bool active; // True if RSI scanning is active
+	int8_t device_id; // Device that is searching for other set member
+	bool rsi_found; // True if RSI advertisement matching SIRK was found
+	struct k_work_delayable scan_timeout_work; // RSI scanning must timeout after 10 seconds
+} rsi_scan_context = {
+	.active = false,
+	.device_id = -1,
+	.rsi_found = false,
+};
 
 int csip_cmd_discover(uint8_t device_id)
 {
@@ -113,6 +126,8 @@ int csip_coordinator_init(void) {
         LOG_ERR("Failed to register CSIP callbacks (err %d)", err);
         return err;
     }
+
+	k_work_init_delayable(&rsi_scan_timeout_work, rsi_scan_timeout_handler);
 
     LOG_INF("CSIP Coordinator initialized");
 
@@ -354,4 +369,95 @@ int csip_settings_clear_device(const bt_addr_le_t *addr)
 	}
 
 	return (err1 || err2) ? -EIO : 0;
+}
+
+static bool rsi_scan_adv_parse(struct bt_data *data, void *user_data)
+{
+	struct device_info *info = (struct device_info *)user_data;
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
+	if (data->type == BT_DATA_CSIS_RSI) {
+		LOG_DBG("RSI advertisement found from %s", addr_str);
+		LOG_HEXDUMP_DBG(data->data, data->data_len, "RSI data:");
+		LOG_HEXDUMP_DBG(csip_ctx[rsi_scan_context.device_id].sirk, CSIP_SIRK_SIZE, "Using SIRK:");
+		
+		if (bt_csip_set_coordinator_is_set_member(csip_ctx[rsi_scan_context.device_id].sirk, data)) {
+			LOG_INF("RSI matches SIRK - will attempt to connect to %s", addr_str);
+			// info->connect = true;
+			// rsi_scan_context.rsi_found = true;
+			return false;
+		} else {
+			LOG_DBG("RSI does not match SIRK for %s", addr_str);
+		}
+	}
+
+	return true;
+}
+
+void rsi_scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
+							struct net_buf_simple *ad)
+{
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+
+	struct device_info info = {0};
+	info.addr = *addr;
+	info.connect = false;
+
+	bt_data_parse(ad, rsi_scan_adv_parse, &info);
+}
+
+void csip_coordinator_rsi_scan_start(uint8_t device_id) {
+	int err;
+	err = bt_le_scan_stop();
+	if (err)
+	{
+		LOG_ERR("Stopping existing scan failed (err %d)", err);
+		return;
+	}
+
+	rsi_scan_context.active = true;
+	rsi_scan_context.device_id = device_id;
+	rsi_scan_context.rsi_found = false;
+
+	err = bt_le_scan_start(BT_LE_SCAN_ACTIVE_CONTINUOUS, rsi_scan_cb);
+	if (err)
+	{
+		LOG_ERR("Scanning failed to start (err %d)", err);
+		return;
+	}
+
+	k_work_schedule(&rsi_scan_timeout_work, BT_CSIP_SET_COORDINATOR_DISCOVER_TIMER_VALUE);
+
+	LOG_INF("Scanning for RSI advertisements started");
+}
+
+static void rsi_scan_stop() {
+	int err;
+	err = bt_le_scan_stop();
+	if (err)
+	{
+		LOG_ERR("Stopping scan failed (err %d)", err);
+		return;
+	}
+
+	LOG_INF("RSI scanning stopped");
+
+	rsi_scan_context.active = false;
+	rsi_scan_context.device_id = 0;
+	rsi_scan_context.rsi_found = false;
+}
+
+static void rsi_scan_timeout_handler(struct k_work *work)
+{
+	LOG_DBG("RSI scan timeout reached");
+
+	if (rsi_scan_context.active) {
+		rsi_scan_context.active = false;
+		rsi_scan_stop();
+
+		if (!rsi_scan_context.rsi_found) {
+			LOG_WRN("No matching RSI advertisements found during scan");
+		}
+	}
 }
