@@ -2,7 +2,7 @@
 #include "vcp_controller.h"
 #include "battery_reader.h"
 #include "csip_coordinator.h"
-#include "connection_manager.h"
+#include "app_controller.h"
 #include "devices_manager.h"
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
@@ -199,8 +199,9 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			if (ctx->state == CONN_STATE_BONDED)
 			{
 				LOG_DBG("Bonded device - encryption established [DEVICE ID %d]", ctx->device_id);
-				ble_cmd_vcp_discover(ctx->device_id, true);
-				ble_cmd_bas_discover(ctx->device_id, true);
+				ble_cmd_csip_discover(ctx->device_id, true);
+				// ble_cmd_vcp_discover(ctx->device_id, true);
+				// ble_cmd_bas_discover(ctx->device_id, true);
 				// activate_ble_cmd_queue(ctx->device_id);
 			}
 			else
@@ -247,7 +248,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 		if (err == BT_HCI_ERR_UNKNOWN_CONN_ID)
 		{
 			// Connection failed, retry
-			ble_manager_scan_for_HIs();
+			ble_manager_start_scan_for_HIs();
 		}
 		return;
 	}
@@ -263,13 +264,10 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 	ctx->conn = bt_conn_ref(conn);
 	bt_addr_le_copy(&ctx->info.addr, addr);
 
-	// Check if this device is already bonded
-	// ctx->info.is_new_device = !is_bonded_device(addr);
-
 	if (ctx->info.is_new_device)
 	{
 		LOG_DBG("Connected to new device %s - expecting pairing [DEVICE ID %d]", addr_str, ctx->device_id);
-		ctx->state = CONN_STATE_PAIRING;
+		ctx->state = CONN_STATE_BONDED;
 	}
 	else
 	{
@@ -277,8 +275,9 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 		ctx->state = CONN_STATE_BONDED;
 	}
 
-	ble_cmd_request_security(ctx->device_id);
-	activate_ble_cmd_queue(ctx->device_id);
+	// ble_cmd_request_security(ctx->device_id);
+	// activate_ble_cmd_queue(ctx->device_id);
+	app_controller_notify_device_connected(ctx->device_id);
 }
 
 static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
@@ -298,13 +297,13 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	if (ctx->state == CONN_STATE_BONDED)
 	{
 		ctx->state = CONN_STATE_DISCONNECTED;
-		ble_manager_connect_to_bonded_device(conn);
+		ble_manager_connect_to_bonded_device(bt_conn_get_dst(conn));
 	}
 	else
 	{
 		ctx->state = CONN_STATE_DISCONNECTED;
 		LOG_DBG("Restarting scan to find bondable devices [DEVICE ID %d]", ctx->device_id);
-		ble_manager_scan_for_HIs();
+		ble_manager_start_scan_for_HIs();
 	}
 }
 
@@ -354,32 +353,38 @@ static bool device_found(struct bt_data *data, void *user_data)
 	return true;
 }
 
-static uint8_t connect(struct device_info info)
+static uint8_t connect(struct device_context *ctx)
 {
-	struct device_context *ctx = &device_ctx[0];
+	// struct device_context *ctx = &device_ctx[0];
+	// if (ctx->conn != NULL)
+	// {
+	// 	LOG_WRN("Connection already exists in first slot, moving to second slot");
+	// 	ctx = &device_ctx[1];
+	// 	if (ctx->conn != NULL)
+	// 	{
+	// 		LOG_ERR("Connection already exists in second slot as well");
+	// 		return EALREADY;
+	// 	}
+	// }
+
 	if (ctx->conn != NULL)
 	{
-		LOG_WRN("Connection already exists in first slot, moving to second slot");
-		ctx = &device_ctx[1];
-		if (ctx->conn != NULL)
-		{
-			LOG_ERR("Connection already exists in second slot as well");
-			return EALREADY;
-		}
+		LOG_ERR("Connection already exists [DEVICE ID %d]", ctx->device_id);
+		return EALREADY;
 	}
 
 	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(&info.addr, addr_str, sizeof(addr_str));
-	LOG_INF("Connecting to %s (with address %s) [DEVICE ID %d]", info.name, addr_str, ctx->device_id);
+	bt_addr_le_to_str(&ctx->info.addr, addr_str, sizeof(addr_str));
+	LOG_INF("Connecting to %s (with address %s) [DEVICE ID %d]", ctx->info.name, addr_str, ctx->device_id);
 
 	bt_le_scan_stop();
 	(ctx)->state = CONN_STATE_CONNECTING;
 
 	// BT_CONN_LE_CREATE_CONN uses 100% duty cycle
-	int err = bt_conn_le_create(&info.addr, BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT, &(ctx)->conn);
+	int err = bt_conn_le_create(&ctx->info.addr, BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT, &(ctx)->conn);
 	if (err)
 	{
-		LOG_ERR("Create conn to %s failed (err %d) [DEVICE ID %d]", info.name, err, ctx->device_id);
+		LOG_ERR("Create conn to %s failed (err %d) [DEVICE ID %d]", ctx->info.name, err, ctx->device_id);
 		if (err == -ENOMEM)
 		{
 			bt_conn_foreach(BT_CONN_TYPE_LE, disconnect, NULL);
@@ -389,6 +394,30 @@ static uint8_t connect(struct device_info info)
 	}
 
 	return 0;
+}
+
+/**
+ * @brief Connect to a device by address
+ *
+ * @param addr Bluetooth address of device to connect to
+ * @param name Device name (for logging)
+ * @param is_new_device True if this is a new device that needs pairing
+ * @return 0 on success, negative error code on failure
+ */
+int ble_manager_connect_to_device(const bt_addr_le_t *addr, const char *name, bool is_new_device)
+{
+	struct device_info info = {0};
+	bt_addr_le_copy(&info.addr, addr);
+	if (name) {
+		strncpy(info.name, name, BT_NAME_MAX_LEN - 1);
+		info.name[BT_NAME_MAX_LEN - 1] = '\0';
+	} else {
+		strncpy(info.name, "RSI Device", BT_NAME_MAX_LEN - 1);
+	}
+	info.connect = true;
+	info.is_new_device = is_new_device;
+
+	return connect(info);
 }
 
 static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
@@ -409,13 +438,13 @@ static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 		if (err)
 		{
 			LOG_DBG("Restarting scan (err %d)", err);
-			ble_manager_scan_for_HIs();
+			ble_manager_start_scan_for_HIs();
 		}
 	}
 }
 
 /* Start BLE scanning */
-void ble_manager_scan_for_HIs(void)
+void ble_manager_start_scan_for_HIs(void)
 {
 	int err;
 	err = bt_le_scan_stop();
@@ -438,6 +467,18 @@ void ble_manager_scan_for_HIs(void)
 	LOG_INF("Scanning for HIs");
 }
 
+void ble_manager_stop_scan_for_HIs(void)
+{
+	int err = bt_le_scan_stop();
+	if (err)
+	{
+		LOG_ERR("Stopping scan failed (err %d)", err);
+		return;
+	}
+
+	LOG_INF("Scan stopped");
+}
+
 static void auto_connect_timeout_handler(struct k_work *work)
 {
 	LOG_WRN("Auto-connect timeout - falling back to active scan");
@@ -451,7 +492,7 @@ static void auto_connect_timeout_handler(struct k_work *work)
 	k_sleep(K_MSEC(0));
 
 	LOG_DBG("Starting active scan for devices");
-	ble_manager_scan_for_HIs();
+	ble_manager_start_scan_for_HIs();
 }
 
 static void auto_connect_work_handler(struct k_work *work)
@@ -461,7 +502,7 @@ static void auto_connect_work_handler(struct k_work *work)
 	if (!ctx->info.connect)
 	{
 		LOG_WRN("No bonded device stored - scanning for devices");
-		ble_manager_scan_for_HIs();
+		ble_manager_start_scan_for_HIs();
 		return;
 	}
 
@@ -471,7 +512,7 @@ static void auto_connect_work_handler(struct k_work *work)
 	{
 		LOG_ERR("Failed to set auto-connect (err %d)", err);
 		LOG_DBG("Starting active scan for devices");
-		ble_manager_scan_for_HIs();
+		ble_manager_start_scan_for_HIs();
 		return;
 	}
 
@@ -567,15 +608,16 @@ int ble_manager_init(void)
 		return err;
 	}
 
-	LOG_INF("BLE manager initialized");
+	LOG_INF("BLE manager and subsystems initialized");
 	return 0;
 }
 
 /** @brief Connect to the first bonded device in the collection
+ * @param addr Optional address of the bonded device to connect to
  * @return 0 on success, negative error code on failure
  * @note Destroys entry upon use
  */
-int ble_manager_connect_to_bonded_device(struct bt_conn *conn)
+int ble_manager_connect_to_bonded_device(const bt_addr_le_t *addr)
 {
 	struct device_context *ctx = &device_ctx[0];
 	if (ctx->conn)
@@ -590,8 +632,8 @@ int ble_manager_connect_to_bonded_device(struct bt_conn *conn)
 	}
 
 	struct bonded_device_entry entry = {0};
-	if (!conn) {
-		LOG_DBG("No connection provided, checking if any bonded devices (still) exist");
+	if (!addr) {
+		LOG_DBG("No address provided, checking if any bonded devices (still) exist");
 		switch (bonded_devices->count)
 		{
 		case 0:
@@ -623,8 +665,8 @@ int ble_manager_connect_to_bonded_device(struct bt_conn *conn)
 		LOG_DBG("Using first bonded device entry");
 		memset(&bonded_devices->devices[0], 0, sizeof(struct bonded_device_entry));
 	} else {
-		if (!devices_manager_find_entry_by_conn(conn, &entry)) {
-			LOG_ERR("No matching bonded device found for the provided connection");
+		if (!devices_manager_find_entry_by_addr(addr, &entry)) {
+			LOG_ERR("No matching bonded device found for the provided address");
 			return -EALREADY;
 		}
 	}
@@ -695,7 +737,7 @@ void bt_ready_cb(int err)
 		return;
 	}
 
-	connection_manager_init();
+	app_controller_notify_system_ready();
 }
 
 // static void is_bonded_device_cb(const struct bt_bond_info *info, void *user_data)

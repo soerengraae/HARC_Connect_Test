@@ -9,6 +9,6 @@ target_sources(app PRIVATE
     src/vcp_controller.c
     src/battery_reader.c
     src/csip_coordinator.c
-    src/connection_manager.c
+    src/app_controller.c
     src/devices_manager.c
 )

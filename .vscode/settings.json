@@ -3,6 +3,10 @@
     "${workspaceFolder}"
   ],
   "files.associations": {
-    "hci.h": "c"
+    "hci.h": "c",
+    "csip.h": "c",
+    "app_controller.h": "c",
+    "csip_coordinator.h": "c",
+    "conn.h": "c"
   }
 }

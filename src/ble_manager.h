@@ -78,8 +78,10 @@ struct ble_cmd {
 int ble_manager_init(void);
 void bt_ready_cb(int err);
 void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t level);
-void ble_manager_scan_for_HIs(void);
-int ble_manager_connect_to_bonded_device(struct bt_conn *conn);
+void ble_manager_start_scan_for_HIs(void);
+void ble_manager_stop_scan_for_HIs(void);
+int ble_manager_connect_to_bonded_device(const bt_addr_le_t *addr);
+int ble_manager_connect_to_device(const bt_addr_le_t *addr, const char *name, bool is_new_device);
 
 /* BLE command queue API */
 int ble_cmd_request_security(uint8_t device_id);

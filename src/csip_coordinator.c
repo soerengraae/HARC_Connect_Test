@@ -1,11 +1,13 @@
 #include "csip_coordinator.h"
 #include "ble_manager.h"
 #include "devices_manager.h"
+#include "app_controller.h"
 
 LOG_MODULE_REGISTER(csip_coordinator, LOG_LEVEL_DBG);
 
 static struct k_work_delayable rsi_scan_timeout_work;
 static void rsi_scan_timeout_handler(struct k_work *work);
+static void rsi_scan_stop(void);
 
 /* CSIP coordinator context per device */
 struct csip_coordinator_context {
@@ -100,7 +102,6 @@ static void csip_discover_cb(struct bt_conn *conn, const struct bt_csip_set_coor
 
     // Notify state machine that CSIP discovery is complete
     // The state machine will handle RSI scanning if needed
-    // connection_state_machine_on_csip_discovered(dev_ctx->device_id);
 
     ble_cmd_complete(dev_ctx->device_id, 0);
 }
@@ -166,20 +167,35 @@ bool csip_get_sirk(uint8_t device_id, uint8_t *sirk_out, uint8_t *rank_out)
 }
 
 /**
- * @brief Verify that two devices are members of the same set
+ * @brief Get set size for a device
  *
- * @param device_id_1 First device ID
- * @param device_id_2 Second device ID
- * @return true if both devices have matching SIRKs, false otherwise
+ * @param device_id Device ID (0 or 1)
+ * @return Set size (0 if not discovered)
  */
-bool csip_verify_set_membership(uint8_t device_id_1, uint8_t device_id_2)
+uint8_t csip_get_set_size(uint8_t device_id)
 {
-    if (device_id_1 > 1 || device_id_2 > 1) {
-        return false;
+    if (device_id > 1) {
+        return 0;
     }
 
-    struct csip_coordinator_context *ctx1 = &csip_ctx[device_id_1];
-    struct csip_coordinator_context *ctx2 = &csip_ctx[device_id_2];
+    struct csip_coordinator_context *ctx = &csip_ctx[device_id];
+
+    if (!ctx->sirk_discovered) {
+        return 0;
+    }
+
+    return ctx->set_size;
+}
+
+/**
+ * @brief Verify that two devices are members of the same set
+ *
+ * @return true if both devices have matching SIRKs, false otherwise
+ */
+bool csip_verify_devices_are_set()
+{
+    struct csip_coordinator_context *ctx1 = &csip_ctx[0];
+    struct csip_coordinator_context *ctx2 = &csip_ctx[1];
 
     if (!ctx1->sirk_discovered || !ctx2->sirk_discovered) {
         LOG_WRN("Cannot verify set membership - SIRK not discovered for both devices");
@@ -189,13 +205,11 @@ bool csip_verify_set_membership(uint8_t device_id_1, uint8_t device_id_2)
     bool match = (memcmp(ctx1->sirk, ctx2->sirk, CSIP_SIRK_SIZE) == 0);
 
     if (match) {
-        LOG_INF("Set membership verified - devices %d and %d are in the same set",
-                device_id_1, device_id_2);
-        LOG_INF("  Device %d rank: %d", device_id_1, ctx1->rank);
-        LOG_INF("  Device %d rank: %d", device_id_2, ctx2->rank);
+        LOG_INF("Set membership verified - devices 0 and 1 are in the same set");
+        LOG_INF("  Device 0 rank: %d", ctx1->rank);
+        LOG_INF("  Device 1 rank: %d", ctx2->rank);
     } else {
-        LOG_WRN("Set membership FAILED - devices %d and %d have different SIRKs",
-                device_id_1, device_id_2);
+        LOG_ERR("Set membership FAILED - devices 0 and 1 have different SIRKs");
     }
 
     return match;
@@ -383,9 +397,9 @@ static bool rsi_scan_adv_parse(struct bt_data *data, void *user_data)
 		
 		if (bt_csip_set_coordinator_is_set_member(csip_ctx[rsi_scan_context.device_id].sirk, data)) {
 			LOG_INF("RSI matches SIRK - will attempt to connect to %s", addr_str);
-			// info->connect = true;
-			// rsi_scan_context.rsi_found = true;
-			return false;
+			info->connect = true;
+			rsi_scan_context.rsi_found = true;
+			return false;  // Stop parsing
 		} else {
 			LOG_DBG("RSI does not match SIRK for %s", addr_str);
 		}
@@ -405,6 +419,19 @@ void rsi_scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 	info.connect = false;
 
 	bt_data_parse(ad, rsi_scan_adv_parse, &info);
+
+	// If RSI matched, stop scanning and connect to the device
+	if (info.connect && rsi_scan_context.rsi_found) {
+		LOG_INF("Stopping RSI scan - matched device found");
+		rsi_scan_stop();
+
+		// Connect to the matched device (it's a new device that needs pairing)
+		int err = ble_manager_connect_to_device(&info.addr, "HARC HI", true);
+		if (err) {
+			LOG_ERR("Failed to connect to RSI-matched device (err %d)", err);
+			// Could restart RSI scan here if needed
+		}
+	}
 }
 
 void csip_coordinator_rsi_scan_start(uint8_t device_id) {

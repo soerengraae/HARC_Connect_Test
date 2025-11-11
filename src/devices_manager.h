@@ -9,7 +9,8 @@
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/settings/settings.h>
 
-struct bonded_device_entry {
+struct bonded_device_entry
+{
     bt_addr_le_t addr;
     char name[BT_NAME_MAX_LEN];
     uint8_t sirk[CSIP_SIRK_SIZE];
@@ -18,31 +19,35 @@ struct bonded_device_entry {
     bool is_set_member;
 };
 
-struct bond_collection {
+struct bond_collection
+{
     struct bonded_device_entry devices[CONFIG_BT_MAX_PAIRED];
     uint8_t count;
 };
 
 struct device_info
 {
-	bt_addr_le_t addr;
-	char name[BT_NAME_MAX_LEN];
-	bool connect;
-  bool is_new_device;  // True if not previously bonded
-  bool vcp_discovered;
-  bool bas_discovered;
-  bool csip_discovered;
-  bool searching_for_pair;  // True when actively searching for set pair
+    bt_addr_le_t addr;
+    char name[BT_NAME_MAX_LEN];
+    bool connect;
+    bool is_new_device; // True if not previously bonded
+    bool vcp_discovered;
+    bool bas_discovered;
+    bool csip_discovered;
+    bool searching_for_pair; // True when actively searching for set pair
 };
 
-enum connection_state {
+enum connection_state
+{
     CONN_STATE_DISCONNECTED,
     CONN_STATE_CONNECTING,
     CONN_STATE_PAIRING,
-    CONN_STATE_BONDED
+    CONN_STATE_BONDED,
+    CONN_STATE_CONNECTED,
 };
 
-struct device_context {
+struct device_context
+{
     uint8_t device_id;
     struct bt_conn *conn;
     enum connection_state state;
@@ -58,7 +63,7 @@ void devices_manager_clear_all_bonds(void);
 void devices_manager_update_bonded_devices_collection(void);
 int devices_manager_init(void);
 int devices_manager_get_bonded_devices_collection(struct bond_collection *collection);
-bool devices_manager_find_entry_by_conn(struct bt_conn *conn, struct bonded_device_entry *out_entry);
+bool devices_manager_find_entry_by_addr(const bt_addr_le_t *addr, struct bonded_device_entry *out_entry);
 struct device_context *get_device_context_by_conn(struct bt_conn *conn);
 struct device_context *get_device_context_by_id(uint8_t device_id);
 

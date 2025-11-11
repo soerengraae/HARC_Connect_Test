@@ -22,9 +22,11 @@ int csip_settings_clear_device(const bt_addr_le_t *addr);
 
 /* CSIP coordinator functions */
 bool csip_get_sirk(uint8_t device_id, uint8_t *sirk_out, uint8_t *rank_out);
-bool csip_verify_set_membership(uint8_t device_id_1, uint8_t device_id_2);
+bool csip_verify_devices_are_set();
 int csip_coordinator_init(void);
 void rsi_scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
                      struct net_buf_simple *ad);
+void csip_coordinator_rsi_scan_start(uint8_t device_id);
+uint8_t csip_get_set_size(uint8_t device_id);
 
 #endif /* CSIP_COORDINATOR_H */

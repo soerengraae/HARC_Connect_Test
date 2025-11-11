@@ -1,6 +1,6 @@
 #include "ble_manager.h"
 #include "devices_manager.h"
-#include "connection_manager.h"
+#include "app_controller.h"
 #include "csip_coordinator.h"
 
 LOG_MODULE_REGISTER(devices_manager, LOG_LEVEL_DBG);
@@ -21,27 +21,24 @@ int devices_manager_get_bonded_devices_collection(struct bond_collection *collec
 }
 
 /**
- * @brief Check if a connection's address is in the bonded devices collection
- * @param conn Pointer to the connection
+ * @brief Check if an address is in the bonded devices collection
+ * @param addr Pointer to the address
  * @param out_entry Pointer to store the found bonded device entry, or NULL if not found
- * @return void
+ * @return bool
  * @note out_entry can be allocated by the caller; if the device is not found, it will be set to
  * NULL
  */
-bool devices_manager_find_entry_by_conn(struct bt_conn *conn, struct bonded_device_entry *out_entry)
+bool devices_manager_find_entry_by_addr(const bt_addr_le_t *addr, struct bonded_device_entry *out_entry)
 {
-	bt_addr_le_t addr;
-	bt_addr_le_copy(&addr, bt_conn_get_dst(conn));
-
   for (uint8_t i = 0; i < bonded_devices->count; i++) {
-    if (bt_addr_le_cmp(&addr, &bonded_devices->devices[i].addr) == 0) {
-        memcpy(out_entry, &bonded_devices->devices[i], sizeof(*out_entry));
-        return true;
-    }
+	if (bt_addr_le_cmp(addr, &bonded_devices->devices[i].addr) == 0) {
+		memcpy(out_entry, &bonded_devices->devices[i], sizeof(*out_entry));
+		return true;
+	}
   }
 
-	LOG_DBG("Connection address not found in bonded devices collection");
-	return false; // Not found
+	LOG_DBG("Address not found in bonded devices collection");
+	return false;
 }
 
 /* Callback for comprehensive bond enumeration */
