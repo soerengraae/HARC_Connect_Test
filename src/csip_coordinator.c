@@ -39,7 +39,7 @@ int csip_cmd_discover(uint8_t device_id)
 
 static void csip_discover_cb(struct bt_conn *conn, const struct bt_csip_set_coordinator_set_member *members, int err, size_t set_count)
 {
-    struct device_context *dev_ctx = get_device_context_by_conn(conn);
+    struct device_context *dev_ctx = devices_manager_get_device_context_by_conn(conn);
     struct csip_coordinator_context *ctx = &csip_ctx[dev_ctx->device_id];
 
     if (err) {
@@ -421,17 +421,17 @@ void rsi_scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 	bt_data_parse(ad, rsi_scan_adv_parse, &info);
 
 	// If RSI matched, stop scanning and connect to the device
-	if (info.connect && rsi_scan_context.rsi_found) {
-		LOG_INF("Stopping RSI scan - matched device found");
-		rsi_scan_stop();
+	// if (info.connect && rsi_scan_context.rsi_found) {
+	// 	LOG_INF("Stopping RSI scan - matched device found");
+	// 	rsi_scan_stop();
 
-		// Connect to the matched device (it's a new device that needs pairing)
-		int err = ble_manager_connect_to_device(&info.addr, "HARC HI", true);
-		if (err) {
-			LOG_ERR("Failed to connect to RSI-matched device (err %d)", err);
-			// Could restart RSI scan here if needed
-		}
-	}
+	// 	// Connect to the matched device (it's a new device that needs pairing)
+	// 	int err = ble_manager_connect_to_device(&info.addr, "HARC HI", true);
+	// 	if (err) {
+	// 		LOG_ERR("Failed to connect to RSI-matched device (err %d)", err);
+	// 		// Could restart RSI scan here if needed
+	// 	}
+	// }
 }
 
 void csip_coordinator_rsi_scan_start(uint8_t device_id) {

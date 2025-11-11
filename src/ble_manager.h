@@ -8,6 +8,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/hci.h>
+#include <zephyr/sys/byteorder.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -20,13 +21,15 @@
  * It's only used when scanning for a bondable device. If a device is already bonded, we use 100% duty cycle to scan and connect.
  */
 #define BT_LE_SCAN_ACTIVE_CAP_RAP BT_LE_SCAN_PARAM(BT_LE_SCAN_TYPE_ACTIVE, \
-            BT_LE_SCAN_OPT_FILTER_DUPLICATE, \
+            BT_LE_SCAN_OPT_NONE, \
             BT_GAP_SCAN_SLOW_INTERVAL_1, \
             BT_GAP_SCAN_SLOW_WINDOW_1)
 
 #define MAX_DISCOVERED_DEVICES_MEMORY_SIZE 1024 // 1 KB
 #define BT_NAME_MAX_LEN 12
 #define BT_SECURITY_WANTED BT_SECURITY_L2
+#define BT_CONNECTION_TIMEOUT_MS 30000
+#define BT_SCAN_TIMEOUT_MS 20000
 
 /* CSIP Set Information */
 #define CSIP_SIRK_SIZE 16
@@ -80,8 +83,8 @@ void bt_ready_cb(int err);
 void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t level);
 void ble_manager_start_scan_for_HIs(void);
 void ble_manager_stop_scan_for_HIs(void);
-int ble_manager_connect_to_bonded_device(const bt_addr_le_t *addr);
-int ble_manager_connect_to_device(const bt_addr_le_t *addr, const char *name, bool is_new_device);
+int ble_manager_autoconnect_to_device_by_addr(const bt_addr_le_t *addr);
+int ble_manager_connect_to_scanned_device(uint8_t device_id, uint8_t idx);
 
 /* BLE command queue API */
 int ble_cmd_request_security(uint8_t device_id);

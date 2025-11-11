@@ -5,7 +5,8 @@
 
 LOG_MODULE_REGISTER(app_controller, LOG_LEVEL_DBG);
 
-enum app_event_type {
+enum app_event_type
+{
     EVENT_NONE,
     EVENT_SYSTEM_READY,
     EVENT_DEVICE_CONNECTED,
@@ -16,17 +17,15 @@ enum app_event_type {
     EVENT_CSIP_NO_MEMBER_MATCH,
     EVENT_SCAN_TIMEOUT,
     EVENT_PAIRING_FAILED,
+    EVENT_SCAN_COMPLETE,
 };
 
 struct app_event
 {
     enum app_event_type type;
     uint8_t device_id;
-    union
-    {
-        enum ble_cmd_type ble_cmd_type;
-        uint8_t error_code;
-    };
+    enum ble_cmd_type ble_cmd_type;
+    uint8_t error_code;
 };
 
 /**
@@ -48,7 +47,8 @@ void app_controller_thread(void)
 
     state = SM_WAKE;
 
-    while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
+    while (k_msgq_get(&app_event_queue, &evt, K_FOREVER))
+        ;
     if (evt.type != EVENT_SYSTEM_READY)
     {
         LOG_ERR("Expected EVENT_SYSTEM_READY, got %d", evt.type);
@@ -61,7 +61,8 @@ void app_controller_thread(void)
         {
         case SM_IDLE:
             // Wait for an event to trigger action
-            while (k_msgq_get(&app_event_queue, &evt, K_FOREVER));
+            while (k_msgq_get(&app_event_queue, &evt, K_FOREVER))
+                ;
             switch (evt.type)
             {
             default:
@@ -79,28 +80,85 @@ void app_controller_thread(void)
             LOG_DBG("SM_FIRST_TIME_USE: Starting first time use procedure");
             ble_manager_start_scan_for_HIs();
 
-            /* The ble_manager gets 60 seconds to connect to a device */
-            if (k_msgq_get(&app_event_queue, &evt, K_TIMEOUT_ABS_MS(60000)) == 0)
+            /* The ble_manager gets 60 seconds to scan for devices */
+            if (k_msgq_get(&app_event_queue, &evt, K_MSEC(BT_SCAN_TIMEOUT_MS)) == 0)
             {
-                if (evt.type == EVENT_DEVICE_CONNECTED)
+                if (evt.type == EVENT_SCAN_COMPLETE)
                 {
-                    LOG_INF("[DEVICE ID %d] connected, proceeding with CSIP discovery", evt.device_id);
-                    ble_cmd_csip_discover(evt.device_id, true);
-                    activate_ble_cmd_queue(evt.device_id);
+                    uint8_t device_count = devices_manager_get_scanned_device_count();
+                    LOG_INF("Scan complete: %d device(s) found", device_count);
+
+                    if (device_count == 0)
+                    {
+                        LOG_WRN("No devices found during scan");
+                        state = SM_IDLE;
+                        break;
+                    }
+
+                    devices_manager_print_scanned_devices();
+                    if (device_count == 1)
+                    {
+                        LOG_INF("Only one device found, selecting it automatically");
+                    }
+                    else
+                    {
+                        LOG_WRN("Multiple devices found, selecting the first one for now");
+                    }
                 }
                 else
                 {
-                    LOG_ERR("Unexpected event %d in SM_FIRST_TIME_USE", evt.type);
+                    LOG_ERR("Unexpected event %d in SM_FIRST_TIME_USE (expected EVENT_SCAN_COMPLETE)", evt.type);
                     state = SM_IDLE;
                     break;
                 }
-            } else {
-                LOG_ERR("Timeout waiting for device connection in SM_FIRST_TIME_USE");
+            }
+            else
+            {
+                LOG_DBG("Timeout waiting for scan completion in SM_FIRST_TIME_USE");
                 ble_manager_stop_scan_for_HIs();
+                uint8_t device_count = devices_manager_get_scanned_device_count();
+                if (device_count == 0)
+                {
+                    LOG_WRN("No devices found during scan");
+                    state = SM_IDLE;
+                    break;
+                }
+
+                devices_manager_print_scanned_devices();
+                if (device_count == 1)
+                {
+                    LOG_INF("Only one device found, selecting it automatically");
+                }
+                else
+                {
+                    LOG_WRN("Multiple devices found, selecting the first one for now");
+                }
+            }
+
+            ble_manager_connect_to_scanned_device(0, 0); // Connects to first scanned device using Device 0
+
+            /* Now wait for the device to be ready */
+            if (k_msgq_get(&app_event_queue, &evt, K_MSEC(BT_CONNECTION_TIMEOUT_MS)) == 0)
+            {
+                if (evt.type == EVENT_DEVICE_READY)
+                {
+                    LOG_INF("[DEVICE ID %d] ready, discovering CSIP", evt.device_id);
+                }
+                else
+                {
+                    LOG_ERR("Unexpected event %d in SM_FIRST_TIME_USE (expected EVENT_DEVICE_READY)", evt.type);
+                    state = SM_IDLE;
+                    break;
+                }
+            }
+            else
+            {
+                LOG_ERR("Timeout waiting for device connection in SM_FIRST_TIME_USE");
                 state = SM_IDLE;
                 break;
             }
 
+            ble_cmd_csip_discover(evt.device_id, false);
             while (k_msgq_get(&app_event_queue, &evt, K_FOREVER));
             if (evt.type != EVENT_BLE_CMD_COMPLETE)
             {
@@ -126,7 +184,8 @@ void app_controller_thread(void)
                 csip_coordinator_rsi_scan_start(evt.device_id);
             }
 
-            while (k_msgq_get(&app_event_queue, &evt, K_FOREVER));
+            while (k_msgq_get(&app_event_queue, &evt, K_FOREVER))
+                ;
             if (evt.type != EVENT_CSIP_MEMBER_MATCH)
             {
                 if (evt.type == EVENT_CSIP_NO_MEMBER_MATCH)
@@ -227,7 +286,8 @@ static uint8_t determine_state(void)
 
 K_THREAD_DEFINE(app_controller_thread_id, 2048, app_controller_thread, NULL, NULL, NULL, 5, 0, 0);
 
-int8_t app_controller_notify_system_ready() {
+int8_t app_controller_notify_system_ready()
+{
     LOG_DBG("Notifying system ready");
     struct app_event evt = {
         .type = EVENT_SYSTEM_READY,
@@ -252,5 +312,24 @@ int8_t app_controller_notify_device_connected(uint8_t device_id)
     struct app_event evt = {
         .type = EVENT_DEVICE_CONNECTED,
         .device_id = device_id};
+    return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_device_ready(uint8_t device_id)
+{
+    LOG_DBG("Notifying device ready: device_id=%d", device_id);
+    struct app_event evt = {
+        .type = EVENT_DEVICE_READY,
+        .device_id = device_id};
+    return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_scan_complete()
+{
+    LOG_INF("Notifying scan complete");
+    struct app_event evt = {
+        .type = EVENT_SCAN_COMPLETE,
+        .device_id = 0,
+    };
     return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
 }

@@ -10,7 +10,7 @@ static uint8_t battery_read_cb(struct bt_conn *conn, uint8_t err,
 							   struct bt_gatt_read_params *params,
 							   const void *data, uint16_t length)
 {
-	struct device_context *ctx = get_device_context_by_conn(conn);
+	struct device_context *ctx = devices_manager_get_device_context_by_conn(conn);
 
 	if (err)
 	{
@@ -49,7 +49,7 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
                                  const struct bt_gatt_attr *attr,
                                  struct bt_gatt_discover_params *params)
 {
-	struct device_context *ctx = get_device_context_by_conn(conn);
+	struct device_context *ctx = devices_manager_get_device_context_by_conn(conn);
 	struct bt_gatt_chrc *chrc;
 	
 	if (!attr) {
@@ -92,7 +92,7 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 								   const struct bt_gatt_attr *attr,
 								   struct bt_gatt_discover_params *params)
 {
-	struct device_context *ctx = get_device_context_by_conn(conn);
+	struct device_context *ctx = devices_manager_get_device_context_by_conn(conn);
 
 	if (!attr)
 	{
@@ -127,7 +127,7 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 /* Discover Battery Service on connected device */
 int battery_discover(uint8_t device_id)
 {
-	struct device_context *ctx = get_device_context_by_id(device_id);
+	struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
 	
 	if (!ctx || !ctx->conn)
 	{
@@ -169,7 +169,7 @@ int battery_discover(uint8_t device_id)
 /* Read battery level */
 int battery_read_level(uint8_t device_id)
 {
-	struct device_context *ctx = get_device_context_by_id(device_id);
+	struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
 	
 	if (!ctx->conn)
 	{
@@ -201,7 +201,7 @@ int battery_read_level(uint8_t device_id)
 /* Reset battery reader state */
 void battery_reader_reset(uint8_t device_id)
 {
-	struct device_context *ctx = get_device_context_by_id(device_id);
+	struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
 
 	ctx->info.bas_discovered = false;
 	ctx->bas_ctlr.battery_level_handle = 0;

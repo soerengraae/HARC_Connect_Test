@@ -10,49 +10,49 @@ bool volume_direction = true;
 
 int vcp_cmd_discover(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_discover(ctx->conn, &ctx->vol_ctlr);
 }
 
 int vcp_cmd_read_state(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_read_state(ctx->vol_ctlr);
 }
 
 int vcp_cmd_read_flags(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_read_flags(ctx->vol_ctlr);
 }
 
 int vcp_cmd_volume_up(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_vol_up(ctx->vol_ctlr);
 }
 
 int vcp_cmd_volume_down(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_vol_down(ctx->vol_ctlr);
 }
 
 int vcp_cmd_set_volume(uint8_t device_id, uint8_t volume)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_set_vol(ctx->vol_ctlr, volume);
 }
 
 int vcp_cmd_mute(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_mute(ctx->vol_ctlr);
 }
 
 int vcp_cmd_unmute(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     return bt_vcp_vol_ctlr_unmute(ctx->vol_ctlr);
 }
 
@@ -235,7 +235,7 @@ int vcp_controller_init(void)
 /* Reset VCP controller state */
 void vcp_controller_reset(uint8_t device_id)
 {
-    struct device_context *ctx = get_device_context_by_id(device_id);
+    struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
 
     ctx->info.vcp_discovered = false;
     ctx->vol_ctlr = NULL;
@@ -248,5 +248,5 @@ static struct device_context *get_device_context_by_vol_ctlr(struct bt_vcp_vol_c
     struct bt_conn *conn = NULL;
     bt_vcp_vol_ctlr_conn_get(vol_ctlr, &conn);
 
-    return get_device_context_by_conn(conn);
+    return devices_manager_get_device_context_by_conn(conn);
 }
