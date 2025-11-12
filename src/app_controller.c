@@ -63,6 +63,15 @@ void app_controller_thread(void)
             while (k_msgq_get(&app_event_queue, &evt, K_FOREVER));
             switch (evt.type)
             {
+                /**
+                 * When in idle state, upon device ready, assume something went wrong and ble_manager reconnected.
+                 * Proceed to discover BAS and VCP services.
+                 */
+                case EVENT_DEVICE_READY:
+                    LOG_DBG("SM_IDLE: Device %d ready, discovering BAS and VCP", evt.device_id);
+                    ble_cmd_bas_discover(evt.device_id, true);
+                    ble_cmd_vcp_discover(evt.device_id, true);
+                    break;
             default:
                 LOG_DBG("SM_IDLE: Received event %d", evt.type);
                 break;

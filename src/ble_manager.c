@@ -18,7 +18,7 @@ static struct k_mutex ble_queue_mutex[2];
 static struct k_sem ble_cmd_sem[2];
 static struct k_work_delayable ble_cmd_timeout_work[2];
 static bool ble_cmd_in_progress[2] = {false, false};
-static bool queue_is_active[2] = {false, false};
+// static bool queue_is_active[2] = {false, false};
 
 /* Memory pool for BLE commands */
 K_MEM_SLAB_DEFINE(ble_cmd_slab_0, sizeof(struct ble_cmd), BLE_CMD_QUEUE_SIZE, 4);
@@ -268,7 +268,7 @@ int ble_manager_disconnect_device(struct bt_conn *conn)
 		return err;
 	}
 
-	bt_conn_unref(conn);
+	// bt_conn_unref(conn);
 	return 0;
 }
 
@@ -312,7 +312,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 		LOG_INF("Connected to bonded (or bonding) device %s [DEVICE ID %d]", addr_str, ctx->device_id);
 	}
 
-	queue_is_active[ctx->device_id] = true;
+	// queue_is_active[ctx->device_id] = true;
 	ble_cmd_request_security(ctx->device_id);
 }
 
@@ -326,8 +326,8 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	bt_conn_unref(ctx->conn);
 	ctx->conn = NULL;
 
-	if (queue_is_active[ctx->device_id])
-		ble_cmd_queue_reset(ctx->device_id);
+	// if (queue_is_active[ctx->device_id])
+	// 	ble_cmd_queue_reset(ctx->device_id);
 
 	if (ctx->info.vcp_discovered)
 		vcp_controller_reset(ctx->device_id);
@@ -592,16 +592,13 @@ static void auto_connect_timeout_handler(struct k_work *work)
 	{
 		LOG_ERR("Failed to stop auto-connect (err %d)", err);
 	}
-
-	// LOG_DBG("Starting active scan for devices");
-	// ble_manager_start_scan_for_HIs();
 }
 
 static void auto_connect_work_handler(struct k_work *work)
 {
 	struct device_context *ctx = (work == &auto_connect_work[0].work) ? &device_ctx[0] : &device_ctx[1];
 
-	LOG_INF("Connecting to previously bonded device [DEVICE ID %d]", ctx->device_id);
+	LOG_INF("Connecting to device [DEVICE ID %d]", ctx->device_id);
 	int err = bt_conn_le_create_auto(BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT);
 	if (err)
 	{
@@ -612,7 +609,7 @@ static void auto_connect_work_handler(struct k_work *work)
 	}
 
 	// Set a timeout to fall back to active scanning if auto-connect doesn't work
-	k_work_schedule(&auto_connect_timeout_work[ctx->device_id], K_SECONDS(4));
+	k_work_schedule(&auto_connect_timeout_work[ctx->device_id], K_MSEC(BT_AUTO_CONNECT_TIMEOUT_MS));
 }
 
 /**
@@ -981,7 +978,7 @@ void ble_cmd_complete(uint8_t device_id, int err)
 		{
 			if (err == 15)
 			{
-				queue_is_active[ctx->device_id] = false;
+				// queue_is_active[ctx->device_id] = false;
 				LOG_ERR("VCP command failed due to insufficient authentication - reconnecting [DEVICE ID %d]", ctx->device_id);
 				ble_manager_disconnect_device(device_ctx[ctx->device_id].conn);
 				switch (ctx->current_ble_cmd->type)
@@ -1288,7 +1285,7 @@ static void ble_cmd_thread_0(void)
 		// Process the next command only if nothing is in progress
 		// If a command is already in progress, it will call ble_process_next_command()
 		// when it completes via ble_cmd_complete()
-		if (!device_ctx[0].current_ble_cmd && queue_is_active[0])
+		if (!device_ctx[0].current_ble_cmd /*&& queue_is_active[0]*/)
 			ble_process_next_command(0);
 	}
 }
@@ -1305,7 +1302,7 @@ static void ble_cmd_thread_1(void)
 		// Process the next command only if nothing is in progress
 		// If a command is already in progress, it will call ble_process_next_command_1()
 		// when it completes via ble_cmd_complete()
-		if (!device_ctx[1].current_ble_cmd && queue_is_active[1])
+		if (!device_ctx[1].current_ble_cmd /*&& queue_is_active[1]*/)
 			ble_process_next_command(1);
 	}
 }

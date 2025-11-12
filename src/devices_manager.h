@@ -26,7 +26,7 @@ struct bond_collection
 
 #define MAX_SCANNED_DEVICES 10
 
-#define MAX_ADDRS_PER_DEVICE 2
+#define MAX_ADDRS_PER_DEVICE 4
 
 struct scanned_device_entry
 {
