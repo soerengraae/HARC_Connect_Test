@@ -19,6 +19,10 @@ enum app_event_type
     EVENT_SCAN_COMPLETE,
     EVENT_BAS_DISCOVERED,
     EVENT_VCP_DISCOVERED,
+    EVENT_VOLUME_UP_BUTTON_PRESSED,
+    EVENT_VOLUME_DOWN_BUTTON_PRESSED,
+    EVENT_PAIR_BUTTON_PRESSED,
+    EVENT_PRESET_BUTTON_PRESSED,
 };
 
 struct app_event
@@ -72,9 +76,41 @@ void app_controller_thread(void)
                     ble_cmd_bas_discover(evt.device_id, true);
                     ble_cmd_vcp_discover(evt.device_id, true);
                     break;
-            default:
-                LOG_DBG("SM_IDLE: Received event %d", evt.type);
-                break;
+                case EVENT_VOLUME_UP_BUTTON_PRESSED:
+                    LOG_DBG("SM_IDLE: Volume up button pressed");
+                    if (connected_flag == 1)
+                    {
+                        ble_cmd_vcp_volume_up(0, true); // Device ID 0 for single device operation
+                    }
+                    else if (connected_flag == 2)
+                    {
+                        ble_cmd_vcp_volume_up(0, true); // Device ID 0 for dual device operation
+                        ble_cmd_vcp_volume_up(1, true); // Device ID 1 for dual device operation
+                    }
+                    else
+                    {
+                        LOG_WRN("No connected device to send volume up command");
+                    }
+                    break;
+                case EVENT_VOLUME_DOWN_BUTTON_PRESSED:
+                    LOG_DBG("SM_IDLE: Volume down button pressed");
+                    if (connected_flag == 1)
+                    {
+                        ble_cmd_vcp_volume_down(0, true); // Device ID 0 for single device operation
+                    }
+                    else if (connected_flag == 2)
+                    {
+                        ble_cmd_vcp_volume_down(0, true); // Device ID 0 for dual device operation
+                        ble_cmd_vcp_volume_down(1, true); // Device ID 1 for dual device operation
+                    }
+                    else
+                    {
+                        LOG_WRN("No connected device to send volume down command");
+                    }
+                    break;
+                default:
+                    LOG_DBG("SM_IDLE: Received event %d", evt.type);
+                    break;
             }
             break;
         case SM_WAKE:
@@ -191,9 +227,10 @@ void app_controller_thread(void)
                 {
                     LOG_WRN("No CSIP member match found for device %d", evt.device_id);
                     LOG_INF("Proceeding to single device operation");
+                    connected_flag = 1;
                     state = SM_SINGLE_BONDED_DEVICE;
                 } else {
-                    LOG_INF("CSIP member match found for device %d, repeating proceduer for second device", evt.device_id);
+                    LOG_INF("CSIP member match found for device %d, repeating procedure for second device", evt.device_id);
                     state = SM_IDLE;
                 }
             }
@@ -359,6 +396,46 @@ int8_t app_controller_notify_vcp_discovered(uint8_t device_id, int err)
         .type = EVENT_VCP_DISCOVERED,
         .device_id = device_id,
         .error_code = err,
+    };
+    return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_volume_up_button_pressed()
+{
+    LOG_DBG("Notifying volume up button pressed");
+    struct app_event evt = {
+        .type = EVENT_VOLUME_UP_BUTTON_PRESSED,
+        .device_id = 0,
+    };
+    return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_volume_down_button_pressed()
+{
+    LOG_DBG("Notifying volume down button pressed");
+    struct app_event evt = {
+        .type = EVENT_VOLUME_DOWN_BUTTON_PRESSED,
+        .device_id = 0,
+    };
+    return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_pair_button_pressed()
+{
+    LOG_DBG("Notifying pair button pressed");
+    struct app_event evt = {
+        .type = EVENT_PAIR_BUTTON_PRESSED,
+        .device_id = 0,
+    };
+    return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_preset_button_pressed()
+{
+    LOG_DBG("Notifying preset button pressed");
+    struct app_event evt = {
+        .type = EVENT_PRESET_BUTTON_PRESSED,
+        .device_id = 0,
     };
     return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
 }

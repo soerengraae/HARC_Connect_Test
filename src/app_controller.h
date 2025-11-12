@@ -15,6 +15,7 @@ enum sm_state {
     SM_FIRST_TIME_USE, /* First device bonding/discovering */
     SM_SINGLE_BONDED_DEVICE, /* Managing single bonded device */
     SM_DUAL_DEVICE_OPERATION, /* Managing two bonded devices */
+    SM_
 };
 
 extern uint8_t strategy;
@@ -26,5 +27,9 @@ int8_t app_controller_notify_device_ready(uint8_t device_id);
 int8_t app_controller_notify_scan_complete();
 int8_t app_controller_notify_csip_discovered(uint8_t device_id, int8_t err);
 int8_t app_controller_notify_csip_member_match(uint8_t device_id, int8_t err);
+int8_t app_controller_notify_volume_up_button_pressed();
+int8_t app_controller_notify_volume_down_button_pressed();
+int8_t app_controller_notify_pair_button_pressed();
+int8_t app_controller_notify_preset_button_pressed();
 
 #endif /* CONNECTION_MANAGER_H */
