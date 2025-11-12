@@ -11,6 +11,7 @@
 #include "app_controller.h"
 #include "oled_display.h"
 #include "button_handler.h"
+#include "has_controller.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
@@ -18,6 +19,8 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 static const struct gpio_dt_spec button1 = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
 static const struct gpio_dt_spec button2 = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
 static const struct gpio_dt_spec button3 = GPIO_DT_SPEC_GET(DT_ALIAS(sw2), gpios);
+static const struct gpio_dt_spec button4 = GPIO_DT_SPEC_GET(DT_ALIAS(sw3), gpios);
+static struct gpio_callback button4_cb_data;
 static struct gpio_callback button1_cb_data;
 static struct gpio_callback button2_cb_data;
 static struct gpio_callback button3_cb_data;
@@ -40,6 +43,13 @@ void button3_pressed(const struct device *dev, struct gpio_callback *cb, uint32_
     LOG_WRN("Button 3 pressed - CLEARING ALL BONDS!");
     app_controller_notify_clear_bonds_button_pressed();
 }
+
+void button4_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+    LOG_INF("Button 4 pressed - Next Preset");
+    ble_cmd_has_next_preset(true);
+}
+
 
 static int init_buttons(void)
 {
@@ -96,6 +106,26 @@ static int init_buttons(void)
         return ret;
     }
 
+    if (!gpio_is_ready_dt(&button4)) {
+        LOG_ERR("Button 4 device not ready");
+        return -ENODEV;
+    }
+
+    ret = gpio_pin_configure_dt(&button4, GPIO_INPUT);
+    if (ret != 0) {
+        LOG_ERR("Failed to configure button 4 (err %d)", ret);
+        return ret;
+    }
+
+    ret = gpio_pin_interrupt_configure_dt(&button4, GPIO_INT_EDGE_TO_ACTIVE);
+    if (ret != 0) {
+        LOG_ERR("Failed to configure button 4 interrupt (err %d)", ret);
+        return ret;
+    }
+
+    gpio_init_callback(&button4_cb_data, button4_pressed, BIT(button4.pin));
+    gpio_add_callback(button4.port, &button4_cb_data);
+
     gpio_init_callback(&button1_cb_data, button1_pressed, BIT(button1.pin));
     gpio_add_callback(button1.port, &button1_cb_data);
 
@@ -105,7 +135,7 @@ static int init_buttons(void)
     gpio_init_callback(&button3_cb_data, button3_pressed, BIT(button3.pin));
     gpio_add_callback(button3.port, &button3_cb_data);
 
-    LOG_INF("Buttons initialized: Button 1 = Vol Up, Button 2 = Vol Down, Button 3 = Clear Bonds");
+    LOG_INF("Buttons initialized: Button 1 = Vol Up, Button 2 = Vol Down, Button 3 = Clear Bonds, Button 4 = Next Preset");
     return 0;
 }
 
@@ -154,6 +184,18 @@ int main(void)
     //     LOG_WRN("Display manager init failed (err %d) - continuing without display", err);
     // }
     // LOG_INF("Display initialization completed");
+    err = has_controller_init();
+    if (err) {
+        LOG_ERR("HAS controller init failed (err %d)", err);
+        return err;
+    }
+
+    LOG_INF("Starting display initialization...");
+    err = display_manager_init();
+    if (err) {
+        LOG_WRN("Display manager init failed (err %d) - continuing without display", err);
+    }
+    LOG_INF("Display initialization completed");
 
     /* Initialize buttons */
     err = init_buttons();

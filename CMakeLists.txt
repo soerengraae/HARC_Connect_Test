@@ -11,7 +11,8 @@ target_sources(app PRIVATE
     src/csip_coordinator.c
     src/app_controller.c
     src/devices_manager.c
-    #src/oled_display.c
-    #src/button_handler.c
-    #src/display_manager.c
+    src/oled_display.c
+    src/button_handler.c
+    src/display_manager.c
+    src/has_controller.c
 )

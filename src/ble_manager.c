@@ -4,6 +4,8 @@
 #include "csip_coordinator.h"
 #include "app_controller.h"
 #include "devices_manager.h"
+#include "display_manager.h"
+#include "has_controller.h"
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
@@ -889,6 +891,23 @@ static int ble_cmd_execute(struct ble_cmd *cmd)
 	case BLE_CMD_CSIP_DISCOVER:
 		err = csip_cmd_discover(cmd->device_id);
 		break;
+	
+	/* HAS */
+    case BLE_CMD_HAS_DISCOVER:
+        err = has_cmd_discover();
+        break;
+    case BLE_CMD_HAS_READ_PRESETS:
+        err = has_cmd_read_presets();
+        break;
+    case BLE_CMD_HAS_SET_PRESET:
+        err = has_cmd_set_active_preset(cmd->d0);
+        break;
+    case BLE_CMD_HAS_NEXT_PRESET:
+        err = has_cmd_next_preset();
+        break;
+    case BLE_CMD_HAS_PREV_PRESET:
+        err = has_cmd_prev_preset();
+        break;
 
 	default:
 		LOG_ERR("Unknown BLE command type: %d", cmd->type);
@@ -1332,6 +1351,16 @@ static char *command_type_to_string(enum ble_cmd_type type)
 		return "BLE_CMD_BAS_READ_LEVEL";
 	case BLE_CMD_CSIP_DISCOVER:
 		return "BLE_CMD_CSIP_DISCOVER";
+	case BLE_CMD_HAS_DISCOVER:
+		return "BLE_CMD_HAS_DISCOVER";
+	case BLE_CMD_HAS_READ_PRESETS:
+		return "BLE_CMD_HAS_READ_PRESETS";
+	case BLE_CMD_HAS_SET_PRESET:
+		return "BLE_CMD_HAS_SET_PRESET";
+	case BLE_CMD_HAS_NEXT_PRESET:
+		return "BLE_CMD_HAS_NEXT_PRESET";
+	case BLE_CMD_HAS_PREV_PRESET:
+		return "BLE_CMD_HAS_PREV_PRESET";
 	default:
 		return "UNKNOWN_COMMAND";
 	}
@@ -1348,4 +1377,66 @@ void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t leve
 	}
 
 	ctx->bas_ctlr.battery_level = level;
+}
+
+	/* Public API - Hearing Access Service Commands */
+int ble_cmd_has_discover(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_DISCOVER;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_read_presets(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_READ_PRESETS;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_set_preset(uint8_t preset_index, bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_SET_PRESET;
+	cmd->d0 = preset_index;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_next_preset(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_NEXT_PRESET;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_prev_preset(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_PREV_PRESET;
+	return ble_cmd_enqueue(cmd, high_priority);
 }

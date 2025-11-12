@@ -64,6 +64,13 @@ enum ble_cmd_type {
 
     /* CSIP commands */
     BLE_CMD_CSIP_DISCOVER,
+    
+    /* Hearing Access Service commands */
+    BLE_CMD_HAS_DISCOVER,
+    BLE_CMD_HAS_READ_PRESETS,
+    BLE_CMD_HAS_SET_PRESET,
+    BLE_CMD_HAS_NEXT_PRESET,
+    BLE_CMD_HAS_PREV_PRESET,
 };
 
 /* BLE command structure */
@@ -118,5 +125,12 @@ int ble_manager_disconnect_device(struct bt_conn *conn);
 
 /* Connection initiation */
 int schedule_auto_connect(uint8_t device_id);
+
+/* HAS command queue API */
+int ble_cmd_has_discover(bool high_priority);
+int ble_cmd_has_read_presets(bool high_priority);
+int ble_cmd_has_set_preset(uint8_t preset_index, bool high_priority);
+int ble_cmd_has_next_preset(bool high_priority);
+int ble_cmd_has_prev_preset(bool high_priority);
 
 #endif /* BLE_MANAGER_H */
