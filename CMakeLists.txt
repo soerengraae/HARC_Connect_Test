@@ -9,4 +9,5 @@ target_sources(app PRIVATE
     src/vcp_controller.c
     src/battery_reader.c
     src/display_manager.c
+    src/has_controller.c
 )

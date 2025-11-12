@@ -6,6 +6,7 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/hci.h>
 #include "display_manager.h"
+#include "has_controller.h"
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
@@ -235,6 +236,7 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 				LOG_DBG("Bonded device encrypted - starting service discovery");
 				ble_cmd_vcp_discover(true);
 				ble_cmd_bas_discover(true);
+				ble_cmd_has_discover(true);
 				activate_ble_cmd_queue();
 			}
 			else
@@ -331,6 +333,8 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 		ble_cmd_queue_reset();
 	vcp_controller_reset();
 	battery_reader_reset();
+    has_controller_reset();
+
 
 	if (current_conn_ctx->state == CONN_STATE_BONDED)
 	{
@@ -685,6 +689,23 @@ static int ble_cmd_execute(struct ble_cmd *cmd)
 	case BLE_CMD_BAS_READ_LEVEL:
 		err = battery_read_level(current_conn_ctx);
 		break;
+	
+	/* HAS */
+    case BLE_CMD_HAS_DISCOVER:
+        err = has_cmd_discover();
+        break;
+    case BLE_CMD_HAS_READ_PRESETS:
+        err = has_cmd_read_presets();
+        break;
+    case BLE_CMD_HAS_SET_PRESET:
+        err = has_cmd_set_active_preset(cmd->d0);
+        break;
+    case BLE_CMD_HAS_NEXT_PRESET:
+        err = has_cmd_next_preset();
+        break;
+    case BLE_CMD_HAS_PREV_PRESET:
+        err = has_cmd_prev_preset();
+        break;
 
 	default:
 		LOG_ERR("Unknown BLE command type: %d", cmd->type);
@@ -1043,7 +1064,78 @@ char *command_type_to_string(enum ble_cmd_type type)
 		return "BLE_CMD_BAS_DISCOVER";
 	case BLE_CMD_BAS_READ_LEVEL:
 		return "BLE_CMD_BAS_READ_LEVEL";
+	case BLE_CMD_HAS_DISCOVER:
+		return "BLE_CMD_HAS_DISCOVER";
+	case BLE_CMD_HAS_READ_PRESETS:
+		return "BLE_CMD_HAS_READ_PRESETS";
+	case BLE_CMD_HAS_SET_PRESET:
+		return "BLE_CMD_HAS_SET_PRESET";
+	case BLE_CMD_HAS_NEXT_PRESET:
+		return "BLE_CMD_HAS_NEXT_PRESET";
+	case BLE_CMD_HAS_PREV_PRESET:
+		return "BLE_CMD_HAS_PREV_PRESET";
 	default:
 		return "UNKNOWN_COMMAND";
 	}
+}
+/* Public API - Hearing Access Service Commands */
+int ble_cmd_has_discover(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_DISCOVER;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_read_presets(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_READ_PRESETS;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_set_preset(uint8_t preset_index, bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_SET_PRESET;
+	cmd->d0 = preset_index;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_next_preset(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_NEXT_PRESET;
+	return ble_cmd_enqueue(cmd, high_priority);
+}
+
+int ble_cmd_has_prev_preset(bool high_priority)
+{
+	struct ble_cmd *cmd = ble_cmd_alloc();
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	cmd->type = BLE_CMD_HAS_PREV_PRESET;
+	return ble_cmd_enqueue(cmd, high_priority);
 }

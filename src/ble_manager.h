@@ -62,6 +62,13 @@ enum ble_cmd_type {
     /* Battery Service commands */
     BLE_CMD_BAS_DISCOVER,
     BLE_CMD_BAS_READ_LEVEL,
+
+    /* Hearing Access Service commands */
+    BLE_CMD_HAS_DISCOVER,
+    BLE_CMD_HAS_READ_PRESETS,
+    BLE_CMD_HAS_SET_PRESET,
+    BLE_CMD_HAS_NEXT_PRESET,
+    BLE_CMD_HAS_PREV_PRESET,
 };
 
 /* BLE command structure */
@@ -112,5 +119,12 @@ void ble_cmd_complete(int err);
 extern struct bt_conn_cb conn_callbacks;
 extern struct bt_conn *auth_conn;
 extern struct connection_context *current_conn_ctx;
+
+/* HAS command queue API */
+int ble_cmd_has_discover(bool high_priority);
+int ble_cmd_has_read_presets(bool high_priority);
+int ble_cmd_has_set_preset(uint8_t preset_index, bool high_priority);
+int ble_cmd_has_next_preset(bool high_priority);
+int ble_cmd_has_prev_preset(bool high_priority);
 
 #endif /* BLE_MANAGER_H */
