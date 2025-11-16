@@ -3,7 +3,7 @@
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
-extern uint8_t ble_manager_ready;
+uint8_t ble_manager_ready;
 
 /** Initialize BLE manager
  * @brief Sets up connection callbacks, authentication, VCP controller, and battery reader

@@ -9,10 +9,12 @@ static bool rsi_scan_adv_parse(struct bt_data *data, void *user_data)
 {
 	struct {
 		bt_addr_le_t addr;
+		uint8_t is_rsi_adv;
 	} *info = user_data;
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
 	if (data->type == BT_DATA_CSIS_RSI) {
+		info->is_rsi_adv = 1;
 		LOG_DBG("RSI advertisement found from %s", addr_str);
 		LOG_HEXDUMP_DBG(data->data, data->data_len, "RSI data:");
 
@@ -34,15 +36,23 @@ static bool rsi_scan_adv_parse(struct bt_data *data, void *user_data)
 void rsi_scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 							struct net_buf_simple *ad)
 {
+	struct net_buf_simple_state state;
+	net_buf_simple_save(ad, &state);
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
 
 	struct {
 		bt_addr_le_t addr;
+		uint8_t is_rsi_adv;
 	} info;
 
+	info.is_rsi_adv = 0;
 	info.addr = *addr;
 	bt_data_parse(ad, rsi_scan_adv_parse, &info);
+	if (info.is_rsi_adv) {
+		net_buf_simple_restore(ad, &state);
+		LOG_HEXDUMP_DBG(ad->data, ad->len, "Advertisement data:");
+	}
 }
 
 void csip_coordinator_rsi_scan_start(uint8_t device_id) {

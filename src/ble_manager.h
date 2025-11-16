@@ -10,9 +10,6 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/sys/byteorder.h>
-#include <zephyr/bluetooth/audio/has.h>
-#include <stdint.h>
-#include <string.h>
 
 extern uint8_t ble_manager_ready;
 

@@ -12,19 +12,10 @@ int main(void)
 {
     int err;
 
-	err = csip_coordinator_init();
-	if (err)
-	{
-		LOG_ERR("CSIP coordinator init failed (err %d)", err);
-		return err;
-	}
-
     /* Initialize Bluetooth */
     err = bt_enable(bt_ready_cb);
 
     while (!ble_manager_ready);
-
-    csip_coordinator_init();
     csip_coordinator_rsi_scan_start(0);
 
     while (1)
