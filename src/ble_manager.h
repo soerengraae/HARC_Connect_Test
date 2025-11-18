@@ -22,7 +22,7 @@
  * It's only used when scanning for a bondable device. If a device is already bonded, we use 100% duty cycle to scan and connect.
  */
 #define BT_LE_SCAN_ACTIVE_CAP_RAP BT_LE_SCAN_PARAM(BT_LE_SCAN_TYPE_ACTIVE, \
-            BT_LE_SCAN_OPT_NONE, \
+            BT_LE_SCAN_OPT_FILTER_DUPLICATE, \
             BT_GAP_SCAN_SLOW_INTERVAL_1, \
             BT_GAP_SCAN_SLOW_WINDOW_1)
 
@@ -30,7 +30,7 @@
 #define BT_NAME_MAX_LEN 12
 #define BT_SECURITY_WANTED BT_SECURITY_L2
 #define BT_DEVICE_READY_TIMEOUT_MS 30000
-#define BT_SCAN_TIMEOUT_MS 10000
+#define BT_SCAN_TIMEOUT_MS 20000
 #define BT_AUTO_CONNECT_TIMEOUT_MS 4000
 
 /* CSIP Set Information */
@@ -43,6 +43,7 @@
 struct scan_callback_data {
 	bt_addr_le_t addr;
 	int8_t rssi;
+    uint8_t rsi[6];
 	bool is_GN_HI; // Set to true if GN Hearing HI service UUID found (0xFEFE)
 	char name[BT_NAME_MAX_LEN];
 };

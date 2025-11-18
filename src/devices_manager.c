@@ -343,9 +343,9 @@ int devices_manager_update_scanned_device_name(const bt_addr_le_t *addr, const c
 			}
 		}
 
-		LOG_DBG("Comparing names: '%s' and '%s'", entry->name, name);
+		// LOG_DBG("Comparing names: '%s' and '%s'", entry->name, name);
 		int ret = strncmp(entry->name, name, BT_NAME_MAX_LEN);
-		LOG_DBG("Name comparison result: %d", ret);
+		// LOG_DBG("Name comparison result: %d", ret);
 		// Check if this entry has the same name
 		if (entry->name[0] != '\0' && ret == 0) {
 			name_match = entry;
@@ -385,8 +385,40 @@ int devices_manager_update_scanned_device_name(const bt_addr_le_t *addr, const c
 
 	// Case 3: Neither address nor name found
 	k_mutex_unlock(&scanned_list_mutex);
-	LOG_DBG("Address %s with name '%s' not found in scanned list", addr_str, name);
+	// LOG_DBG("Address %s with name '%s' not found in scanned list", addr_str, name);
 	return -ENOENT;
+}
+
+int devices_manager_add_address_to_scanned_device(struct scanned_device_entry *entry, const bt_addr_le_t *addr_new)
+{
+	if (!entry || !addr_new) {
+		return -EINVAL;
+	}
+
+	init_scanned_list();
+
+	k_mutex_lock(&scanned_list_mutex, K_FOREVER);
+
+	// Check if address already exists in the entry
+	for (uint8_t i = 0; i < entry->addr_count; i++) {
+		if (bt_addr_le_cmp(&entry->addrs[i], addr_new) == 0) {
+			// Address already in entry
+			k_mutex_unlock(&scanned_list_mutex);
+			return 0;
+		}
+	}
+
+	if (entry->addr_count >= MAX_ADDRS_PER_DEVICE) {
+		k_mutex_unlock(&scanned_list_mutex);
+		LOG_WRN("Cannot add address to scanned device entry - max addresses reached");
+		return -ENOMEM;
+	}
+
+	bt_addr_le_copy(&entry->addrs[entry->addr_count], addr_new);
+	entry->addr_count++;
+
+	k_mutex_unlock(&scanned_list_mutex);
+	return 0;
 }
 
 uint8_t devices_manager_get_scanned_device_count(void)

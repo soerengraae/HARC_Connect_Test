@@ -7,7 +7,7 @@
 #include "display_manager.h"
 #include "has_controller.h"
 
-LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_INF);
 
 static struct bond_collection *bonded_devices;
 static struct k_work_delayable auto_connect_work[2];
@@ -466,36 +466,15 @@ BT_CONN_CB_DEFINE(conn_callbacks) = {
 	.security_changed = security_changed_cb,
 };
 
-/**
- * @brief Check address header to see if device is connectable
- * NRPA addresses are not connectable, so we can filter them out.
- */
-static bool is_address_connectable(const bt_addr_le_t *addr)
-{
-	// Check the address type for connectability
-	if (addr->type == BT_ADDR_LE_RANDOM)
-	{
-		// For random addresses, check if it's a resolvable private address
-		if ((addr->a.val[5] & 0xC0) == 0x40)
-		{
-			return true; // Resolvable private address
-		}
-		return false; // Non-resolvable private address
-	}
-	// Public addresses are generally connectable
-	return true;
-}
-
 /* Device discovery function
    Extracts device name and service UUID from advertisement data */
-static bool device_found(struct bt_data *data, void *user_data)
+static bool parse_adv(struct bt_data *data, void *user_data)
 {
 	struct scan_callback_data *scan_data = (struct scan_callback_data *)user_data;
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(&scan_data->addr, addr_str, sizeof(addr_str));
-
-	// LOG_DBG("Advertisement data type 0x%X len %u from %s", data->type, data->data_len,
-	// 		addr_str);
+	
+	LOG_DBG("Advertisement data type 0x%X len %u from %s", data->type, data->data_len, addr_str);
 
 	switch (data->type)
 	{
@@ -509,7 +488,7 @@ static bool device_found(struct bt_data *data, void *user_data)
 
 				if (uuid_val == 0xFEFE)
 				{
-					LOG_DBG("Found GN Hearing HI service UUID");
+					LOG_INF("Found GN Hearing HI service UUID from %s", addr_str);
 					// LOG_HEXDUMP_DBG(data->data, data->data_len, "Service Data");
 					scan_data->is_GN_HI = true;
 				}
@@ -525,7 +504,7 @@ static bool device_found(struct bt_data *data, void *user_data)
 		scan_data->name[0] = '\0';
 		strncat(scan_data->name, name, BT_NAME_MAX_LEN - 1);
 		break;
-
+	
 	default:
 		return true;
 	}
@@ -533,36 +512,52 @@ static bool device_found(struct bt_data *data, void *user_data)
 	return true;
 }
 
-static void device_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
+static void advertisement_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 							struct net_buf_simple *ad)
 {
+	int err;
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
 
-	if (!is_address_connectable(addr))
-	{
-		// LOG_DBG("Ignoring non-connectable address %s", addr_str);
-		return;
-	}
+	// LOG_DBG("Recevied adv type %u from %s, RSSI %d dBm, AD len %u", type, addr_str, rssi,
+	// 	ad->len);
 
 	struct scan_callback_data scan_data = {0};
 	scan_data.addr = *addr;
 	scan_data.rssi = rssi;
 	scan_data.is_GN_HI = false;
+	memset(scan_data.rsi, 0, sizeof(scan_data.rsi));
 	memset(scan_data.name, 0, sizeof(scan_data.name));
 
 	// Parse advertisement data to find service UUID and name
-	bt_data_parse(ad, device_found, &scan_data);
+	bt_data_parse(ad, parse_adv, &scan_data);
 
+	/**
+	 * Only the NRPA advertises the GN Hearing HI service UUID (0xFEFE).
+	 * If found, we add the device to the scanned devices list.
+	 */
 	if (scan_data.is_GN_HI)
 	{
-		devices_manager_add_scanned_device(&scan_data.addr,
-										   scan_data.rssi);
-
-		if (scan_data.name[0] != '\0')
+		int ret = devices_manager_add_scanned_device(&scan_data.addr,
+										   		  scan_data.rssi);
+		if (ret < 0)
 		{
-			devices_manager_update_scanned_device_name(addr, scan_data.name);
+			LOG_ERR("Failed to add scanned device %s (err %d)", addr_str, ret);
+			return;
 		}
+	}
+
+	/**
+	 * The advertisement may not contain the service UUID if it's the RPA,
+	 * but we will get the name as a scan response. So, we add the address to an existing entry - if any.
+	 */
+	if (scan_data.name[0] != '\0')
+	{
+		err = devices_manager_update_scanned_device_name(&scan_data.addr, scan_data.name);
+		// if (err)
+		// {
+		// 	LOG_ERR("Failed to update scanned device name %s (err %d)", addr_str, err);
+		// }
 	}
 }
 
@@ -583,7 +578,7 @@ void ble_manager_start_scan_for_HIs(void)
 	// bt_conn_unref(device_ctx->conn);
 	// device_ctx->conn = NULL;
 
-	err = bt_le_scan_start(BT_LE_SCAN_ACTIVE_CONTINUOUS, device_found_cb);
+	err = bt_le_scan_start(BT_LE_SCAN_ACTIVE_CONTINUOUS, advertisement_found_cb);
 	if (err)
 	{
 		LOG_ERR("Scanning failed to start (err %d)", err);
