@@ -1,1 +1,0 @@
-"mcuboot":"C:/Users/sgraae/zephyrproject/bootloader/mcuboot":"C:/Users/sgraae/zephyrproject/bootloader/mcuboot/boot/zephyr/sysbuild"
