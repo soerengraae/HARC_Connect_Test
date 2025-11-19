@@ -42,7 +42,7 @@ void button2_pressed(const struct device *dev, struct gpio_callback *cb, uint32_
 void button3_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
     LOG_WRN("Button 3 pressed - CLEARING ALL BONDS!");
-    // app_controller_notify_clear_bonds_button_pressed();
+    app_controller_notify_clear_bonds_button_pressed();
 }
 
 void button4_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)

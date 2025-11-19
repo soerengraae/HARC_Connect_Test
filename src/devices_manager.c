@@ -203,50 +203,48 @@ int devices_manager_add_scanned_device(const bt_addr_le_t *addr, int8_t rssi)
 
 	k_mutex_lock(&scanned_list_mutex, K_FOREVER);
 
-	// Check if address already exists in any entry
+	// Check if address already exists
 	sys_snode_t *node;
 	sys_snode_t *prev_node = NULL;
 	SYS_SLIST_FOR_EACH_NODE(&scanned_devices_list, node) {
 		struct scanned_device_entry *entry = CONTAINER_OF(node, struct scanned_device_entry, node);
-		for (uint8_t i = 0; i < entry->addr_count; i++) {
-			if (bt_addr_le_cmp(&entry->addrs[i], addr) == 0) {
-				// Address already in list, update RSSI and re-sort if needed
-				if (entry->rssi != rssi) {
-					entry->rssi = rssi;
+		if (bt_addr_le_cmp(&entry->addr, addr) == 0) {
+			// Address already in list, update RSSI and re-sort if needed
+			if (entry->rssi != rssi) {
+				entry->rssi = rssi;
 
-					// Remove from current position
-					if (prev_node == NULL) {
-						sys_slist_get(&scanned_devices_list);
-					} else {
-						sys_slist_remove(&scanned_devices_list, prev_node, node);
-					}
-
-					// Re-insert in sorted order
-					sys_snode_t *insert_prev = NULL;
-					sys_snode_t *insert_curr;
-					bool inserted = false;
-
-					SYS_SLIST_FOR_EACH_NODE(&scanned_devices_list, insert_curr) {
-						struct scanned_device_entry *curr_entry = CONTAINER_OF(insert_curr, struct scanned_device_entry, node);
-						if (rssi > curr_entry->rssi) {
-							if (insert_prev == NULL) {
-								sys_slist_prepend(&scanned_devices_list, &entry->node);
-							} else {
-								sys_slist_insert(&scanned_devices_list, insert_prev, &entry->node);
-							}
-							inserted = true;
-							break;
-						}
-						insert_prev = insert_curr;
-					}
-
-					if (!inserted) {
-						sys_slist_append(&scanned_devices_list, &entry->node);
-					}
+				// Remove from current position
+				if (prev_node == NULL) {
+					sys_slist_get(&scanned_devices_list);
+				} else {
+					sys_slist_remove(&scanned_devices_list, prev_node, node);
 				}
-				k_mutex_unlock(&scanned_list_mutex);
-				return scanned_device_count;
+
+				// Re-insert in sorted order
+				sys_snode_t *insert_prev = NULL;
+				sys_snode_t *insert_curr;
+				bool inserted = false;
+
+				SYS_SLIST_FOR_EACH_NODE(&scanned_devices_list, insert_curr) {
+					struct scanned_device_entry *curr_entry = CONTAINER_OF(insert_curr, struct scanned_device_entry, node);
+					if (rssi > curr_entry->rssi) {
+						if (insert_prev == NULL) {
+							sys_slist_prepend(&scanned_devices_list, &entry->node);
+						} else {
+							sys_slist_insert(&scanned_devices_list, insert_prev, &entry->node);
+						}
+						inserted = true;
+						break;
+					}
+					insert_prev = insert_curr;
+				}
+
+				if (!inserted) {
+					sys_slist_append(&scanned_devices_list, &entry->node);
+				}
 			}
+			k_mutex_unlock(&scanned_list_mutex);
+			return scanned_device_count;
 		}
 		prev_node = node;
 	}
@@ -258,7 +256,7 @@ int devices_manager_add_scanned_device(const bt_addr_le_t *addr, int8_t rssi)
 		return scanned_device_count;
 	}
 
-	// Add new device with first address
+	// Add new device
 	struct scanned_device_entry *new_entry = k_malloc(sizeof(struct scanned_device_entry));
 	if (!new_entry) {
 		k_mutex_unlock(&scanned_list_mutex);
@@ -267,8 +265,7 @@ int devices_manager_add_scanned_device(const bt_addr_le_t *addr, int8_t rssi)
 	}
 
 	memset(new_entry, 0, sizeof(struct scanned_device_entry));
-	bt_addr_le_copy(&new_entry->addrs[0], addr);
-	new_entry->addr_count = 1;
+	bt_addr_le_copy(&new_entry->addr, addr);
 	new_entry->rssi = rssi;
 
 	// Insert device in sorted order by RSSI (highest first)
@@ -327,98 +324,26 @@ int devices_manager_update_scanned_device_name(const bt_addr_le_t *addr, const c
 
 	k_mutex_lock(&scanned_list_mutex, K_FOREVER);
 
-	struct scanned_device_entry *addr_match = NULL;
-	struct scanned_device_entry *name_match = NULL;
-
-	// First pass: check if this address already exists, or if the name exists
+	// Find device by address
 	sys_snode_t *node;
 	SYS_SLIST_FOR_EACH_NODE(&scanned_devices_list, node) {
 		struct scanned_device_entry *entry = CONTAINER_OF(node, struct scanned_device_entry, node);
 
-		// Check if this entry contains the address
-		for (uint8_t i = 0; i < entry->addr_count; i++) {
-			if (bt_addr_le_cmp(&entry->addrs[i], addr) == 0) {
-				addr_match = entry;
-				break;
-			}
-		}
+		if (bt_addr_le_cmp(&entry->addr, addr) == 0) {
+			strncpy(entry->name, name, BT_NAME_MAX_LEN - 1);
+			entry->name[BT_NAME_MAX_LEN - 1] = '\0';
 
-		// LOG_DBG("Comparing names: '%s' and '%s'", entry->name, name);
-		int ret = strncmp(entry->name, name, BT_NAME_MAX_LEN);
-		// LOG_DBG("Name comparison result: %d", ret);
-		// Check if this entry has the same name
-		if (entry->name[0] != '\0' && ret == 0) {
-			name_match = entry;
-		}
-	}
+			char addr_str[BT_ADDR_LE_STR_LEN];
+			bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+			LOG_DBG("Updated name for %s: %s", addr_str, name);
 
-	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
-
-	// Case 1: Address exists in an entry - just update its name
-	if (addr_match) {
-		strncpy(addr_match->name, name, BT_NAME_MAX_LEN - 1);
-		addr_match->name[BT_NAME_MAX_LEN - 1] = '\0';
-		LOG_DBG("Updated name for %s: %s", addr_str, name);
-		k_mutex_unlock(&scanned_list_mutex);
-		return 0;
-	}
-
-	// Case 2: Address doesn't exist, but name exists in another entry
-	// Add this address to that entry
-	if (name_match) {
-		if (name_match->addr_count >= MAX_ADDRS_PER_DEVICE) {
-			LOG_WRN("Cannot add address %s to existing entry '%s' - max addresses reached",
-				addr_str, name);
-			k_mutex_unlock(&scanned_list_mutex);
-			return -ENOMEM;
-		}
-
-		bt_addr_le_copy(&name_match->addrs[name_match->addr_count], addr);
-		name_match->addr_count++;
-
-		LOG_INF("Added address %s to existing entry '%s' (now has %d addresses)",
-			addr_str, name, name_match->addr_count);
-		k_mutex_unlock(&scanned_list_mutex);
-		return 0;
-	}
-
-	// Case 3: Neither address nor name found
-	k_mutex_unlock(&scanned_list_mutex);
-	// LOG_DBG("Address %s with name '%s' not found in scanned list", addr_str, name);
-	return -ENOENT;
-}
-
-int devices_manager_add_address_to_scanned_device(struct scanned_device_entry *entry, const bt_addr_le_t *addr_new)
-{
-	if (!entry || !addr_new) {
-		return -EINVAL;
-	}
-
-	init_scanned_list();
-
-	k_mutex_lock(&scanned_list_mutex, K_FOREVER);
-
-	// Check if address already exists in the entry
-	for (uint8_t i = 0; i < entry->addr_count; i++) {
-		if (bt_addr_le_cmp(&entry->addrs[i], addr_new) == 0) {
-			// Address already in entry
 			k_mutex_unlock(&scanned_list_mutex);
 			return 0;
 		}
 	}
 
-	if (entry->addr_count >= MAX_ADDRS_PER_DEVICE) {
-		k_mutex_unlock(&scanned_list_mutex);
-		LOG_WRN("Cannot add address to scanned device entry - max addresses reached");
-		return -ENOMEM;
-	}
-
-	bt_addr_le_copy(&entry->addrs[entry->addr_count], addr_new);
-	entry->addr_count++;
-
 	k_mutex_unlock(&scanned_list_mutex);
-	return 0;
+	return -ENOENT;
 }
 
 uint8_t devices_manager_get_scanned_device_count(void)
@@ -492,33 +417,18 @@ int devices_manager_select_scanned_device(uint8_t idx, struct device_info *out_i
 		return -ENOENT;
 	}
 
-	if (entry->addr_count == 0) {
-		LOG_ERR("Scanned device has no addresses");
-		return -EINVAL;
-	}
-
-	// Fill out_info with selected device (use first address)
+	// Fill out_info with selected device
 	memset(out_info, 0, sizeof(struct device_info));
-	bt_addr_le_copy(&out_info->addr, &entry->addrs[0]);
+	bt_addr_le_copy(&out_info->addr, &entry->addr);
 
-	// Check if any of the addresses were previously bonded
+	// Check if device was previously bonded
 	struct bonded_device_entry bonded_entry;
-	bool is_bonded = false;
-	for (uint8_t i = 0; i < entry->addr_count; i++) {
-		if (devices_manager_find_bonded_entry_by_addr(&entry->addrs[i], &bonded_entry)) {
-			is_bonded = true;
-			// Use the bonded address as the primary address
-			bt_addr_le_copy(&out_info->addr, &entry->addrs[i]);
-			break;
-		}
-	}
+	bool is_bonded = devices_manager_find_bonded_entry_by_addr(&entry->addr, &bonded_entry);
 	out_info->is_new_device = !is_bonded;
 
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(&out_info->addr, addr_str, sizeof(addr_str));
-	LOG_INF("Selected scanned device %d: %s (%s) [%d addr%s] - %s", idx, addr_str, entry->name,
-		entry->addr_count, entry->addr_count == 1 ? "" : "s",
-		out_info->is_new_device ? "new" : "bonded");
+	LOG_INF("Selected scanned device %d: %s (%s) - %s", idx, addr_str, entry->name, out_info->is_new_device ? "new" : "bonded");
 
 	return 0;
 }
@@ -533,17 +443,10 @@ void devices_manager_print_scanned_devices() {
 	uint8_t idx = 0;
 	SYS_SLIST_FOR_EACH_NODE(&scanned_devices_list, node) {
 		struct scanned_device_entry *entry = CONTAINER_OF(node, struct scanned_device_entry, node);
-
-		LOG_INF("  [%d] Name: %s | RSSI: %d | Addresses: %d", idx,
-			strlen(entry->name) > 0 ? entry->name : "<unknown>", entry->rssi,
-			entry->addr_count);
-
-		// Print all addresses for this device
-		for (uint8_t i = 0; i < entry->addr_count; i++) {
-			char addr_str[BT_ADDR_LE_STR_LEN];
-			bt_addr_le_to_str(&entry->addrs[i], addr_str, sizeof(addr_str));
-			LOG_INF("      - %s", addr_str);
-		}
+		char addr_str[BT_ADDR_LE_STR_LEN];
+		bt_addr_le_to_str(&entry->addr, addr_str, sizeof(addr_str));
+		LOG_INF("  [%d] Name: %s | RSSI: %d | Address: %s", idx,
+			strlen(entry->name) > 0 ? entry->name : "<unknown>", entry->rssi, addr_str);
 
 		idx++;
 	}

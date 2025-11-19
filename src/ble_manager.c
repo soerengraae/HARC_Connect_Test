@@ -7,7 +7,7 @@
 #include "display_manager.h"
 #include "has_controller.h"
 
-LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
 static struct bond_collection *bonded_devices;
 static struct k_work_delayable auto_connect_work[2];
@@ -31,16 +31,6 @@ static void ble_process_next_command(uint8_t queue_id);
 static void ble_cmd_timeout_handler(struct k_work *work);
 // static bool is_bonded_device(const bt_addr_le_t *addr);
 static char *command_type_to_string(enum ble_cmd_type type);
-
-// static void activate_ble_cmd_queue(uint8_t device_id)
-// {
-// 	if (!queue_is_active[device_id])
-// 	{
-// 		queue_is_active[device_id] = true;
-// 		LOG_DBG("Activating BLE command queue [DEVICE ID %d]", device_id);
-// 		k_sem_give(&ble_cmd_sem[device_id]);
-// 	}
-// }
 
 /* Command queue initialization */
 static int ble_queues_init(void)
@@ -217,8 +207,8 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 
 			if (ctx->state == CONN_STATE_BONDED)
 			{
-				LOG_DBG("Bonded device - encryption established [DEVICE ID %d]",
-						ctx->device_id);
+				LOG_DBG("Bonded device - encryption established [DEVICE ID %d]", ctx->device_id);
+				bt_addr_le_copy(&ctx->info.addr, bt_conn_get_dst(conn));
 				app_controller_notify_device_ready(ctx->device_id);
 			}
 			else if (ctx->state == CONN_STATE_PAIRING)
@@ -258,7 +248,7 @@ void ble_manager_establish_trusted_bond(uint8_t device_id)
 		{
 			LOG_DBG("Scheduling connection to establish bond [DEVICE ID %d]",
 					ctx->device_id);
-			ble_manager_autoconnect_to_bonded_device(ctx->device_id);
+			ble_manager_connect_to_bonded_device(ctx->device_id);
 		}
 	}
 }
@@ -319,7 +309,7 @@ static void connected_cb(struct bt_conn *conn, uint8_t err)
 	ctx->conn = bt_conn_ref(conn);
 	bt_addr_le_copy(&ctx->info.addr, addr);
 
-	if (ctx->state == CONN_STATE_CONNECTING)
+	if (ctx->state != CONN_STATE_BONDED)
 	{
 		LOG_DBG("Connected to new device %s - expecting pairing [DEVICE ID %d]", addr_str,
 				ctx->device_id);
@@ -383,79 +373,26 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 
 		LOG_DBG("Will attempt to switch address for reconnection [DEVICE ID %d]",
 				ctx->device_id);
-		struct scanned_device_entry *scanned_device =
-			devices_manager_get_scanned_device(0);
+		struct scanned_device_entry *scanned_device = devices_manager_get_scanned_device(0);
 		if (!scanned_device)
 		{
-			LOG_ERR("Device not found in scanned devices list, cannot reconnect [DEVICE ID %d]",
-					ctx->device_id);
+			LOG_ERR("Device not found in scanned devices list, cannot reconnect [DEVICE ID %d]", ctx->device_id);
 			return;
 		}
 
-		if (scanned_device->addr_count < 2)
-		{
-			LOG_WRN("Not enough addresses in scanned device entry to switch "
-					"address for reconnection [DEVICE ID %d]",
-					ctx->device_id);
-			LOG_DBG("Scheduling reconnection with same address [DEVICE ID %d]",
-					ctx->device_id);
-		}
-		else
-		{
-			LOG_DBG("Scanned device has %d addresses",
-					scanned_device->addr_count);
-
-			char addr_str1[BT_ADDR_LE_STR_LEN];
-			if (bt_addr_le_cmp(&ctx->info.addr, &scanned_device->addrs[0]) ==
-				0)
-			{
-				bt_addr_le_to_str(&ctx->info.addr, addr_str0,
-									sizeof(addr_str0));
-				bt_addr_le_to_str(&scanned_device->addrs[0], addr_str1,
-									sizeof(addr_str1));
-
-				LOG_DBG("Compared %s to %s", addr_str0, addr_str1);
-				LOG_DBG("Same address, switching to second address for "
-						"reconnection [DEVICE ID %d]",
-						ctx->device_id);
-				bt_addr_le_copy(&ctx->info.addr, &scanned_device->addrs[1]);
-			}
-			else if (bt_addr_le_cmp(&ctx->info.addr,
-									&scanned_device->addrs[1]) == 0)
-			{
-				bt_addr_le_to_str(&ctx->info.addr, addr_str0,
-									sizeof(addr_str0));
-				bt_addr_le_to_str(&scanned_device->addrs[1], addr_str1,
-									sizeof(addr_str1));
-				LOG_DBG("Comparing %s to %s", addr_str0, addr_str1);
-				LOG_DBG("Same address, switching to first address for "
-						"reconnection [DEVICE ID %d]",
-						ctx->device_id);
-				bt_addr_le_copy(&ctx->info.addr, &scanned_device->addrs[0]);
-			}
-			else
-			{
-				LOG_ERR("Current address not found in scanned device "
-						"addresses, cannot switch [DEVICE ID %d]",
-						ctx->device_id);
-				return;
-			}
-		}
-
-		ble_manager_autoconnect_to_device_by_addr(&ctx->info.addr);
+		ble_manager_connect(ctx->device_id, &ctx->info.addr);
 		return;
 	}
 	else if (ctx->state == CONN_STATE_BONDED)
 	{
 		LOG_INF("Disconnected to establish trusted bond [DEVICE ID %d]", ctx->device_id);
 		LOG_DBG("Scheduling reconnection to establish bond [DEVICE ID %d]", ctx->device_id);
-		ble_manager_autoconnect_to_bonded_device(ctx->device_id);
+		ble_manager_connect_to_bonded_device(ctx->device_id);
 		return;
 	}
 	else
 	{
-		LOG_WRN("Disconnected unexpectedly, state = %d [DEVICE ID %d]", ctx->state,
-				ctx->device_id);
+		LOG_WRN("Disconnected unexpectedly, state = %d [DEVICE ID %d]", ctx->state, ctx->device_id);
 		ctx->state = CONN_STATE_DISCONNECTED;
 	}
 }
@@ -474,10 +411,12 @@ static bool parse_adv(struct bt_data *data, void *user_data)
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(&scan_data->addr, addr_str, sizeof(addr_str));
 	
-	LOG_DBG("Advertisement data type 0x%X len %u from %s", data->type, data->data_len, addr_str);
+	// LOG_DBG("Advertisement data type 0x%X len %u from %s", data->type, data->data_len, addr_str);
 
 	switch (data->type)
 	{
+	case BT_DATA_UUID16_SOME:
+	case BT_DATA_UUID16_ALL:
 	case BT_DATA_SVC_DATA16:
 		if (data->data_len >= 2)
 		{
@@ -504,7 +443,7 @@ static bool parse_adv(struct bt_data *data, void *user_data)
 		scan_data->name[0] = '\0';
 		strncat(scan_data->name, name, BT_NAME_MAX_LEN - 1);
 		break;
-	
+
 	default:
 		return true;
 	}
@@ -512,21 +451,24 @@ static bool parse_adv(struct bt_data *data, void *user_data)
 	return true;
 }
 
-static void advertisement_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
-							struct net_buf_simple *ad)
+static void advertisement_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type, struct net_buf_simple *ad)
 {
-	int err;
+	// LOG_DBG("Recevied adv type %u from %s, RSSI %d dBm, AD len %u", type, addr_str, rssi, ad->len);
+
+	if (type != BT_GAP_ADV_TYPE_EXT_ADV) {
+		return;
+	}
+
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+	LOG_DBG("Received extended adv from %s, RSSI %d dBm, EXT_AD len %u", addr_str, rssi, ad->len);
 
-	// LOG_DBG("Recevied adv type %u from %s, RSSI %d dBm, AD len %u", type, addr_str, rssi,
-	// 	ad->len);
+	int err;
 
 	struct scan_callback_data scan_data = {0};
 	scan_data.addr = *addr;
 	scan_data.rssi = rssi;
 	scan_data.is_GN_HI = false;
-	memset(scan_data.rsi, 0, sizeof(scan_data.rsi));
 	memset(scan_data.name, 0, sizeof(scan_data.name));
 
 	// Parse advertisement data to find service UUID and name
@@ -554,10 +496,10 @@ static void advertisement_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_
 	if (scan_data.name[0] != '\0')
 	{
 		err = devices_manager_update_scanned_device_name(&scan_data.addr, scan_data.name);
-		// if (err)
-		// {
-		// 	LOG_ERR("Failed to update scanned device name %s (err %d)", addr_str, err);
-		// }
+		if (err)
+		{
+			LOG_ERR("Failed to update scanned device name %s (err %d)", addr_str, err);
+		}
 	}
 }
 
@@ -574,7 +516,7 @@ void ble_manager_start_scan_for_HIs(void)
 
 	// Clear any previous scanned devices
 	devices_manager_clear_scanned_devices();
-
+	
 	// bt_conn_unref(device_ctx->conn);
 	// device_ctx->conn = NULL;
 
@@ -609,9 +551,6 @@ void ble_manager_stop_scan_for_HIs(void)
  */
 int ble_manager_connect_to_scanned_device(uint8_t device_id, uint8_t idx)
 {
-	// Use first available device context
-	struct device_context *ctx = &device_ctx[device_id];
-
 	struct scanned_device_entry *scanned_device = devices_manager_get_scanned_device(idx);
 	if (!scanned_device)
 	{
@@ -619,17 +558,17 @@ int ble_manager_connect_to_scanned_device(uint8_t device_id, uint8_t idx)
 		return -EINVAL;
 	}
 
-	if (scanned_device->addr_count == 0)
+	struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
+	if (!ctx)
 	{
-		LOG_ERR("Scanned device has no addresses");
+		LOG_ERR("No device context found for id %d", device_id);
 		return -EINVAL;
 	}
 
-	// Populate device info (use first address)
-	bt_addr_le_copy(&ctx->info.addr, &scanned_device->addrs[0]);
-	ctx->info.is_new_device = true; // Assuming new device for scanned devices
-	ctx->state = CONN_STATE_DISCONNECTED;
-	return ble_manager_autoconnect_to_device_by_addr(&ctx->info.addr);
+	// Populate device info
+	bt_addr_le_copy(&ctx->info.addr, &scanned_device->addr);
+	ctx->info.is_new_device = true;
+	return ble_manager_connect(device_id, &scanned_device->addr);
 }
 
 static void auto_connect_timeout_handler(struct k_work *work)
@@ -649,7 +588,26 @@ static void auto_connect_work_handler(struct k_work *work)
 		(work == &auto_connect_work[0].work) ? &device_ctx[0] : &device_ctx[1];
 
 	LOG_INF("Connecting to device [DEVICE ID %d]", ctx->device_id);
-	int err = bt_conn_le_create_auto(BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT);
+
+	// Stop any existing auto-connect operation first
+	int err = bt_conn_create_auto_stop();
+	LOG_DBG("bt_conn_create_auto_stop returned: %d", err);
+	if (err && err != -EALREADY && err != -EINVAL) {
+		LOG_WRN("Failed to stop existing auto-connect (err %d)", err);
+	}
+
+	// Stop any active scanning
+	err = bt_le_scan_stop();
+	LOG_DBG("bt_le_scan_stop returned: %d", err);
+	if (err && err != -EALREADY) {
+		LOG_WRN("Failed to stop scan before auto-connect (err %d)", err);
+	}
+
+	// Small delay to ensure controller processes the stop command
+	k_sleep(K_MSEC(50));
+
+	LOG_DBG("Attempting bt_conn_le_create_auto");
+	err = bt_conn_le_create_auto(BT_CONN_LE_CREATE_CONN, BT_LE_CONN_PARAM_DEFAULT);
 	if (err)
 	{
 		LOG_ERR("Failed to set auto-connect (err %d)", err);
@@ -730,52 +688,80 @@ int ble_manager_init(void)
 	return 0;
 }
 
-/**
- * @brief Auto-connect to a device by address.
- * @param addr Address of the device to connect to
- * @return 0 on success, negative error code on failure
- */
-int ble_manager_autoconnect_to_device_by_addr(const bt_addr_le_t *addr)
+int ble_manager_connect(uint8_t device_id, const bt_addr_le_t *addr)
 {
-	struct device_context *ctx = devices_manager_get_device_context_by_addr(addr);
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+
+	struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
 	if (!ctx)
 	{
-		LOG_ERR("No device context found for address");
+		LOG_ERR("No device context found for id %d", device_id);
 		return -EINVAL;
 	}
 
-	// Clear and add to filter accept list for auto-connect
-	bt_le_filter_accept_list_clear();
-	int err = bt_le_filter_accept_list_add(&ctx->info.addr);
-	if (err && err != -EALREADY)
-	{
-		LOG_ERR("Failed to add device to filter accept list (err %d)", err);
+	LOG_DBG("Connecting to %s", addr_str);
+
+	int err = bt_le_scan_stop();
+	if (err) {
+		printk("Failed to stop scan: %d\n", err);
+		return err;
 	}
 
-	// err = bt_le_set_rpa_timeout(900); // Set RPA timeout
-	// if (err)
-	// {
-	// 	LOG_WRN("Failed to set RPA timeout (err %d)", err);
-	// }
-
-	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(&ctx->info.addr, addr_str, sizeof(addr_str));
-	LOG_INF("Attempting to connect to device: %s", addr_str);
-	if (ctx->state == CONN_STATE_DISCONNECTED)
-	{
-		ctx->state = CONN_STATE_CONNECTING;
+	err = bt_conn_le_create(addr, BT_CONN_LE_CREATE_CONN,
+		BT_LE_CONN_PARAM_DEFAULT, &ctx->conn);
+	if (err) {
+		printk("Failed to establish conn: %d\n", err);
+		return err;
 	}
 
-	k_work_schedule(&auto_connect_work[ctx->device_id], K_MSEC(0));
 	return 0;
 }
+
+// /**
+//  * @brief Auto-connect to a device by address.
+//  * @param addr Address of the device to connect to
+//  * @return 0 on success, negative error code on failure
+//  */
+// int ble_manager_autoconnect_to_device_by_addr(uint8_t device_id, const bt_addr_le_t *addr)
+// {
+// 	struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
+// 	if (!ctx)
+// 	{
+// 		LOG_ERR("No device context found for id %d", device_id);
+// 		return -EINVAL;
+// 	}
+
+// 	bt_addr_le_copy(&ctx->info.addr, addr);
+
+// 	// Clear and add to filter accept list for auto-connect
+// 	int err = bt_le_filter_accept_list_clear();
+// 	LOG_DBG("bt_le_filter_accept_list_clear returned: %d", err);
+// 	err = bt_le_filter_accept_list_add(&ctx->info.addr);
+// 	LOG_DBG("bt_le_filter_accept_list_add returned: %d", err);
+// 	if (err && err != -EALREADY)
+// 	{
+// 		LOG_ERR("Failed to add device to filter accept list (err %d)", err);
+// 	}
+
+// 	char addr_str[BT_ADDR_LE_STR_LEN];
+// 	bt_addr_le_to_str(&ctx->info.addr, addr_str, sizeof(addr_str));
+// 	LOG_INF("Attempting to connect to device: %s", addr_str);
+// 	if (ctx->state == CONN_STATE_DISCONNECTED)
+// 	{
+// 		ctx->state = CONN_STATE_CONNECTING;
+// 	}
+
+// 	k_work_schedule(&auto_connect_work[ctx->device_id], K_MSEC(0));
+// 	return 0;
+// }
 
 /**
  * @brief Auto-connect to a bonded device by address.
  * @param addr Address of the device to connect to
  * @return 0 on success, negative error code on failure
  */
-int ble_manager_autoconnect_to_bonded_device(uint8_t device_id)
+int ble_manager_connect_to_bonded_device(uint8_t device_id)
 {
 	struct device_context *ctx = &device_ctx[device_id];
 
@@ -783,50 +769,28 @@ int ble_manager_autoconnect_to_bonded_device(uint8_t device_id)
 
 	if (!ctx)
 	{
-		LOG_ERR("Invalid device context for auto-connect");
+		LOG_ERR("Invalid device context for connection [DEVICE ID %d]", device_id);
 		return -EINVAL;
 	}
 
 	struct bonded_device_entry entry = bonded_devices->devices[device_id];
 	if (bt_addr_le_cmp(&entry.addr, &bt_addr_le_none) == 0)
 	{
-		LOG_ERR("No bonded device found for auto-connect [DEVICE ID %d]", device_id);
+		LOG_ERR("No bonded device found to connect to [DEVICE ID %d]", device_id);
 		return -EINVAL;
 	}
 
 	bt_addr_le_to_str(&entry.addr, addr_str, sizeof(addr_str));
-	LOG_DBG("Found entry in bonded devices for auto-connect, addr=%s [DEVICE ID %d]", addr_str,
+	LOG_DBG("Found entry in bonded devices to connect to, addr=%s [DEVICE ID %d]", addr_str,
 			device_id);
 	memset(ctx, 0, sizeof(struct device_context));
 	bt_addr_le_copy(&ctx->info.addr, &entry.addr);
 	ctx->device_id = device_id;
 	ctx->state = CONN_STATE_BONDED;
 	bt_addr_le_to_str(&ctx->info.addr, addr_str, sizeof(addr_str));
-	LOG_DBG("Set device context for auto-connect, addr=%s [DEVICE ID %d]", addr_str, device_id);
+	LOG_DBG("Set device context to connect to, addr=%s [DEVICE ID %d]", addr_str, device_id);
 
-	// Clear and add to filter accept list for auto-connect
-	bt_le_filter_accept_list_clear();
-	int err = bt_le_filter_accept_list_add(&ctx->info.addr);
-	if (err && err != -EALREADY)
-	{
-		LOG_ERR("Failed to add device to filter accept list (err %d)", err);
-	}
-	else
-	{
-		bt_addr_le_to_str(&ctx->info.addr, addr_str, sizeof(addr_str));
-		LOG_DBG("Added address to filter accept list for auto-connect (addr=%s) [DEVICE ID "
-				"%d]",
-				addr_str, device_id);
-	}
-
-	err = bt_le_set_rpa_timeout(900); // Set RPA timeout
-	if (err)
-	{
-		LOG_WRN("Failed to set RPA timeout (err %d)", err);
-	}
-
-	LOG_INF("Attempting to connect to device: %s", addr_str);
-	k_work_schedule(&auto_connect_work[ctx->device_id], K_MSEC(0));
+	ble_manager_connect(ctx->device_id, &ctx->info.addr);
 
 	return 0;
 }
@@ -1330,36 +1294,42 @@ int ble_cmd_csip_discover(uint8_t device_id, bool high_priority)
 
 int ble_cmd_has_discover(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc(device_id);
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_HAS_DISCOVER;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
 int ble_cmd_has_read_presets(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc(device_id);
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_HAS_READ_PRESETS;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
 int ble_cmd_has_set_preset(uint8_t device_id, uint8_t preset_index, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc(device_id);
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_HAS_SET_PRESET;
 	cmd->d0 = preset_index;
 	return ble_cmd_enqueue(cmd, high_priority);
@@ -1367,24 +1337,28 @@ int ble_cmd_has_set_preset(uint8_t device_id, uint8_t preset_index, bool high_pr
 
 int ble_cmd_has_next_preset(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc(device_id);
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_HAS_NEXT_PRESET;
 	return ble_cmd_enqueue(cmd, high_priority);
 }
 
 int ble_cmd_has_prev_preset(uint8_t device_id, bool high_priority)
 {
-	struct ble_cmd *cmd = ble_cmd_alloc(device_id);
+	struct device_context *ctx = &device_ctx[device_id];
+	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
 	{
 		return -ENOMEM;
 	}
 
+	cmd->device_id = ctx->device_id;
 	cmd->type = BLE_CMD_HAS_PREV_PRESET;
 	return ble_cmd_enqueue(cmd, high_priority);
 }

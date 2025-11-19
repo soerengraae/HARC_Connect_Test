@@ -386,16 +386,28 @@ int csip_settings_clear_device(const bt_addr_le_t *addr)
 
 static bool rsi_scan_adv_parse(struct bt_data *data, void *user_data)
 {
-	struct device_info *info = (struct device_info *)user_data;
+	struct scan_callback_data *info = (struct scan_callback_data *)user_data;
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(&info->addr, addr_str, sizeof(addr_str));
+
 	if (data->type == BT_DATA_CSIS_RSI) {
-		LOG_DBG("RSI advertisement found from %s", addr_str);
+		LOG_DBG("RSI data received from %s, RSSI %d dBm", addr_str, info->rssi);
+		LOG_DBG("Checking if device is already known; skipping if so...");
+		struct device_context *ctx = devices_manager_get_device_context_by_addr(&info->addr);
+		if (ctx) {
+			LOG_DBG("... skipping that mf");
+			return false;  // Stop parsing
+		} else {
+			if (devices_manager_find_bonded_entry_by_addr(&info->addr, NULL)) {
+				LOG_DBG("... skipping that mf (bonded device)");
+				return false;  // Stop parsing
+			}
+		}
+
 		LOG_HEXDUMP_DBG(data->data, data->data_len, "RSI data:");
 		LOG_HEXDUMP_DBG(csip_ctx[rsi_scan_context.device_id].sirk, CSIP_SIRK_SIZE, "Using SIRK:");
 		
 		if (bt_csip_set_coordinator_is_set_member(csip_ctx[rsi_scan_context.device_id].sirk, data)) {
-			LOG_INF("RSI matches SIRK - will attempt to connect to %s", addr_str);
 			rsi_scan_context.rsi_found = true;
 			return false;  // Stop parsing
 		} else {
@@ -409,19 +421,20 @@ static bool rsi_scan_adv_parse(struct bt_data *data, void *user_data)
 void rsi_scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t type,
 							struct net_buf_simple *ad)
 {
-	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
-
-	struct device_info info = {0};
+	struct scan_callback_data info = {0};
 	info.addr = *addr;
+	info.rssi = rssi;
 
 	bt_data_parse(ad, rsi_scan_adv_parse, &info);
 
 	// If RSI matched, stop scanning and connect to the device
 	if (rsi_scan_context.rsi_found) {
-		LOG_INF("Stopping RSI scan - matched device found");
+		char addr_str[BT_ADDR_LE_STR_LEN];
+		bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+		LOG_INF("RSI from %s matches SIRK", addr_str);
+		// LOG_INF("Stopping RSI scan");
 		rsi_scan_stop();
-		app_controller_notify_csip_member_match(rsi_scan_context.device_id, 0);
+		app_controller_notify_csip_member_match(rsi_scan_context.device_id, 0, addr);
 	}
 }
 
@@ -476,7 +489,7 @@ static void rsi_scan_timeout_handler(struct k_work *work)
 
 		if (!rsi_scan_context.rsi_found) {
 			LOG_WRN("No matching RSI advertisements found during scan");
-			app_controller_notify_csip_member_match(rsi_scan_context.device_id, -ENOENT);
+			app_controller_notify_csip_member_match(rsi_scan_context.device_id, -ENOENT, NULL);
 		}
 	}
 }

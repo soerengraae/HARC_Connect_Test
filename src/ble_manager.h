@@ -30,7 +30,7 @@
 #define BT_NAME_MAX_LEN 12
 #define BT_SECURITY_WANTED BT_SECURITY_L2
 #define BT_DEVICE_READY_TIMEOUT_MS 30000
-#define BT_SCAN_TIMEOUT_MS 20000
+#define BT_SCAN_TIMEOUT_MS 10000
 #define BT_AUTO_CONNECT_TIMEOUT_MS 4000
 
 /* CSIP Set Information */
@@ -43,7 +43,6 @@
 struct scan_callback_data {
 	bt_addr_le_t addr;
 	int8_t rssi;
-    uint8_t rsi[6];
 	bool is_GN_HI; // Set to true if GN Hearing HI service UUID found (0xFEFE)
 	char name[BT_NAME_MAX_LEN];
 };
@@ -123,12 +122,13 @@ struct ble_cmd {
 
 /* BLE manager public functions */
 int ble_manager_init(void);
+int ble_manager_connect(uint8_t device_id, const bt_addr_le_t *addr);
 void bt_ready_cb(int err);
 void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t level);
 void ble_manager_start_scan_for_HIs(void);
 void ble_manager_stop_scan_for_HIs(void);
-int ble_manager_autoconnect_to_bonded_device(uint8_t device_id);
-int ble_manager_autoconnect_to_device_by_addr(const bt_addr_le_t *addr);
+int ble_manager_connect_to_bonded_device(uint8_t device_id);
+int ble_manager_autoconnect_to_device_by_addr(uint8_t device_id,const bt_addr_le_t *addr);
 int ble_manager_connect_to_scanned_device(uint8_t device_id, uint8_t idx);
 void ble_manager_establish_trusted_bond(uint8_t device_id);
 

@@ -13,9 +13,9 @@ enum sm_state {
     SM_IDLE, /* No active connection process */
     SM_WAKE, /* Wake up and determine state */
     SM_FIRST_TIME_USE, /* First device bonding/discovering */
-    SM_SINGLE_BONDED_DEVICE, /* Managing single bonded device */
-    SM_DUAL_DEVICE_OPERATION, /* Managing two bonded devices */
-    SM_
+    SM_BONDED_DEVICES, /* Managing bonded device(s) */
+    SM_SINGLE_DEVICE, /* Managing single device */
+    SM_DUAL_DEVICE, /* Managing two devices */
 };
 
 extern uint8_t strategy;
@@ -26,7 +26,7 @@ int8_t app_controller_notify_device_connected(uint8_t device_id);
 int8_t app_controller_notify_device_ready(uint8_t device_id);
 int8_t app_controller_notify_scan_complete();
 int8_t app_controller_notify_csip_discovered(uint8_t device_id, int8_t err);
-int8_t app_controller_notify_csip_member_match(uint8_t device_id, int8_t err);
+int8_t app_controller_notify_csip_member_match(uint8_t device_id, int8_t err, const bt_addr_le_t *addr);
 int8_t app_controller_notify_bas_discovered(uint8_t device_id, int err);
 int8_t app_controller_notify_vcp_discovered(uint8_t device_id, int err);
 int8_t app_controller_notify_volume_up_button_pressed();

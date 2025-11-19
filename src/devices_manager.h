@@ -26,12 +26,9 @@ struct bond_collection
 
 #define MAX_SCANNED_DEVICES 10
 
-#define MAX_ADDRS_PER_DEVICE 4
-
 struct scanned_device_entry
 {
-    bt_addr_le_t addrs[MAX_ADDRS_PER_DEVICE];
-    uint8_t addr_count;
+    bt_addr_le_t addr;
     char name[BT_NAME_MAX_LEN];
     int8_t rssi;
     sys_snode_t node;
@@ -91,8 +88,14 @@ struct device_context *devices_manager_get_device_context_by_id(uint8_t device_i
  * @return Device count on success, negative error code on failure
  */
 int devices_manager_add_scanned_device(const bt_addr_le_t *addr, int8_t rssi);
+
+/**
+ * @brief Update the name of a scanned device entry by address
+ * @param addr Pointer to the address
+ * @param name Pointer to the name string
+ * @return 0 on success, negative error code on failure
+ */
 int devices_manager_update_scanned_device_name(const bt_addr_le_t *addr, const char *name);
-int devices_manager_add_address_to_scanned_device(struct scanned_device_entry *entry, const bt_addr_le_t *addr_new);
 uint8_t devices_manager_get_scanned_device_count(void);
 struct scanned_device_entry *devices_manager_get_scanned_device(uint8_t idx);
 void devices_manager_clear_scanned_devices(void);
