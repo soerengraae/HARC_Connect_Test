@@ -8,10 +8,7 @@
 #include "csip_coordinator.h"
 #include "devices_manager.h"
 #include "battery_reader.h"
-#include "display_manager.h"
 #include "app_controller.h"
-#include "oled_display.h"
-#include "button_handler.h"
 #include "has_controller.h"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);

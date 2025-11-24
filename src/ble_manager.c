@@ -4,7 +4,6 @@
 #include "csip_coordinator.h"
 #include "app_controller.h"
 #include "devices_manager.h"
-#include "display_manager.h"
 #include "has_controller.h"
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
