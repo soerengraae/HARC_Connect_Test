@@ -265,6 +265,7 @@ int ble_manager_disconnect_device(struct bt_conn *conn)
 		return -EINVAL;
 	}
 
+	devices_manager_set_device_state(ctx, CONN_STATE_DISCONNECTING);
 	LOG_INF("Disconnecting connection [DEVICE ID %d]", ctx->device_id);
 	int err = bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
 	if (err != 0)

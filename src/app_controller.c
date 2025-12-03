@@ -3,6 +3,8 @@
 #include "devices_manager.h"
 #include "csip_coordinator.h"
 #include "has_controller.h"
+#include "power_manager.h"
+#include "button_manager.h"
 
 LOG_MODULE_REGISTER(app_controller, LOG_LEVEL_DBG);
 
@@ -64,17 +66,33 @@ void app_controller_thread(void)
 	while (1) {
 		switch (state) {
 		case SM_IDLE:
+			if (button_manager_buttons_ready == false) {
+				LOG_DBG("SM_IDLE: Buttons not ready, initializing buttons");
+				int err = button_manager_init_buttons();
+				if (err) {
+					LOG_ERR("Button init failed (err %d)", err);
+					continue;
+				}
+			}
+
 			// Wait for an event to trigger action
-			while (k_msgq_get(&app_event_queue, &evt, K_FOREVER))
-				;
+			int ret = k_msgq_get(&app_event_queue, &evt, K_SECONDS(10));
+			if (ret == -EAGAIN) {
+				// Timeout, loop back to wait for event for now
+				LOG_DBG("SM_IDLE: No event received, entering deep sleep");
+				power_manager_power_off();
+			} else if (ret != 0) {
+				LOG_ERR("Failed to get event from queue (err %d)", ret);
+				continue;
+			}
+
 			switch (evt.type) {
 			/**
 			 * When in idle state, upon device ready, assume something went wrong and
 			 * ble_manager reconnected. Proceed to discover BAS and VCP services.
 			 */
 			case EVENT_DEVICE_READY:
-				LOG_DBG("SM_IDLE: Device %d ready, discovering BAS and VCP",
-					evt.device_id);
+				LOG_DBG("SM_IDLE: Device %d ready, discovering BAS and VCP", evt.device_id);
 				ble_cmd_bas_discover(evt.device_id, true);
 				ble_cmd_vcp_discover(evt.device_id, true);
 				break;
@@ -378,16 +396,27 @@ void app_controller_thread(void)
 
                 has_controller_reset(evt.device_id);
 
+				/**
+				 * The HI uses a synchronized set of presets across all members,
+				 * so only need to perform HAS discovery on one device.
+				 */
                 if (i == 0) {
                     ble_cmd_has_discover(evt.device_id, false);
-                    while (k_msgq_get(&app_event_queue, &evt, K_FOREVER))
-                        ;
+
+                    while (k_msgq_get(&app_event_queue, &evt, K_FOREVER));
                     if (evt.type != EVENT_HAS_DISCOVERED) {
-                        LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES",
-                            evt.type);
+                        LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES", evt.type);
                     } else {
-                        LOG_INF("HAS discovered for device %d, entering idle state",
-                            evt.device_id);
+						if (evt.error_code != 0) {
+							LOG_WRN("HAS discovery failed for device %d",
+								evt.device_id);
+							if (evt.error_code == 15) {
+								LOG_DBG("Attempting to discover HAS again for device %d", evt.device_id);
+								ble_cmd_has_discover(evt.device_id, false);
+							}
+						} else {
+							LOG_INF("HAS discovered for device %d", evt.device_id);
+						}
                     }
                 }
 			}

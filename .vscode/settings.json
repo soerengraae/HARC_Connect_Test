@@ -8,6 +8,8 @@
     "app_controller.h": "c",
     "csip_coordinator.h": "c",
     "conn.h": "c",
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "system_timer.h": "c",
+    "button_manager.h": "c"
   }
 }
