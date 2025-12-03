@@ -66,4 +66,32 @@ void display_manager_clear(void);
  */
 void display_manager_show_status(const char *message);
 
+/**
+ * @brief Put display into sleep mode (low power ~5 µA)
+ *
+ * Turns off the SSD1306 display using display blanking to reduce
+ * power consumption to approximately 5 µA. Frame buffer content
+ * is retained in memory.
+ *
+ * @return 0 on success, negative error code on failure
+ */
+int display_manager_sleep(void);
+
+/**
+ * @brief Wake display from sleep mode
+ *
+ * Restores the SSD1306 display from sleep mode and restores
+ * the frame buffer content to the display.
+ *
+ * @return 0 on success, negative error code on failure
+ */
+int display_manager_wake(void);
+
+/**
+ * @brief Check if display is currently in sleep mode
+ *
+ * @return true if display is sleeping, false otherwise
+ */
+bool display_manager_is_sleeping(void);
+
 #endif /* DISPLAY_MANAGER_H */

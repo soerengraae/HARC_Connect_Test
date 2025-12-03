@@ -2,6 +2,7 @@
 #include "ble_manager.h"
 #include "devices_manager.h"
 #include "button_manager.h"
+#include "display_manager.h"
 
 LOG_MODULE_REGISTER(power_manager, LOG_LEVEL_DBG);
 
@@ -36,17 +37,25 @@ int print_reset_cause(uint32_t reset_cause)
 }
 
 void power_manager_power_off() {
+    int err;
+
     LOG_ERR("Preparing to power off the system..."); // ERR level to ensure visibility
 
     /**
      * Ensure the system is ready to power off:
+     * - Put display to sleep.
      * - Reconfigure button interrupts to allow wake-up.
      * - Disconnect any active BLE connections.
      * - Wait a short period to ensure operations complete.
      * - Flush logs.
      * - Power off.
     */
-    
+
+    err = display_manager_sleep();
+    if (err) {
+        LOG_WRN("Failed to sleep display (err %d) - continuing", err);
+    }
+
     for (ssize_t i = 1; i <= 4; i++)
         button_manager_set_button_interrupt_mode(i, GPIO_INT_LEVEL_ACTIVE);
 

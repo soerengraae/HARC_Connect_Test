@@ -29,6 +29,7 @@ struct display_state {
 static struct display_state device_display_state[2] = {0};
 static struct k_mutex display_mutex;
 static bool display_initialized = false;
+static bool display_sleeping = false;
 
 /* Initialize the display */
 int display_manager_init(void)
@@ -100,7 +101,7 @@ void display_manager_clear(void)
 
 void display_manager_show_status(const char *message)
 {
-    if (!display_initialized) {
+    if (!display_initialized || display_sleeping) {
         return;
     }
 
@@ -482,7 +483,7 @@ static void draw_volume_bar(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
 
 void display_manager_update(void)
 {
-    if (!display_initialized) {
+    if (!display_initialized || display_sleeping) {
         return;
     }
 
@@ -539,4 +540,71 @@ void display_manager_update(void)
 
     cfb_framebuffer_finalize(display_dev);
     k_mutex_unlock(&display_mutex);
+}
+
+int display_manager_sleep(void)
+{
+    int err;
+
+    if (!display_initialized) {
+        LOG_WRN("Cannot sleep display - not initialized");
+        return -ENODEV;
+    }
+
+    if (display_sleeping) {
+        LOG_DBG("Display already sleeping");
+        return 0;
+    }
+
+    k_mutex_lock(&display_mutex, K_FOREVER);
+
+    /* Use Zephyr's display blanking API to turn off display */
+    err = display_blanking_on(display_dev);
+    if (err) {
+        LOG_ERR("Failed to enable display blanking (err %d)", err);
+        k_mutex_unlock(&display_mutex);
+        return err;
+    }
+
+    display_sleeping = true;
+    LOG_INF("Display entered sleep mode");
+
+    k_mutex_unlock(&display_mutex);
+    return 0;
+}
+
+int display_manager_wake(void)
+{
+    int err;
+
+    if (!display_initialized) {
+        LOG_WRN("Cannot wake display - not initialized");
+        return -ENODEV;
+    }
+
+    if (!display_sleeping) {
+        LOG_DBG("Display already awake");
+        return 0;
+    }
+
+    k_mutex_lock(&display_mutex, K_FOREVER);
+
+    /* Use Zephyr's display blanking API to turn on display */
+    err = display_blanking_off(display_dev);
+    if (err) {
+        LOG_ERR("Failed to disable display blanking (err %d)", err);
+        k_mutex_unlock(&display_mutex);
+        return err;
+    }
+
+    display_sleeping = false;
+    LOG_INF("Display woken from sleep mode");
+
+    k_mutex_unlock(&display_mutex);
+    return 0;
+}
+
+bool display_manager_is_sleeping(void)
+{
+    return display_sleeping;
 }

@@ -76,7 +76,7 @@ void app_controller_thread(void)
 			}
 
 			// Wait for an event to trigger action
-			int ret = k_msgq_get(&app_event_queue, &evt, K_SECONDS(10));
+			int ret = k_msgq_get(&app_event_queue, &evt, K_SECONDS(60));
 			if (ret == -EAGAIN) {
 				// Timeout, loop back to wait for event for now
 				LOG_DBG("SM_IDLE: No event received, entering deep sleep");
