@@ -40,7 +40,11 @@ void power_manager_power_off() {
 
     /**
      * Ensure the system is ready to power off:
-     * For now, disconnect devices.
+     * - Reconfigure button interrupts to allow wake-up.
+     * - Disconnect any active BLE connections.
+     * - Wait a short period to ensure operations complete.
+     * - Flush logs.
+     * - Power off.
     */
     
     for (ssize_t i = 1; i <= 4; i++)
