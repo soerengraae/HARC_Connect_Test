@@ -355,18 +355,20 @@ void app_controller_thread(void)
 			for (ssize_t i = 0; i < bonded_devices_count; i++) {
 				ble_manager_establish_trusted_bond(i);
 
-				while (k_msgq_get(&app_event_queue, &evt, K_FOREVER))
-					;
+				if (k_msgq_get(&app_event_queue, &evt,
+					       K_MSEC(BT_DEVICE_READY_TIMEOUT_MS)) == 0) {
+				} else {
+					LOG_ERR("Timeout waiting for device %d to be ready in SM_BONDED_DEVICES", i);
+					state = SM_IDLE;
+					break;
+				}
+
 				if (evt.type != EVENT_DEVICE_READY) {
-					LOG_ERR("Unexpected event %d in SM_FIRST_TIME_USE",
-						evt.type);
+					LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES", evt.type);
 					state = SM_IDLE;
 					break;
 				} else {
-					LOG_INF("[DEVICE ID %d] ready after trusted bond, "
-						"discovering "
-						"services",
-						evt.device_id);
+					LOG_INF("[DEVICE ID %d] ready after trusted bond, discovering services", evt.device_id);
 				}
 
 				ble_cmd_bas_discover(evt.device_id, false);

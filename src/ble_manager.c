@@ -266,7 +266,13 @@ int ble_manager_disconnect_device(struct bt_conn *conn)
 		return -EINVAL;
 	}
 
-	devices_manager_set_device_state(ctx, CONN_STATE_DISCONNECTING);
+	if (ctx->state == CONN_STATE_TRUSTING)
+	{
+		LOG_DBG("Device is in TRUSTING state, not setting to DISCONNECTING [DEVICE ID %d]", ctx->device_id);
+	} else {
+		devices_manager_set_device_state(ctx, CONN_STATE_DISCONNECTING);
+	}
+
 	LOG_INF("Disconnecting connection [DEVICE ID %d]", ctx->device_id);
 	int err = bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
 	if (err != 0)
@@ -464,13 +470,16 @@ static void advertisement_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_
 {
 	// LOG_DBG("Recevied adv type %u from %s, RSSI %d dBm, AD len %u", type, addr_str, rssi, ad->len);
 
-	if (type != BT_GAP_ADV_TYPE_EXT_ADV) {
-		return;
-	}
-
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
-	LOG_DBG("Received extended adv from %s, RSSI %d dBm, EXT_AD len %u", addr_str, rssi, ad->len);
+
+	if (type != BT_GAP_ADV_TYPE_EXT_ADV) {
+		LOG_DBG("Received adv from %s, RSSI %d dBm, EAD len %u", addr_str, rssi, ad->len);
+	} else {
+		LOG_DBG("Received extended adv from %s, RSSI %d dBm, EXT_AD len %u", addr_str, rssi, ad->len);
+	}
+
+	
 
 	int err;
 
