@@ -12,6 +12,7 @@ target_sources(app PRIVATE
     src/app_controller.c
     src/devices_manager.c
     src/has_controller.c
+    src/has_settings.c
     src/display_manager.c
     src/power_manager.c
     src/button_manager.c

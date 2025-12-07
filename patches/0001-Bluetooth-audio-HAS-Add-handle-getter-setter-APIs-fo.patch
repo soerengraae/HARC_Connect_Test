@@ -1,0 +1,275 @@
+From 573f42339ebb992517c1f8ee204ab42a5985af62 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B8ren=20Graae?= <soerengraae@live.dk>
+Date: Wed, 3 Dec 2025 15:01:46 +0100
+Subject: [PATCH] Bluetooth: audio: HAS: Add handle getter/setter APIs for
+ caching
+
+Add bt_has_client_get_handles() and bt_has_client_set_handles() functions
+to enable caching of GATT handles in NVS. This allows applications to skip
+service discovery on reconnection, significantly reducing connection time.
+
+The getter extracts handles from internal subscription parameters after
+successful discovery. The setter injects cached handles to bypass discovery.
+If cached handles are invalid (e.g., after peripheral firmware update),
+subsequent GATT operations will fail gracefully, triggering re-discovery.
+
+This is particularly useful for hearing aid applications where fast
+reconnection is critical for user experience.
+---
+ include/zephyr/bluetooth/audio/has.h          |  57 ++++++++++
+ include/zephyr/bluetooth/audio/vcp.h          |   1 -
+ subsys/bluetooth/audio/csip_set_coordinator.c |   4 +
+ subsys/bluetooth/audio/has_client.c           | 104 +++++++++++++++++-
+ subsys/bluetooth/host/crypto_psa.c            |   1 +
+ 5 files changed, 163 insertions(+), 4 deletions(-)
+
+diff --git a/include/zephyr/bluetooth/audio/has.h b/include/zephyr/bluetooth/audio/has.h
+index 1b79fc62f05..d8238912873 100644
+--- a/include/zephyr/bluetooth/audio/has.h
++++ b/include/zephyr/bluetooth/audio/has.h
+@@ -513,6 +513,63 @@ int bt_has_preset_name_change(uint8_t index, const char *name);
+  */
+ int bt_has_features_set(const struct bt_has_features_param *features);
+ 
++/**
++ * @brief GATT handles for HAS client
++ *
++ * Structure containing all GATT attribute handles used by the HAS client.
++ * These handles can be cached to NVS and restored on reconnection to skip
++ * service discovery.
++ */
++struct bt_has_handles {
++	/** Hearing Aid Features characteristic value handle */
++	uint16_t features_handle;
++	/** Hearing Aid Features CCC descriptor handle */
++	uint16_t features_ccc_handle;
++	/** Preset Control Point characteristic value handle */
++	uint16_t control_point_handle;
++	/** Preset Control Point CCC descriptor handle */
++	uint16_t control_point_ccc_handle;
++	/** Active Preset Index characteristic value handle */
++	uint16_t active_index_handle;
++	/** Active Preset Index CCC descriptor handle */
++	uint16_t active_index_ccc_handle;
++};
++
++/**
++ * @brief Extract GATT handles from HAS client instance
++ *
++ * Call after successful discovery to extract and cache the GATT handles.
++ * The extracted handles can be stored in NVS and restored on reconnection.
++ *
++ * @param has HAS client instance from bt_has_client_discover()
++ * @param handles Output structure for handles
++ *
++ * @return 0 on success, negative errno on failure
++ * @retval -EINVAL if @p has or @p handles is NULL
++ */
++int bt_has_client_get_handles(struct bt_has *has, struct bt_has_handles *handles);
++
++/**
++ * @brief Inject cached GATT handles into HAS client instance
++ *
++ * Restores previously cached handles to skip discovery on reconnection.
++ * If the injected handles are invalid (e.g., after peripheral firmware update),
++ * subsequent GATT operations will fail with ATT error codes, which should trigger
++ * cache invalidation and full re-discovery.
++ *
++ * @note Call this function before bt_has_client_discover() to skip discovery.
++ *       The function will allocate the client instance for the connection if needed.
++ *
++ * @param conn Bluetooth connection to the remote device
++ * @param handles Previously cached handles to restore
++ *
++ * @return 0 on success, negative errno on failure
++ * @retval -EINVAL if @p conn or @p handles is NULL
++ * @retval -EBUSY if discovery is currently in progress
++ * @retval -EALREADY if discovery has already been performed
++ */
++int bt_has_client_set_handles(struct bt_conn *conn, const struct bt_has_handles *handles);
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/include/zephyr/bluetooth/audio/vcp.h b/include/zephyr/bluetooth/audio/vcp.h
+index a7de11733de..57dab3b3ab3 100644
+--- a/include/zephyr/bluetooth/audio/vcp.h
++++ b/include/zephyr/bluetooth/audio/vcp.h
+@@ -303,7 +303,6 @@ struct bt_vcp_vol_ctlr_cb {
+ 	 *                  value or errno on negative value.
+ 	 * @param flags     The flags of the Volume Renderer.
+ 	 */
+-
+ 	void (*flags)(struct bt_vcp_vol_ctlr *vol_ctlr, int err, uint8_t flags);
+ 
+ 	/**
+diff --git a/subsys/bluetooth/audio/csip_set_coordinator.c b/subsys/bluetooth/audio/csip_set_coordinator.c
+index d1801f5eaf2..cce4d6db716 100644
+--- a/subsys/bluetooth/audio/csip_set_coordinator.c
++++ b/subsys/bluetooth/audio/csip_set_coordinator.c
+@@ -770,6 +770,7 @@ static uint8_t discover_func(struct bt_conn *conn,
+ 			}
+ 
+ 			if (sub_params->value != 0) {
++				LOG_DBG("Subscribing to handle 0x%04X", attr->handle);
+ 				int err;
+ 
+ 				sub_params->ccc_handle = BT_GATT_AUTO_DISCOVER_CCC_HANDLE;
+@@ -784,6 +785,9 @@ static uint8_t discover_func(struct bt_conn *conn,
+ 					discover_complete(client, err);
+ 
+ 					return BT_GATT_ITER_STOP;
++				} else {
++					LOG_DBG("Subscribed to handle 0x%04X",
++					attr->handle);
+ 				}
+ 			}
+ 		}
+diff --git a/subsys/bluetooth/audio/has_client.c b/subsys/bluetooth/audio/has_client.c
+index 3d48a0ea7e3..0ba82b61eb5 100644
+--- a/subsys/bluetooth/audio/has_client.c
++++ b/subsys/bluetooth/audio/has_client.c
+@@ -249,8 +249,10 @@ static void discover_complete(struct bt_has_client *inst)
+ 			    get_capabilities(inst));
+ 
+ 	/* If Active Preset Index supported, notify it's value */
++	/* Only call if we actually read the active_index from device (not just cached handles) */
+ 	if (client_cb->preset_switch &&
+-	    HANDLE_IS_VALID(inst->active_index_subscription.value_handle)) {
++	    HANDLE_IS_VALID(inst->active_index_subscription.value_handle) &&
++	    inst->has.active_index != BT_HAS_PRESET_INDEX_NONE) {
+ 		client_cb->preset_switch(&inst->has, 0, inst->has.active_index);
+ 	}
+ }
+@@ -854,11 +856,22 @@ int bt_has_client_discover(struct bt_conn *conn)
+ 		return -EBUSY;
+ 	}
+ 
+-	if (inst->conn) {
++	if (inst->conn && inst->conn != conn) {
++		/* Connection already set to a different connection */
+ 		return -EALREADY;
+ 	}
+ 
+-	inst->conn = bt_conn_ref(conn);
++	if (!inst->conn) {
++		inst->conn = bt_conn_ref(conn);
++	}
++
++	/* Check if handles have been pre-injected via bt_has_client_set_handles() */
++	if (HANDLE_IS_VALID(inst->features_subscription.value_handle)) {
++		LOG_INF("Handles already set - skipping discovery");
++		/* Handles are already set, skip discovery and go straight to complete */
++		discover_complete(inst);
++		return 0;
++	}
+ 
+ 	err = features_discover(inst);
+ 	if (err) {
+@@ -988,6 +1001,91 @@ int bt_has_client_preset_prev(struct bt_has *has, bool sync)
+ 	return preset_set_next_or_prev(inst, opcode);
+ }
+ 
++int bt_has_client_get_handles(struct bt_has *has, struct bt_has_handles *handles)
++{
++	struct bt_has_client *inst = HAS_INST(has);
++
++	if (!has || !handles) {
++		return -EINVAL;
++	}
++
++	if (!inst->conn) {
++		return -ENOTCONN;
++	}
++
++	/* Extract handles from subscription parameters */
++	handles->features_handle = inst->features_subscription.value_handle;
++	handles->features_ccc_handle = inst->features_subscription.ccc_handle;
++	handles->control_point_handle = inst->control_point_subscription.value_handle;
++	handles->control_point_ccc_handle = inst->control_point_subscription.ccc_handle;
++	handles->active_index_handle = inst->active_index_subscription.value_handle;
++	handles->active_index_ccc_handle = inst->active_index_subscription.ccc_handle;
++
++	LOG_DBG("Extracted handles: features=%u/%u, cp=%u/%u, active=%u/%u",
++		handles->features_handle, handles->features_ccc_handle,
++		handles->control_point_handle, handles->control_point_ccc_handle,
++		handles->active_index_handle, handles->active_index_ccc_handle);
++
++	return 0;
++}
++
++int bt_has_client_set_handles(struct bt_conn *conn, const struct bt_has_handles *handles)
++{
++	struct bt_has_client *inst;
++
++	if (!conn || !handles) {
++		return -EINVAL;
++	}
++
++	/* Get or allocate client instance for this connection */
++	inst = &clients[bt_conn_index(conn)];
++
++	/* Check if discovery is in progress */
++	if (atomic_test_bit(inst->flags, HAS_CLIENT_DISCOVER_IN_PROGRESS)) {
++		return -EBUSY;
++	}
++
++	/* Check if discovery has already been performed with handles */
++	if (HANDLE_IS_VALID(inst->features_subscription.value_handle) ||
++	    HANDLE_IS_VALID(inst->control_point_subscription.value_handle) ||
++	    HANDLE_IS_VALID(inst->active_index_subscription.value_handle)) {
++		return -EALREADY;
++	}
++
++	/* Set up connection if not already set */
++	if (!inst->conn) {
++		inst->conn = bt_conn_ref(conn);
++	}
++
++	/* Inject cached handles into subscription parameters */
++	inst->features_subscription.value_handle = handles->features_handle;
++	inst->features_subscription.ccc_handle = handles->features_ccc_handle;
++	inst->control_point_subscription.value_handle = handles->control_point_handle;
++	inst->control_point_subscription.ccc_handle = handles->control_point_ccc_handle;
++	inst->active_index_subscription.value_handle = handles->active_index_handle;
++	inst->active_index_subscription.ccc_handle = handles->active_index_ccc_handle;
++
++	/* Set up notify callbacks for subscriptions */
++	inst->features_subscription.notify = features_notify_cb;
++	inst->control_point_subscription.notify = control_point_notify_cb;
++	inst->active_index_subscription.notify = active_preset_notify_cb;
++
++	/* Initialize active_index to NONE since we haven't read it from device yet */
++	inst->has.active_index = BT_HAS_PRESET_INDEX_NONE;
++
++	/* Set subscription value (required for notifications) */
++	inst->features_subscription.value = BT_GATT_CCC_NOTIFY;
++	inst->control_point_subscription.value = BT_GATT_CCC_NOTIFY;
++	inst->active_index_subscription.value = BT_GATT_CCC_NOTIFY;
++
++	LOG_DBG("Injected handles: features=%u/%u, cp=%u/%u, active=%u/%u",
++		handles->features_handle, handles->features_ccc_handle,
++		handles->control_point_handle, handles->control_point_ccc_handle,
++		handles->active_index_handle, handles->active_index_ccc_handle);
++
++	return 0;
++}
++
+ static void disconnected(struct bt_conn *conn, uint8_t reason)
+ {
+ 	struct bt_has_client *inst = inst_by_conn(conn);
+diff --git a/subsys/bluetooth/host/crypto_psa.c b/subsys/bluetooth/host/crypto_psa.c
+index 2586da08f17..760a7d7f906 100644
+--- a/subsys/bluetooth/host/crypto_psa.c
++++ b/subsys/bluetooth/host/crypto_psa.c
+@@ -66,6 +66,7 @@ int bt_rand(void *buf, size_t len)
+ int bt_encrypt_le(const uint8_t key[16], const uint8_t plaintext[16],
+ 		  uint8_t enc_data[16])
+ {
++	LOG_ERR("ENTERED HERE")
+ 	psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+ 	psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+ 	psa_status_t status, destroy_status;
+-- 
+2.40.0
+

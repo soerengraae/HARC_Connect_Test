@@ -81,6 +81,7 @@ static void vcp_state_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err, uint8_t volu
 
     // Mark as complete only if this was a READ_STATE command
     if (ctx->current_ble_cmd && ctx->current_ble_cmd->type == BLE_CMD_VCP_READ_STATE) {
+        app_controller_notify_vcp_state_read(ctx->device_id, 0);
         ble_cmd_complete(ctx->device_id, 0);
     }
 }

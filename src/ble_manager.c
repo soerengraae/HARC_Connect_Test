@@ -6,6 +6,7 @@
 #include "devices_manager.h"
 #include "has_controller.h"
 #include "display_manager.h"
+#include "power_manager.h"
 
 LOG_MODULE_REGISTER(ble_manager, LOG_LEVEL_DBG);
 
@@ -13,7 +14,7 @@ static struct bond_collection *bonded_devices;
 static struct k_work_delayable security_request_work[2];
 static struct k_work_delayable connect_work[2];
 
-/* BLE Command queue state */
+/* BLE Command queue */
 static sys_slist_t ble_cmd_queue[2];
 static struct k_mutex ble_queue_mutex[2];
 K_SEM_DEFINE(ble_cmd_sem_0, 0, 1);
@@ -370,6 +371,7 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	{
 		LOG_WRN("Unintentional disconnection (reason 0x%02X) [DEVICE ID %d]", reason, ctx->device_id);
 		devices_manager_set_device_state(ctx, CONN_STATE_DISCONNECTED);
+		power_manager_power_off();
 		return;
 	}
 
@@ -475,6 +477,7 @@ static void advertisement_found_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_
 
 	if (type != BT_GAP_ADV_TYPE_EXT_ADV) {
 		LOG_DBG("Received adv from %s, RSSI %d dBm, EAD len %u", addr_str, rssi, ad->len);
+		return;
 	} else {
 		LOG_DBG("Received extended adv from %s, RSSI %d dBm, EXT_AD len %u", addr_str, rssi, ad->len);
 	}
@@ -835,86 +838,107 @@ static int ble_cmd_execute(struct ble_cmd *cmd)
 {
 	int err = 0;
 
-	LOG_DBG("Executing BLE command type %s [DEVICE ID %d]", command_type_to_string(cmd->type),
-			cmd->device_id);
+	/* Save command fields to local variables before execution.
+	 * The command may be freed by synchronous callbacks during execution
+	 * (e.g., has_discover_cb can call ble_cmd_complete synchronously). */
+	uint8_t device_id = cmd->device_id;
+	enum ble_cmd_type type = cmd->type;
+	uint8_t d0 = cmd->d0;
 
-	switch (cmd->type)
+	LOG_DBG("Executing BLE command type %s [DEVICE ID %d]", command_type_to_string(type),
+			device_id);
+
+	if (device_id != 0 && device_id != 1)
+	{
+		LOG_ERR("Invalid device ID in BLE command: %d", device_id);
+		return -EINVAL;
+	}
+
+	switch (type)
 	{
 	case BLE_CMD_REQUEST_SECURITY:
-		k_work_schedule(&security_request_work[cmd->device_id], K_MSEC(0));
+		k_work_schedule(&security_request_work[device_id], K_MSEC(0));
 		break;
 
 	/* VCP */
 	case BLE_CMD_VCP_DISCOVER:
-		err = vcp_cmd_discover(cmd->device_id);
+		err = vcp_cmd_discover(device_id);
 		break;
 	case BLE_CMD_VCP_VOLUME_UP:
-		err = vcp_cmd_volume_up(cmd->device_id);
+		err = vcp_cmd_volume_up(device_id);
 		break;
 	case BLE_CMD_VCP_VOLUME_DOWN:
-		err = vcp_cmd_volume_down(cmd->device_id);
+		err = vcp_cmd_volume_down(device_id);
 		break;
 	case BLE_CMD_VCP_SET_VOLUME:
-		err = vcp_cmd_set_volume(cmd->device_id, cmd->d0);
+		err = vcp_cmd_set_volume(device_id, d0);
 		break;
 	case BLE_CMD_VCP_MUTE:
-		err = vcp_cmd_mute(cmd->device_id);
+		err = vcp_cmd_mute(device_id);
 		break;
 	case BLE_CMD_VCP_UNMUTE:
-		err = vcp_cmd_unmute(cmd->device_id);
+		err = vcp_cmd_unmute(device_id);
 		break;
 	case BLE_CMD_VCP_READ_STATE:
-		err = vcp_cmd_read_state(cmd->device_id);
+		err = vcp_cmd_read_state(device_id);
 		break;
 	case BLE_CMD_VCP_READ_FLAGS:
-		err = vcp_cmd_read_flags(cmd->device_id);
+		err = vcp_cmd_read_flags(device_id);
 		break;
 
 	/* BAS */
 	case BLE_CMD_BAS_DISCOVER:
-		err = battery_discover(cmd->device_id);
+		err = battery_discover(device_id);
 		break;
 	case BLE_CMD_BAS_READ_LEVEL:
-		err = battery_read_level(cmd->device_id);
+		err = battery_read_level(device_id);
 		break;
 
 	/* CSIP */
 	case BLE_CMD_CSIP_DISCOVER:
-		err = csip_cmd_discover(cmd->device_id);
+		err = csip_cmd_discover(device_id);
 		break;
 
-		/* HAS */
+	/* HAS */
 	case BLE_CMD_HAS_DISCOVER:
-		err = has_cmd_discover(cmd->device_id);
+		err = has_cmd_discover(device_id);
 		break;
 	case BLE_CMD_HAS_READ_PRESETS:
-		err = has_cmd_read_presets(cmd->device_id);
+		err = has_cmd_read_presets(device_id);
 		break;
 	case BLE_CMD_HAS_SET_PRESET:
-		err = has_cmd_set_active_preset(cmd->device_id, cmd->d0);
+		err = has_cmd_set_active_preset(device_id, d0);
 		break;
 	case BLE_CMD_HAS_NEXT_PRESET:
-		err = has_cmd_next_preset(cmd->device_id);
+		err = has_cmd_next_preset(device_id);
 		break;
 	case BLE_CMD_HAS_PREV_PRESET:
-		err = has_cmd_prev_preset(cmd->device_id);
+		err = has_cmd_prev_preset(device_id);
 		break;
 
 	default:
-		LOG_ERR("Unknown BLE command type: %d", cmd->type);
+		LOG_ERR("Unknown BLE command type: %d", type);
 		err = -EINVAL;
 		break;
 	}
 
+	/** Check if the local data matches the data at the cmd address
+	 * This is to catch any cases where the command may have been freed
+	 * during fast execution (e.g., in a callback).
+	 */
+	if (device_id != cmd->device_id || type != cmd->type || d0 != cmd->d0)
+	{
+		LOG_DBG("Command finished during execution callback, skipping logging");
+		return err;
+	}
+
 	if (err)
 	{
-		LOG_ERR("BLE command execution failed: type=%s, err=%d [DEVICE ID %d]",
-				command_type_to_string(cmd->type), err, cmd->device_id);
-	}
-	else
-	{
-		LOG_DBG("BLE command initiated successfully: type=%s [DEVICE ID %d]",
-				command_type_to_string(cmd->type), cmd->device_id);
+		LOG_ERR("BLE command execution failed: type %s (err %d) [DEVICE ID %d]",
+				command_type_to_string(type), err, device_id);
+	} else {
+		LOG_DBG("BLE command execution succeeded: type=%s, err=%d [DEVICE ID %d]",
+				command_type_to_string(type), err, device_id);
 	}
 
 	return err;
@@ -1042,6 +1066,10 @@ static void ble_process_next_command(uint8_t device_id)
 	ctx->current_ble_cmd = cmd;
 	ble_cmd_in_progress[ctx->device_id] = true;
 
+	uint8_t cmd_device_id = cmd->device_id;
+	enum ble_cmd_type type = cmd->type;
+	uint8_t d0 = cmd->d0;
+
 	// Execute the command
 	int err = ble_cmd_execute(ctx->current_ble_cmd);
 
@@ -1076,6 +1104,16 @@ static void ble_process_next_command(uint8_t device_id)
 		}
 
 		ble_process_next_command(ctx->device_id);
+		return;
+	}
+
+	/** Check if the local data matches the data at the cmd address
+	 * This is to catch any cases where the command may have been freed
+	 * during fast execution (e.g., in a callback).
+	 */
+	if (cmd_device_id != cmd->device_id || type != cmd->type || d0 != cmd->d0)
+	{
+		LOG_DBG("Command finished during execution callback");
 		return;
 	}
 

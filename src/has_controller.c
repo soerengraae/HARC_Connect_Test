@@ -1,4 +1,5 @@
 #include "has_controller.h"
+#include "has_settings.h"
 #include "devices_manager.h"
 #include "ble_manager.h"
 #include "app_controller.h"
@@ -50,8 +51,19 @@ static void has_discover_cb(struct bt_conn *conn, int err, struct bt_has *has,
     ctx->info.has_discovered = true;
     ctx->has_ctlr.has = has;
 
-    // After discovery, automatically read all presets
-    ble_cmd_has_read_presets(ctx->device_id, true);
+    /* Extract and cache handles to NVS for fast reconnection */
+    struct bt_has_handles handles;
+    int cache_err = bt_has_client_get_handles(has, &handles);
+    if (cache_err == 0) {
+        cache_err = has_settings_store_handles(&ctx->info.addr, &handles);
+        if (cache_err == 0) {
+            LOG_INF("HAS handles cached to NVS");
+        } else {
+            LOG_WRN("Failed to cache HAS handles (err %d)", cache_err);
+        }
+    } else {
+        LOG_WRN("Failed to extract HAS handles (err %d)", cache_err);
+    }
 
     app_controller_notify_has_discovered(ctx->device_id, 0);
     ble_cmd_complete(ctx->device_id, 0);
@@ -83,6 +95,8 @@ static void has_preset_read_rsp_cb(struct bt_has *has, int err,
         return;
     }
 
+    LOG_DBG("Storing preset information");
+
     // Store preset information
     if (ctx->has_ctlr.preset_count < HAS_MAX_PRESETS) {
         struct has_preset_info *preset = &ctx->has_ctlr.presets[ctx->has_ctlr.preset_count];
@@ -108,6 +122,7 @@ static void has_preset_read_rsp_cb(struct bt_has *has, int err,
     // If this is the last preset, complete the command
     if (is_last) {
         LOG_DBG("Preset read complete, total: %u", ctx->has_ctlr.preset_count);
+        app_controller_notify_has_presets_read(ctx->device_id, 0);
         ble_cmd_complete(ctx->device_id, 0);
     }
 }
@@ -173,6 +188,26 @@ int has_cmd_discover(uint8_t device_id)
         return -EALREADY;
     }
 
+    /* Try to load cached handles from NVS */
+    struct bt_has_handles cached_handles;
+    int load_err = has_settings_load_handles(&ctx->info.addr, &cached_handles);
+
+    if (load_err == 0) {
+        LOG_INF("Found cached HAS handles, attempting to restore");
+
+        /* Inject cached handles into HAS client - this allocates the client instance */
+        int inject_err = bt_has_client_set_handles(ctx->conn, &cached_handles);
+
+        if (inject_err != 0) {
+            LOG_WRN("Failed to inject cached handles (err %d), will perform full discovery", inject_err);
+            /* Clear invalid cache */
+            has_settings_clear_handles(&ctx->info.addr);
+        }
+    } else {
+        LOG_DBG("No cached HAS handles found (err %d), performing full discovery", load_err);
+    }
+
+    /* Start discovery - will skip GATT discovery if handles were injected successfully */
     LOG_DBG("Starting HAS discovery");
     return bt_has_client_discover(ctx->conn);
 }

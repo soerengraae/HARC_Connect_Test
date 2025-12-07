@@ -18,7 +18,8 @@ enum sm_state {
     SM_DUAL_DEVICE, /* Managing two devices */
 };
 
-extern uint8_t strategy;
+#define APP_CONTROLLER_PAIRING_TIMEOUT K_SECONDS(60)
+#define APP_CONTROLLER_ACTION_TIMEOUT K_SECONDS(20)
 
 int8_t app_controller_notify_system_ready();
 int8_t app_controller_notify_ble_cmd_complete(uint8_t device_id, enum ble_cmd_type type, int8_t err_code);
@@ -31,11 +32,13 @@ int8_t app_controller_notify_csip_discovered(uint8_t device_id, int8_t err);
 int8_t app_controller_notify_csip_member_match(uint8_t device_id, int8_t err, const bt_addr_le_t *addr);
 int8_t app_controller_notify_bas_discovered(uint8_t device_id, int err);
 int8_t app_controller_notify_vcp_discovered(uint8_t device_id, int err);
+int8_t app_controller_notify_vcp_state_read(uint8_t device_id, int err);
 int8_t app_controller_notify_volume_up_button_pressed();
 int8_t app_controller_notify_volume_down_button_pressed();
 int8_t app_controller_notify_pair_button_pressed();
 int8_t app_controller_notify_preset_button_pressed();
 int8_t app_controller_notify_clear_bonds_button_pressed();
 int8_t app_controller_notify_has_discovered(uint8_t device_id, int err);
+int8_t app_controller_notify_has_presets_read(uint8_t device_id, int err);
 
 #endif /* CONNECTION_MANAGER_H */

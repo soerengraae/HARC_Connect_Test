@@ -21,7 +21,9 @@ enum app_event_type {
 	EVENT_SCAN_COMPLETE,
 	EVENT_BAS_DISCOVERED,
 	EVENT_VCP_DISCOVERED,
+	EVENT_VCP_STATE_READ,
 	EVENT_HAS_DISCOVERED,
+	EVENT_HAS_PRESETS_READ,
 	EVENT_VOLUME_UP_BUTTON_PRESSED,
 	EVENT_VOLUME_DOWN_BUTTON_PRESSED,
 	EVENT_PAIR_BUTTON_PRESSED,
@@ -76,7 +78,7 @@ void app_controller_thread(void)
 			}
 
 			// Wait for an event to trigger action
-			int ret = k_msgq_get(&app_event_queue, &evt, K_SECONDS(60));
+			int ret = k_msgq_get(&app_event_queue, &evt, APP_CONTROLLER_ACTION_TIMEOUT);
 			if (ret == -EAGAIN) {
 				// Timeout, loop back to wait for event for now
 				LOG_DBG("SM_IDLE: No event received, entering deep sleep");
@@ -267,7 +269,7 @@ void app_controller_thread(void)
 
 			/* Now wait for the device to be ready */
 			if (k_msgq_get(&app_event_queue, &evt,
-				       K_MSEC(BT_DEVICE_READY_TIMEOUT_MS)) == 0) {
+				       APP_CONTROLLER_PAIRING_TIMEOUT) == 0) {
 				if (evt.type == EVENT_DEVICE_READY) {
 					LOG_INF("[DEVICE ID %d] ready, discovering CSIP",
 						evt.device_id);
@@ -322,7 +324,7 @@ void app_controller_thread(void)
 
 			ble_manager_connect(1, evt.data);
 			if (k_msgq_get(&app_event_queue, &evt,
-				       K_MSEC(BT_DEVICE_READY_TIMEOUT_MS)) == 0) {
+				       APP_CONTROLLER_PAIRING_TIMEOUT) == 0) {
 				if (evt.type == EVENT_DEVICE_READY) {
 					LOG_INF("[DEVICE ID %d] ready, proceeding to dual device",
 						evt.device_id);
@@ -356,7 +358,7 @@ void app_controller_thread(void)
 				ble_manager_establish_trusted_bond(i);
 
 				if (k_msgq_get(&app_event_queue, &evt,
-					       K_MSEC(BT_DEVICE_READY_TIMEOUT_MS)) == 0) {
+					       APP_CONTROLLER_PAIRING_TIMEOUT) == 0) {
 				} else {
 					LOG_ERR("Timeout waiting for device %d to be ready in SM_BONDED_DEVICES", i);
 					state = SM_IDLE;
@@ -421,6 +423,24 @@ void app_controller_thread(void)
 						}
                     }
                 }
+
+				ble_cmd_vcp_read_state(evt.device_id, false);
+				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
+				if (evt.type != EVENT_VCP_STATE_READ) {
+					LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES", evt.type);
+				} else {
+					LOG_INF("VCP state read for device %d", evt.device_id);
+				}
+			}
+
+			LOG_DBG("Reading HAS presets for device 0");
+			/** After discovery, automatically read all presets */
+    		ble_cmd_has_read_presets(0, false);
+			while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
+			if (evt.type != EVENT_HAS_PRESETS_READ) {
+				LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES", evt.type);
+			} else {
+				LOG_INF("HAS presets read for device %d", evt.device_id);
 			}
 
             LOG_DBG("All bonded devices managed, entering idle state");
@@ -546,6 +566,17 @@ int8_t app_controller_notify_vcp_discovered(uint8_t device_id, int err)
 	return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
 }
 
+int8_t app_controller_notify_vcp_state_read(uint8_t device_id, int err)
+{
+	LOG_INF("Notifying VCP state read: device_id=%d", device_id);
+	struct app_event evt = {
+		.type = EVENT_VCP_STATE_READ,
+		.device_id = device_id,
+		.error_code = err,
+	};
+	return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
 int8_t app_controller_notify_volume_up_button_pressed()
 {
 	LOG_DBG("Notifying volume up button pressed");
@@ -611,6 +642,17 @@ int8_t app_controller_notify_has_discovered(uint8_t device_id, int err)
 	LOG_DBG("Notifying HAS discovered: device_id=%d", device_id);
 	struct app_event evt = {
 		.type = EVENT_HAS_DISCOVERED,
+		.device_id = device_id,
+		.error_code = err,
+	};
+	return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_has_presets_read(uint8_t device_id, int err)
+{
+	LOG_DBG("Notifying HAS presets read: device_id=%d", device_id);
+	struct app_event evt = {
+		.type = EVENT_HAS_PRESETS_READ,
 		.device_id = device_id,
 		.error_code = err,
 	};
