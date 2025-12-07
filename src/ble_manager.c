@@ -1346,6 +1346,10 @@ int ble_cmd_has_read_presets(uint8_t device_id, bool high_priority)
 
 int ble_cmd_has_set_preset(uint8_t device_id, uint8_t preset_index, bool high_priority)
 {
+	if (!presets_loaded) {
+		ble_cmd_has_read_presets(device_id, true);
+	}
+
 	struct device_context *ctx = &device_ctx[device_id];
 	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
@@ -1361,6 +1365,10 @@ int ble_cmd_has_set_preset(uint8_t device_id, uint8_t preset_index, bool high_pr
 
 int ble_cmd_has_next_preset(uint8_t device_id, bool high_priority)
 {
+	if (!presets_loaded) {
+		ble_cmd_has_read_presets(device_id, true);
+	}
+
 	struct device_context *ctx = &device_ctx[device_id];
 	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)
@@ -1375,6 +1383,10 @@ int ble_cmd_has_next_preset(uint8_t device_id, bool high_priority)
 
 int ble_cmd_has_prev_preset(uint8_t device_id, bool high_priority)
 {
+	if (!presets_loaded) {
+		ble_cmd_has_read_presets(device_id, true);
+	}
+	
 	struct device_context *ctx = &device_ctx[device_id];
 	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)

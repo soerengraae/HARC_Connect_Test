@@ -13,12 +13,10 @@
 #include <zephyr/sys/util.h>
 #include <zephyr/drivers/timer/system_timer.h>
 
-#define NON_WAKEUP_RESET_REASON (RESET_PIN | RESET_SOFTWARE | RESET_POR | RESET_DEBUG)
-
-extern uint8_t reset_cause;
+extern uint8_t power_manager_wake_button;
 
 int print_reset_cause(uint32_t reset_cause);
 void power_manager_power_off();
-int power_manager_init(int rc);
+int get_wakeup_source(void);
 
 #endif /* POWER_MANAGER_H */

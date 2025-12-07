@@ -7,6 +7,8 @@
 
 LOG_MODULE_REGISTER(has_controller, LOG_LEVEL_DBG);
 
+bool presets_loaded = false;
+
 /* Forward declarations */
 static void has_discover_cb(struct bt_conn *conn, int err, struct bt_has *has,
                            enum bt_has_hearing_aid_type type,
@@ -124,6 +126,7 @@ static void has_preset_read_rsp_cb(struct bt_has *has, int err,
         LOG_DBG("Preset read complete, total: %u", ctx->has_ctlr.preset_count);
         app_controller_notify_has_presets_read(ctx->device_id, 0);
         ble_cmd_complete(ctx->device_id, 0);
+        presets_loaded = true;
     }
 }
 

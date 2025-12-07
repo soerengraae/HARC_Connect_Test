@@ -1,4 +1,5 @@
 #include "vcp_controller.h"
+#include "vcp_settings.h"
 #include "devices_manager.h"
 #include "app_controller.h"
 #include "ble_manager.h"
@@ -12,6 +13,19 @@ int vcp_cmd_discover(uint8_t device_id)
 {
     struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
     vcp_controller_reset(device_id);
+
+    /* Try to load cached handles first */
+    struct bt_vcp_vol_ctlr_handles cached_handles;
+    int load_err = vcp_settings_load_handles(&ctx->info.addr, &cached_handles);
+    if (load_err == 0) {
+        LOG_INF("Loaded cached VCP handles [DEVICE ID %d]", device_id);
+        int inject_err = bt_vcp_vol_ctlr_set_handles(ctx->conn, &cached_handles);
+        if (inject_err != 0) {
+            LOG_WRN("Failed to inject cached VCP handles (err %d), proceeding with full discovery", inject_err);
+            vcp_settings_clear_handles(&ctx->info.addr);
+        }
+    }
+
     return bt_vcp_vol_ctlr_discover(ctx->conn, &ctx->vcp_ctlr.vol_ctlr);
 }
 
@@ -121,12 +135,18 @@ static void vcp_discover_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err,
     ctx->vcp_ctlr.vol_ctlr = vol_ctlr;
     ctx->info.vcp_discovered = true;
 
-    // Initial flag read
-    // ble_cmd_vcp_read_flags(ctx->device_id, true);
+    /* Cache handles for future reconnections */
+    struct bt_vcp_vol_ctlr_handles handles;
+    int get_err = bt_vcp_vol_ctlr_get_handles(vol_ctlr, &handles);
+    if (get_err == 0) {
+        vcp_settings_store_handles(&ctx->info.addr, &handles);
+    } else {
+        LOG_WRN("Failed to get VCP handles for caching (err %d)", get_err);
+    }
 
-	// Mark discovery command as complete
+    // Mark discovery command as complete
     app_controller_notify_vcp_discovered(ctx->device_id, err);
-	ble_cmd_complete(ctx->device_id, 0);
+    ble_cmd_complete(ctx->device_id, 0);
 }
 
 static void vcp_vol_down_cb(struct bt_vcp_vol_ctlr *vol_ctlr, int err)

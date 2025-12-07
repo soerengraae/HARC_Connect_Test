@@ -14,18 +14,6 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 int main(void)
 {
     int err;
-    uint32_t reset_cause;
-    int rc;
-
-    hwinfo_get_reset_cause(&reset_cause);
-	rc = print_reset_cause(reset_cause);
-    if (rc < 0) {
-		LOG_DBG("Reset cause not supported.\n");
-		return 0;
-	}
-
-    // /* Initialize work queue for display updates */
-    // k_work_init(&display_update_work, display_update_work_handler);
 
     if (IS_ENABLED(CONFIG_SETTINGS)) {
         err = settings_subsys_init();
@@ -37,12 +25,6 @@ int main(void)
         if (err) {
             LOG_ERR("Settings load failed (err %d)", err);
         }
-    }
-
-    err = power_manager_init(rc);
-    if (err) {
-        LOG_ERR("Power manager init failed (err %d)", err);
-        return err;
     }
 
     err = display_manager_init();

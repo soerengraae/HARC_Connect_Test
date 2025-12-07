@@ -8,6 +8,16 @@
 
 extern bool button_manager_buttons_ready;
 
+#define VOLUME_UP_BTN_PIN DT_GPIO_PIN(DT_ALIAS(sw0), gpios)
+#define VOLUME_DOWN_BTN_PIN DT_GPIO_PIN(DT_ALIAS(sw1), gpios)
+#define PAIR_BTN_PIN DT_GPIO_PIN(DT_ALIAS(sw2), gpios)
+#define NEXT_PRESET_BTN_PIN DT_GPIO_PIN(DT_ALIAS(sw3), gpios)
+
+#define VOLUME_UP_BTN_ID 1
+#define VOLUME_DOWN_BTN_ID 2
+#define PAIR_BTN_ID 3
+#define NEXT_PRESET_BTN_ID 4
+
 void button1_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 void button2_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 void button3_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins);

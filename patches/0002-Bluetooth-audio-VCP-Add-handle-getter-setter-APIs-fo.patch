@@ -1,0 +1,240 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B8ren=20Graae?= <soerengraae@live.dk>
+Date: Sat, 7 Dec 2025 12:00:00 +0100
+Subject: [PATCH] Bluetooth: audio: VCP: Add handle getter/setter APIs for
+ caching
+
+Add bt_vcp_vol_ctlr_get_handles() and bt_vcp_vol_ctlr_set_handles()
+functions to enable caching of GATT handles in NVS. This allows
+applications to skip service discovery on reconnection, significantly
+reducing connection time.
+
+The getter extracts handles from internal subscription parameters after
+successful discovery. The setter injects cached handles and sets up
+GATT subscriptions for Volume State and Volume Flags notifications.
+If cached handles are invalid (e.g., after peripheral firmware update),
+subsequent GATT operations will fail gracefully, triggering re-discovery.
+
+This is particularly useful for hearing aid applications where fast
+reconnection is critical for user experience.
+---
+ include/zephyr/bluetooth/audio/vcp.h     |  62 ++++++++++
+ subsys/bluetooth/audio/vcp_vol_ctlr.c    | 128 +++++++++++++++++++++
+ 2 files changed, 190 insertions(+)
+
+diff --git a/include/zephyr/bluetooth/audio/vcp.h b/include/zephyr/bluetooth/audio/vcp.h
+index 57dab3b3ab3..f430305c432 100644
+--- a/include/zephyr/bluetooth/audio/vcp.h
++++ b/include/zephyr/bluetooth/audio/vcp.h
+@@ -580,6 +580,68 @@ int bt_vcp_vol_ctlr_unmute(struct bt_vcp_vol_ctlr *vol_ctlr);
+  */
+ int bt_vcp_vol_ctlr_mute(struct bt_vcp_vol_ctlr *vol_ctlr);
+
++/**
++ * @brief GATT handles for VCP Volume Controller client
++ *
++ * Structure containing all GATT attribute handles used by the VCP client.
++ * These handles can be cached to NVS and restored on reconnection to skip
++ * service discovery.
++ */
++struct bt_vcp_vol_ctlr_handles {
++	/** VCS service start handle */
++	uint16_t start_handle;
++	/** VCS service end handle */
++	uint16_t end_handle;
++	/** Volume State characteristic value handle */
++	uint16_t state_handle;
++	/** Volume Control Point characteristic value handle */
++	uint16_t control_handle;
++	/** Volume Flags characteristic value handle */
++	uint16_t vol_flag_handle;
++	/** Volume State CCC descriptor handle (for notifications) */
++	uint16_t state_ccc_handle;
++	/** Volume Flags CCC descriptor handle (for notifications) */
++	uint16_t vol_flag_ccc_handle;
++};
++
++/**
++ * @brief Extract GATT handles from VCP Volume Controller client instance
++ *
++ * Call after successful discovery to extract and cache the GATT handles.
++ * The extracted handles can be stored in NVS and restored on reconnection.
++ *
++ * @param vol_ctlr VCP Volume Controller instance from bt_vcp_vol_ctlr_discover()
++ * @param handles  Output structure for handles
++ *
++ * @return 0 on success, negative errno on failure
++ * @retval -EINVAL if @p vol_ctlr or @p handles is NULL
++ * @retval -ENOTCONN if not connected
++ */
++int bt_vcp_vol_ctlr_get_handles(struct bt_vcp_vol_ctlr *vol_ctlr,
++				struct bt_vcp_vol_ctlr_handles *handles);
++
++/**
++ * @brief Inject cached GATT handles into VCP Volume Controller client instance
++ *
++ * Restores previously cached handles to skip discovery on reconnection.
++ * If the injected handles are invalid (e.g., after peripheral firmware update),
++ * subsequent GATT operations will fail with ATT error codes, which should trigger
++ * cache invalidation and full re-discovery.
++ *
++ * @note Call this function before bt_vcp_vol_ctlr_discover() to skip discovery.
++ *       The function will allocate the client instance for the connection if needed.
++ *
++ * @param conn    Bluetooth connection to the remote device
++ * @param handles Previously cached handles to restore
++ *
++ * @return 0 on success, negative errno on failure
++ * @retval -EINVAL if @p conn or @p handles is NULL
++ * @retval -EBUSY if discovery is currently in progress
++ * @retval -EALREADY if discovery has already been performed
++ */
++int bt_vcp_vol_ctlr_set_handles(struct bt_conn *conn,
++				const struct bt_vcp_vol_ctlr_handles *handles);
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/subsys/bluetooth/audio/vcp_vol_ctlr.c b/subsys/bluetooth/audio/vcp_vol_ctlr.c
+index 416240cd254..40e2c635969 100644
+--- a/subsys/bluetooth/audio/vcp_vol_ctlr.c
++++ b/subsys/bluetooth/audio/vcp_vol_ctlr.c
+@@ -970,6 +970,15 @@ int bt_vcp_vol_ctlr_discover(struct bt_conn *conn, struct bt_vcp_vol_ctlr **out_
+ 		initialized = true;
+ 	}
+
++	/* Check if handles have been pre-injected via bt_vcp_vol_ctlr_set_handles() */
++	if (vol_ctlr->state_handle != 0 && vol_ctlr->control_handle != 0) {
++		LOG_INF("VCP handles already set - skipping discovery");
++		*out_vol_ctlr = vol_ctlr;
++		/* Call discover complete callback directly */
++		vcp_vol_ctlr_discover_complete(vol_ctlr, 0);
++		return 0;
++	}
++
+ 	vcp_vol_ctlr_reset(vol_ctlr);
+
+ 	memcpy(&vol_ctlr->uuid, BT_UUID_VCS, sizeof(vol_ctlr->uuid));
+@@ -1233,3 +1242,119 @@ int bt_vcp_vol_ctlr_mute(struct bt_vcp_vol_ctlr *vol_ctlr)
+ {
+ 	return vcp_vol_ctlr_common_vcs_cp(vol_ctlr, BT_VCP_OPCODE_MUTE);
+ }
++
++int bt_vcp_vol_ctlr_get_handles(struct bt_vcp_vol_ctlr *vol_ctlr,
++				struct bt_vcp_vol_ctlr_handles *handles)
++{
++	CHECKIF(vol_ctlr == NULL || handles == NULL) {
++		LOG_DBG("NULL param");
++		return -EINVAL;
++	}
++
++	if (vol_ctlr->conn == NULL) {
++		LOG_DBG("NULL conn");
++		return -ENOTCONN;
++	}
++
++	handles->start_handle = vol_ctlr->start_handle;
++	handles->end_handle = vol_ctlr->end_handle;
++	handles->state_handle = vol_ctlr->state_handle;
++	handles->control_handle = vol_ctlr->control_handle;
++	handles->vol_flag_handle = vol_ctlr->vol_flag_handle;
++
++	/* Extract CCC handles from subscription params */
++	handles->state_ccc_handle = vol_ctlr->state_sub_params.ccc_handle;
++	handles->vol_flag_ccc_handle = vol_ctlr->vol_flag_sub_params.ccc_handle;
++
++	LOG_DBG("Extracted VCP handles: state=%u/%u, control=%u, flags=%u/%u",
++		handles->state_handle, handles->state_ccc_handle,
++		handles->control_handle,
++		handles->vol_flag_handle, handles->vol_flag_ccc_handle);
++
++	return 0;
++}
++
++int bt_vcp_vol_ctlr_set_handles(struct bt_conn *conn,
++				const struct bt_vcp_vol_ctlr_handles *handles)
++{
++	static bool initialized;
++	struct bt_vcp_vol_ctlr *vol_ctlr;
++	int err;
++
++	CHECKIF(conn == NULL || handles == NULL) {
++		LOG_DBG("NULL param");
++		return -EINVAL;
++	}
++
++	vol_ctlr = vol_ctlr_get_by_conn(conn);
++
++	if (atomic_test_bit(vol_ctlr->flags, BT_VCP_VOL_CTLR_FLAG_BUSY)) {
++		LOG_DBG("Volume controller busy");
++		return -EBUSY;
++	}
++
++	/* Check if already discovered */
++	if (vol_ctlr->conn != NULL && vol_ctlr->state_handle != 0) {
++		LOG_DBG("Already discovered");
++		return -EALREADY;
++	}
++
++	if (!initialized) {
++		bt_vcp_vol_ctlr_init();
++		initialized = true;
++	}
++
++	/* Set up connection */
++	if (vol_ctlr->conn == NULL) {
++		vol_ctlr->conn = bt_conn_ref(conn);
++	}
++
++	/* Inject cached handles */
++	vol_ctlr->start_handle = handles->start_handle;
++	vol_ctlr->end_handle = handles->end_handle;
++	vol_ctlr->state_handle = handles->state_handle;
++	vol_ctlr->control_handle = handles->control_handle;
++	vol_ctlr->vol_flag_handle = handles->vol_flag_handle;
++
++	LOG_DBG("Injected VCP handles: state=%u/%u, control=%u, flags=%u/%u",
++		handles->state_handle, handles->state_ccc_handle,
++		handles->control_handle,
++		handles->vol_flag_handle, handles->vol_flag_ccc_handle);
++
++	/* Set up Volume State subscription with pre-known CCC handle */
++	vol_ctlr->state_sub_params.value = BT_GATT_CCC_NOTIFY;
++	vol_ctlr->state_sub_params.value_handle = handles->state_handle;
++	vol_ctlr->state_sub_params.ccc_handle = handles->state_ccc_handle;
++	vol_ctlr->state_sub_params.end_handle = handles->end_handle;
++	vol_ctlr->state_sub_params.notify = vcp_vol_ctlr_notify_handler;
++	atomic_set_bit(vol_ctlr->state_sub_params.flags, BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
++
++	err = bt_gatt_subscribe(conn, &vol_ctlr->state_sub_params);
++	if (err != 0 && err != -EALREADY) {
++		LOG_ERR("Failed to subscribe to state (err %d)", err);
++		vcp_vol_ctlr_reset(vol_ctlr);
++		return err;
++	}
++	LOG_DBG("Subscribed to Volume State (handle 0x%04x, CCC 0x%04x)",
++		handles->state_handle, handles->state_ccc_handle);
++
++	/* Set up Volume Flags subscription with pre-known CCC handle */
++	vol_ctlr->vol_flag_sub_params.value = BT_GATT_CCC_NOTIFY;
++	vol_ctlr->vol_flag_sub_params.value_handle = handles->vol_flag_handle;
++	vol_ctlr->vol_flag_sub_params.ccc_handle = handles->vol_flag_ccc_handle;
++	vol_ctlr->vol_flag_sub_params.end_handle = handles->end_handle;
++	vol_ctlr->vol_flag_sub_params.notify = vcp_vol_ctlr_notify_handler;
++	atomic_set_bit(vol_ctlr->vol_flag_sub_params.flags, BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
++
++	err = bt_gatt_subscribe(conn, &vol_ctlr->vol_flag_sub_params);
++	if (err != 0 && err != -EALREADY) {
++		LOG_ERR("Failed to subscribe to flags (err %d)", err);
++		vcp_vol_ctlr_reset(vol_ctlr);
++		return err;
++	}
++	LOG_DBG("Subscribed to Volume Flags (handle 0x%04x, CCC 0x%04x)",
++		handles->vol_flag_handle, handles->vol_flag_ccc_handle);
++
++	LOG_INF("VCP handles injected and subscribed successfully");
++	return 0;
++}
+--
+2.40.0
+

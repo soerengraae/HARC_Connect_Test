@@ -4,7 +4,8 @@
       "WebSearch",
       "WebFetch(domain:docs.zephyrproject.org)",
       "Read(//c/Users/soere/zephyrproject/zephyr/include/zephyr/bluetooth/**)",
-      "Read(//c/Users/soere/zephyrproject/zephyr/**)"
+      "Read(//c/Users/soere/zephyrproject/zephyr/**)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

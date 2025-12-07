@@ -3,10 +3,41 @@
 #include "devices_manager.h"
 #include "button_manager.h"
 #include "display_manager.h"
+#include <hal/nrf_gpio.h>
+#include <zephyr/init.h>
 
 LOG_MODULE_REGISTER(power_manager, LOG_LEVEL_DBG);
 
-uint8_t reset_cause;
+uint8_t power_manager_wake_button;
+
+SYS_INIT(get_wakeup_source, PRE_KERNEL_1, 0);
+
+int get_wakeup_source(void) {
+    uint32_t reset_cause;
+    hwinfo_get_reset_cause(&reset_cause);
+    power_manager_wake_button = 0;
+
+    // Check which button woke us up
+    if (nrf_gpio_pin_latch_get(VOLUME_UP_BTN_PIN)) {
+        // Volume up pressed
+        nrf_gpio_pin_latch_clear(VOLUME_UP_BTN_PIN);
+        power_manager_wake_button = VOLUME_UP_BTN_ID;
+    } else if (nrf_gpio_pin_latch_get(VOLUME_DOWN_BTN_PIN)) {
+        // Volume down pressed
+        nrf_gpio_pin_latch_clear(VOLUME_DOWN_BTN_PIN);
+        power_manager_wake_button = VOLUME_DOWN_BTN_ID;
+    } else if (nrf_gpio_pin_latch_get(PAIR_BTN_PIN)) {
+        // Pair button pressed
+        nrf_gpio_pin_latch_clear(PAIR_BTN_PIN);
+        power_manager_wake_button = PAIR_BTN_ID;
+    } else if (nrf_gpio_pin_latch_get(NEXT_PRESET_BTN_PIN)) {
+        // Next preset pressed
+        nrf_gpio_pin_latch_clear(NEXT_PRESET_BTN_PIN);
+        power_manager_wake_button = NEXT_PRESET_BTN_ID;
+    }
+
+    return 0;
+}
 
 int print_reset_cause(uint32_t reset_cause)
 {
@@ -36,7 +67,7 @@ int print_reset_cause(uint32_t reset_cause)
 	return 0;
 }
 
-void power_manager_power_off() {
+void power_manager_prepare_power_off() {
     int err;
 
     LOG_ERR("Preparing to power off the system..."); // ERR level to ensure visibility
@@ -61,18 +92,12 @@ void power_manager_power_off() {
 
     ble_manager_disconnect_device(device_ctx[0].conn);
     ble_manager_disconnect_device(device_ctx[1].conn);
+}
 
-    k_sleep(K_SECONDS(10));
+void power_manager_power_off() {
     LOG_ERR("... powering off now."); // ERR level to ensure visibility
     while(log_data_pending()) {
         log_process();
     }
-
     sys_poweroff();
-}
-
-int power_manager_init(int rc) {
-    reset_cause = rc;
-    LOG_INF("Power manager initialized");
-    return 0;
 }

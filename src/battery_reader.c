@@ -1,4 +1,5 @@
 #include "battery_reader.h"
+#include "bas_settings.h"
 #include "devices_manager.h"
 #include "app_controller.h"
 #include "display_manager.h"
@@ -61,13 +62,21 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
 	
 	if (!attr) {
 		LOG_DBG("Discovery complete for type %d [DEVICE ID %d]", params->type, ctx->device_id);
-		
+
 		/* If we have the characteristic handle, mark discovery as complete */
 		if (ctx->bas_ctlr.battery_level_handle != 0) {
 			ctx->info.bas_discovered = true;
 
+			/* Cache handles for future reconnections */
+			struct bt_bas_handles handles = {
+				.service_handle = ctx->bas_ctlr.battery_service_handle,
+				.service_handle_end = ctx->bas_ctlr.battery_service_handle_end,
+				.battery_level_handle = ctx->bas_ctlr.battery_level_handle,
+			};
+			bas_settings_store_handles(&ctx->info.addr, &handles);
+
 			// Complete the discovery command
-			LOG_DBG("Battery Service discovery complete (handle: 0x%04x, CCC: 0x%04x) [DEVICE ID %d]", 
+			LOG_DBG("Battery Service discovery complete (handle: 0x%04x, CCC: 0x%04x) [DEVICE ID %d]",
 			        ctx->bas_ctlr.battery_level_handle, ctx->bas_ctlr.battery_level_ccc_handle, ctx->device_id);
 
 			app_controller_notify_bas_discovered(ctx->device_id, 0);
@@ -77,7 +86,7 @@ static uint8_t discover_char_cb(struct bt_conn *conn,
 			app_controller_notify_bas_discovered(ctx->device_id, -EINVAL);
 			ble_cmd_complete(ctx->device_id, -EINVAL);
 		}
-		
+
 		return BT_GATT_ITER_STOP;
 	}
 
@@ -138,7 +147,7 @@ static uint8_t discover_service_cb(struct bt_conn *conn,
 int battery_discover(uint8_t device_id)
 {
 	struct device_context *ctx = devices_manager_get_device_context_by_id(device_id);
-	
+
 	if (!ctx || !ctx->conn)
 	{
 		LOG_ERR("Invalid connection context [DEVICE ID %d]", ctx->device_id);
@@ -155,6 +164,22 @@ int battery_discover(uint8_t device_id)
 
 	if (!ctx->info.bas_discovered)
 	{
+		/* Try to load cached handles first */
+		struct bt_bas_handles cached_handles;
+		int load_err = bas_settings_load_handles(&ctx->info.addr, &cached_handles);
+		if (load_err == 0) {
+			LOG_INF("Loaded cached BAS handles - skipping discovery [DEVICE ID %d]", device_id);
+			ctx->bas_ctlr.battery_service_handle = cached_handles.service_handle;
+			ctx->bas_ctlr.battery_service_handle_end = cached_handles.service_handle_end;
+			ctx->bas_ctlr.battery_level_handle = cached_handles.battery_level_handle;
+			ctx->info.bas_discovered = true;
+
+			app_controller_notify_bas_discovered(ctx->device_id, 0);
+			ble_cmd_complete(ctx->device_id, 0);
+			return 0;
+		}
+
+		/* No cached handles, perform full discovery */
 		static struct bt_gatt_discover_params discover_params;
 		memset(&discover_params, 0, sizeof(discover_params));
 		discover_params.uuid = BT_UUID_BAS;

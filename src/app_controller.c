@@ -82,6 +82,9 @@ void app_controller_thread(void)
 			if (ret == -EAGAIN) {
 				// Timeout, loop back to wait for event for now
 				LOG_DBG("SM_IDLE: No event received, entering deep sleep");
+				power_manager_prepare_power_off();
+				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
+				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
 				power_manager_power_off();
 			} else if (ret != 0) {
 				LOG_ERR("Failed to get event from queue (err %d)", ret);
@@ -155,6 +158,8 @@ void app_controller_thread(void)
 
             case EVENT_PAIR_BUTTON_PRESSED:
                 LOG_DBG("SM_IDLE: Pair button pressed, clearing bonds and starting first time use procedure");
+				button_manager_reset_buttons();
+
 				devices_manager_clear_all_bonds();
 				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
 				if (evt.type != EVENT_BONDS_CLEARED) {
@@ -433,18 +438,40 @@ void app_controller_thread(void)
 				}
 			}
 
-			LOG_DBG("Reading HAS presets for device 0");
-			/** After discovery, automatically read all presets */
-    		ble_cmd_has_read_presets(0, false);
-			while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
-			if (evt.type != EVENT_HAS_PRESETS_READ) {
-				LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES", evt.type);
-			} else {
-				LOG_INF("HAS presets read for device %d", evt.device_id);
-			}
+			// LOG_DBG("Reading HAS presets for device 0");
+			// /** After discovery, automatically read all presets */
+    		// ble_cmd_has_read_presets(0, false);
+			// while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
+			// if (evt.type != EVENT_HAS_PRESETS_READ) {
+			// 	LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES", evt.type);
+			// } else {
+			// 	LOG_INF("HAS presets read for device %d", evt.device_id);
+			// }
 
             LOG_DBG("All bonded devices managed, entering idle state");
 			state = SM_IDLE;
+
+			switch (power_manager_wake_button) {
+			case VOLUME_UP_BTN_ID:
+				LOG_DBG("SM_IDLE: Wake button is volume up");
+				app_controller_notify_volume_up_button_pressed();
+				break;
+			case VOLUME_DOWN_BTN_ID:
+				LOG_DBG("SM_IDLE: Wake button is volume down");
+				app_controller_notify_volume_down_button_pressed();
+				break;
+			case PAIR_BTN_ID:
+				LOG_DBG("SM_IDLE: Wake button is pair button");
+				app_controller_notify_pair_button_pressed();
+				break;
+			case NEXT_PRESET_BTN_ID:
+				LOG_DBG("SM_IDLE: Wake button is next preset");
+				app_controller_notify_preset_button_pressed();
+				break;
+			default:
+				LOG_DBG("SM_IDLE: No wake button pressed");
+				break;
+			}
 			break;
 
 		default:

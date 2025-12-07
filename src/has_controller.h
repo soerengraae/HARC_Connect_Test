@@ -8,6 +8,8 @@
 #include <zephyr/bluetooth/audio/has.h>
 #include <zephyr/logging/log.h>
 
+extern bool presets_loaded;
+
 /**
  * @brief Initialize HAS controller
  * 
