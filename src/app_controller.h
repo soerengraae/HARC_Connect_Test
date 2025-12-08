@@ -14,15 +14,13 @@ enum sm_state {
     SM_WAKE, /* Wake up and determine state */
     SM_FIRST_TIME_USE, /* First device bonding/discovering */
     SM_BONDED_DEVICES, /* Managing bonded device(s) */
-    SM_SINGLE_DEVICE, /* Managing single device */
-    SM_DUAL_DEVICE, /* Managing two devices */
+    SM_POWER_OFF, /* Powering off the device */
 };
 
 #define APP_CONTROLLER_PAIRING_TIMEOUT K_SECONDS(60)
-#define APP_CONTROLLER_ACTION_TIMEOUT K_SECONDS(20)
+#define APP_CONTROLLER_ACTION_TIMEOUT K_SECONDS(40)
 
 int8_t app_controller_notify_system_ready();
-int8_t app_controller_notify_ble_cmd_complete(uint8_t device_id, enum ble_cmd_type type, int8_t err_code);
 int8_t app_controller_notify_device_connected(uint8_t device_id);
 int8_t app_controller_notify_device_disconnected(uint8_t device_id);
 int8_t app_controller_notify_bonds_cleared();
@@ -40,5 +38,6 @@ int8_t app_controller_notify_preset_button_pressed();
 int8_t app_controller_notify_clear_bonds_button_pressed();
 int8_t app_controller_notify_has_discovered(uint8_t device_id, int err);
 int8_t app_controller_notify_has_presets_read(uint8_t device_id, int err);
+int8_t app_controller_notify_power_off();
 
 #endif /* CONNECTION_MANAGER_H */

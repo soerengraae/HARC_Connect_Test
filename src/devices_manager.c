@@ -3,6 +3,9 @@
 #include "app_controller.h"
 #include "csip_coordinator.h"
 #include "display_manager.h"
+#include "has_settings.h"
+#include "vcp_settings.h"
+#include "bas_settings.h"
 
 LOG_MODULE_REGISTER(devices_manager, LOG_LEVEL_DBG);
 
@@ -26,7 +29,7 @@ int devices_manager_get_bonded_devices_collection(struct bond_collection *collec
  * @param addr Pointer to the address
  * @param out_entry Pointer to store the found bonded device entry, or NULL if not found
  * @return bool
- * @note out_entry can be allocated by the caller; if the device is not found, it will be set to
+ * @note out_entry must be allocated by the caller; if the device is not found, it will be set to
  * NULL
  */
 bool devices_manager_find_bonded_entry_by_addr(const bt_addr_le_t *addr, struct bonded_device_entry *out_entry)
@@ -106,21 +109,37 @@ void devices_manager_clear_all_bonds(void)
 {
 	LOG_WRN("Clearing all bonds...");
 
-	// // Clear connections if any exist
-	// if (device_ctx[0].conn) {
-	// 	LOG_INF("Disconnecting before clearing bonds...");
-	// 	device_ctx[0].state = CONN_STATE_DISCONNECTING;
-	// 	ble_manager_disconnect_device(device_ctx[0].conn);
-	// }
-
-	// if (device_ctx[1].conn) {
-	// 	LOG_INF("Disconnecting before clearing bonds...");
-	// 	device_ctx[0].state = CONN_STATE_DISCONNECTING;
-	// 	ble_manager_disconnect_device(device_ctx[1].conn);
-	// }
-
 	for (ssize_t i = 0; i < bonded_devices->count; i++) {
-		int err = bt_unpair(BT_ID_DEFAULT, &bonded_devices->devices[i].addr);
+		// Erase handles from memory
+		int err = has_settings_clear_handles(&bonded_devices->devices[i].addr);
+		if (err != 0) {
+			LOG_ERR("Failed to clear HAS handles for device %d (err %d)", i, err);
+		} else {
+			LOG_DBG("Cleared HAS handles for device %d", i);
+		}
+
+		err = vcp_settings_clear_handles(&bonded_devices->devices[i].addr);
+		if (err != 0) {
+			LOG_ERR("Failed to clear VCP handles for device %d (err %d)", i, err);
+		} else {
+			LOG_DBG("Cleared VCP handles for device %d", i);
+		}
+
+		err = csip_settings_clear_device(&bonded_devices->devices[i].addr);
+		if (err != 0) {
+			LOG_ERR("Failed to clear CSIP device settings for device %d (err %d)", i, err);
+		} else {
+			LOG_DBG("Cleared CSIP device settings for device %d", i);
+		}
+
+		err = bas_settings_clear_handles(&bonded_devices->devices[i].addr);
+		if (err != 0) {
+			LOG_ERR("Failed to clear BAS handles for device %d (err %d)", i, err);
+		} else {
+			LOG_DBG("Cleared BAS handles for device %d", i);
+		}
+
+		err = bt_unpair(BT_ID_DEFAULT, &bonded_devices->devices[i].addr);
 		if (err != 0) {
 			LOG_ERR("Failed to unpair device %d (err %d)", i, err);
 		} else {
@@ -184,6 +203,13 @@ void devices_manager_update_bonded_devices_collection(void)
 		bonded_devices->count);
 }
 
+void devices_manager_reset_device_contexts(void) {
+	device_ctx[0].device_id = 0;
+	device_ctx[0].info.is_new_device = true;
+	device_ctx[1].device_id = 1;
+	device_ctx[1].info.is_new_device = true;
+}
+
 int devices_manager_init(void)
 {
 	device_ctx = (struct device_context *)k_calloc(2, sizeof(struct device_context));
@@ -191,10 +217,8 @@ int devices_manager_init(void)
 		LOG_ERR("Failed to allocate memory for connection contexts");
 		return -ENOMEM;
 	}
-	device_ctx[0].device_id = 0;
-	device_ctx[0].info.is_new_device = true;
-	device_ctx[1].device_id = 1;
-	device_ctx[1].info.is_new_device = true;
+	
+	devices_manager_reset_device_contexts();
 
 	bonded_devices = (struct bond_collection *)k_calloc(1, sizeof(struct bond_collection));
 	if (!bonded_devices) {

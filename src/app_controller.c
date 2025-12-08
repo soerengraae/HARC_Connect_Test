@@ -30,6 +30,7 @@ enum app_event_type {
 	EVENT_PRESET_BUTTON_PRESSED,
 	EVENT_CLEAR_BONDS_BUTTON_PRESSED,
 	EVENT_BONDS_CLEARED,
+	EVENT_POWER_OFF,
 };
 
 struct app_event {
@@ -82,24 +83,17 @@ void app_controller_thread(void)
 			if (ret == -EAGAIN) {
 				// Timeout, loop back to wait for event for now
 				LOG_DBG("SM_IDLE: No event received, entering deep sleep");
-				power_manager_prepare_power_off();
-				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
-				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
-				power_manager_power_off();
+				state = SM_POWER_OFF;
+				break;
 			} else if (ret != 0) {
 				LOG_ERR("Failed to get event from queue (err %d)", ret);
 				continue;
 			}
 
 			switch (evt.type) {
-			/**
-			 * When in idle state, upon device ready, assume something went wrong and
-			 * ble_manager reconnected. Proceed to discover BAS and VCP services.
-			 */
-			case EVENT_DEVICE_READY:
-				LOG_DBG("SM_IDLE: Device %d ready, discovering BAS and VCP", evt.device_id);
-				ble_cmd_bas_discover(evt.device_id, true);
-				ble_cmd_vcp_discover(evt.device_id, true);
+			case EVENT_POWER_OFF:
+				LOG_DBG("SM_IDLE: Power off event received");
+				state = SM_POWER_OFF;
 				break;
 
             /**
@@ -167,31 +161,22 @@ void app_controller_thread(void)
 					break;
 				}
 				
-				devices_manager_set_device_state(&device_ctx[0], CONN_STATE_DISCONNECTING);
-				ble_manager_disconnect_device(device_ctx[0].conn);
-				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
-				if (evt.type != EVENT_DEVICE_DISCONNECTED) {
-					LOG_ERR("Expected EVENT_DEVICE_DISCONNECTED after disconnecting, got %d", evt.type);
-					break;
+				if (ble_manager_disconnect_device(device_ctx[0].conn) == -EINVAL) {
+					LOG_DBG("No active connection to disconnect for device 0");
+					app_controller_notify_device_disconnected(0);
 				}
 
-				if (device_ctx[0].state != CONN_STATE_DISCONNECTED) {
-					LOG_ERR("Device 0 not disconnected before clearing bonds as expected, current state: %d", device_ctx[0].state);
+				if (ble_manager_disconnect_device(device_ctx[1].conn) == -EINVAL) {
+					LOG_DBG("No active connection to disconnect for device 1");
+					app_controller_notify_device_disconnected(1);
 				}
 
-				devices_manager_set_device_state(&device_ctx[1], CONN_STATE_DISCONNECTING);
-				ble_manager_disconnect_device(device_ctx[1].conn);
-				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
-				if (evt.type != EVENT_DEVICE_DISCONNECTED) {
-					LOG_ERR("Expected EVENT_DEVICE_DISCONNECTED after disconnecting, got %d", evt.type);
-					break;
-				}
+				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
+				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
 
-				if (device_ctx[1].state != CONN_STATE_DISCONNECTED) {
-					LOG_ERR("Device 1 not disconnected before clearing bonds as expected, current state: %d", device_ctx[1].state);
-				}
+				devices_manager_reset_device_contexts();
 
-                state = SM_FIRST_TIME_USE;
+                state = SM_WAKE;
                 break;
             
             case EVENT_CLEAR_BONDS_BUTTON_PRESSED:
@@ -206,12 +191,33 @@ void app_controller_thread(void)
                 break;
 
 			default:
-				LOG_DBG("SM_IDLE: Received unexpected event %d", evt.type);
+				LOG_DBG("SM_IDLE: Received event %d", evt.type);
 				break;
 			}
 			break;
 
+		case SM_POWER_OFF:
+			LOG_DBG("SM_POWER_OFF: Powering off device");
+			power_manager_prepare_power_off();
+			while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
+			while(k_msgq_get(&app_event_queue, &evt, K_FOREVER)); // Wait for device disconnect
+			power_manager_power_off();
+			break;
+
 		case SM_WAKE:
+			if (power_manager_wake_button == PAIR_BTN_ID) {
+				LOG_DBG("SM_WAKE: Wake button is PAIR button, clearing bonds and starting first time use procedure");
+				button_manager_reset_buttons();
+				devices_manager_clear_all_bonds();
+				while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
+				if (evt.type != EVENT_BONDS_CLEARED) {
+					LOG_ERR("Expected EVENT_BONDS_CLEARED after clearing bonds, got %d", evt.type);
+				}
+
+				state = SM_FIRST_TIME_USE;
+				break;
+			}
+
 			// Determine connection strategy based on bonded devices
 			LOG_DBG("SM_WAKE: Determining state");
 			determine_state();
@@ -438,16 +444,6 @@ void app_controller_thread(void)
 				}
 			}
 
-			// LOG_DBG("Reading HAS presets for device 0");
-			// /** After discovery, automatically read all presets */
-    		// ble_cmd_has_read_presets(0, false);
-			// while(k_msgq_get(&app_event_queue, &evt, K_FOREVER));
-			// if (evt.type != EVENT_HAS_PRESETS_READ) {
-			// 	LOG_ERR("Unexpected event %d in SM_BONDED_DEVICES", evt.type);
-			// } else {
-			// 	LOG_INF("HAS presets read for device %d", evt.device_id);
-			// }
-
             LOG_DBG("All bonded devices managed, entering idle state");
 			state = SM_IDLE;
 
@@ -460,10 +456,6 @@ void app_controller_thread(void)
 				LOG_DBG("SM_IDLE: Wake button is volume down");
 				app_controller_notify_volume_down_button_pressed();
 				break;
-			case PAIR_BTN_ID:
-				LOG_DBG("SM_IDLE: Wake button is pair button");
-				app_controller_notify_pair_button_pressed();
-				break;
 			case NEXT_PRESET_BTN_ID:
 				LOG_DBG("SM_IDLE: Wake button is next preset");
 				app_controller_notify_preset_button_pressed();
@@ -472,11 +464,12 @@ void app_controller_thread(void)
 				LOG_DBG("SM_IDLE: No wake button pressed");
 				break;
 			}
+			power_manager_wake_button = 0;
 			break;
 
 		default:
 			LOG_ERR("Unknown state %d", state);
-			k_sleep(K_MSEC(1000));
+			state = SM_POWER_OFF;
 			break;
 		}
 	}
@@ -494,12 +487,13 @@ static void determine_state(void)
 		state = SM_FIRST_TIME_USE;
 		break;
 	case 1: case 2:
-		LOG_INF("One or two bonded devices found, connecting and verifying set membership");
-		state = SM_BONDED_DEVICES; // One bonded device
+		LOG_INF("One or two bonded devices found");
+		state = SM_BONDED_DEVICES;
 		break;
 	default:
 		LOG_ERR("Illegal number of bonded devices (%d) found", bonded_devices_count);
-		state = SM_IDLE; // Multiple bonded devices
+		devices_manager_clear_all_bonds();
+		state = SM_WAKE;
 		break;
 	}
 
@@ -682,6 +676,16 @@ int8_t app_controller_notify_has_presets_read(uint8_t device_id, int err)
 		.type = EVENT_HAS_PRESETS_READ,
 		.device_id = device_id,
 		.error_code = err,
+	};
+	return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
+}
+
+int8_t app_controller_notify_power_off()
+{
+	LOG_DBG("Notifying power off");
+	struct app_event evt = {
+		.type = EVENT_POWER_OFF,
+		.device_id = 0,
 	};
 	return k_msgq_put(&app_event_queue, &evt, K_NO_WAIT);
 }

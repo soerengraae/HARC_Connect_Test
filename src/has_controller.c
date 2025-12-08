@@ -53,15 +53,30 @@ static void has_discover_cb(struct bt_conn *conn, int err, struct bt_has *has,
     ctx->info.has_discovered = true;
     ctx->has_ctlr.has = has;
 
-    /* Extract and cache handles to NVS for fast reconnection */
+    /* Extract and cache handles and features to NVS for fast reconnection */
     struct bt_has_handles handles;
     int cache_err = bt_has_client_get_handles(has, &handles);
     if (cache_err == 0) {
-        cache_err = has_settings_store_handles(&ctx->info.addr, &handles);
+        /* Reconstruct features byte from type and caps
+         * Note: We can't access has->features directly (opaque struct),
+         * so we reconstruct what we can from the callback parameters.
+         * The hearing aid type occupies bits 0-1.
+         * For full feature support, we'd need to read the characteristic,
+         * but this gives us enough for basic operation. */
+        uint8_t features = (uint8_t)type; /* Type is in bits 0-1 */
+
+        /* If presets are supported, the control point exists.
+         * For GN hearing aids with binaural type, preset sync is typically supported.
+         * We set bit 2 (BT_HAS_FEAT_PRESET_SYNC_SUPP) for binaural devices. */
+        if ((caps & BT_HAS_PRESET_SUPPORT) && type == BT_HAS_HEARING_AID_TYPE_BINAURAL) {
+            features |= 0x04; /* BT_HAS_FEAT_PRESET_SYNC_SUPP */
+        }
+
+        cache_err = has_settings_store_handles(&ctx->info.addr, &handles, features);
         if (cache_err == 0) {
-            LOG_INF("HAS handles cached to NVS");
+            LOG_INF("HAS handles and features cached to NVS (features=0x%02X)", features);
         } else {
-            LOG_WRN("Failed to cache HAS handles (err %d)", cache_err);
+            LOG_WRN("Failed to cache HAS data (err %d)", cache_err);
         }
     } else {
         LOG_WRN("Failed to extract HAS handles (err %d)", cache_err);
@@ -191,23 +206,28 @@ int has_cmd_discover(uint8_t device_id)
         return -EALREADY;
     }
 
-    /* Try to load cached handles from NVS */
-    struct bt_has_handles cached_handles;
-    int load_err = has_settings_load_handles(&ctx->info.addr, &cached_handles);
+    /* Try to load cached handles and features from NVS */
+    struct has_cached_data cached_data;
+    int load_err = has_settings_load_handles(&ctx->info.addr, &cached_data);
 
     if (load_err == 0) {
-        LOG_INF("Found cached HAS handles, attempting to restore");
+        LOG_INF("Found cached HAS data, attempting to restore");
+        LOG_INF("Cached features: 0x%02X", cached_data.features);
+        LOG_DBG("  Hearing aid type: %u", cached_data.features & 0x03);
+        LOG_DBG("  Preset sync support: %s", (cached_data.features & 0x04) ? "yes" : "no");
 
         /* Inject cached handles into HAS client - this allocates the client instance */
-        int inject_err = bt_has_client_set_handles(ctx->conn, &cached_handles);
+        int inject_err = bt_has_client_set_handles(ctx->conn, &cached_data.handles);
 
         if (inject_err != 0) {
             LOG_WRN("Failed to inject cached handles (err %d), will perform full discovery", inject_err);
             /* Clear invalid cache */
             has_settings_clear_handles(&ctx->info.addr);
+        } else {
+            LOG_INF("Cached handles restored successfully");
         }
     } else {
-        LOG_DBG("No cached HAS handles found (err %d), performing full discovery", load_err);
+        LOG_DBG("No cached HAS data found (err %d), performing full discovery", load_err);
     }
 
     /* Start discovery - will skip GATT discovery if handles were injected successfully */
@@ -269,7 +289,9 @@ int has_cmd_set_active_preset(uint8_t device_id, uint8_t index)
     }
 
     LOG_DBG("Setting active preset to %u", index);
-    return bt_has_client_preset_set(ctx->has_ctlr.has, index, true);
+    /* Use sync=false to avoid EOPNOTSUPP error when features aren't populated.
+     * The hearing aid will handle synchronization automatically. */
+    return bt_has_client_preset_set(ctx->has_ctlr.has, index, false);
 }
 
 /**
@@ -293,7 +315,9 @@ int has_cmd_next_preset(uint8_t device_id)
     }
 
     LOG_DBG("Activating next preset");
-    return bt_has_client_preset_next(ctx->has_ctlr.has, true);
+    /* Use sync=false to avoid EOPNOTSUPP error when features aren't populated.
+     * The hearing aid will handle synchronization automatically. */
+    return bt_has_client_preset_next(ctx->has_ctlr.has, false);
 }
 
 /**
@@ -314,7 +338,9 @@ int has_cmd_prev_preset(uint8_t device_id)
     }
 
     LOG_DBG("Activating previous preset");
-    return bt_has_client_preset_prev(ctx->has_ctlr.has, true);
+    /* Use sync=false to avoid EOPNOTSUPP error when features aren't populated.
+     * The hearing aid will handle synchronization automatically. */
+    return bt_has_client_preset_prev(ctx->has_ctlr.has, false);
 }
 
 /**

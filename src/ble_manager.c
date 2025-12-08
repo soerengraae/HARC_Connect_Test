@@ -185,7 +185,8 @@ void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
 {
 	struct device_context *ctx = devices_manager_get_device_context_by_conn(conn);
 	LOG_ERR("Pairing failed: %d [DEVICE ID %d]", reason, ctx->device_id);
-	ble_manager_disconnect_device(conn);
+	// ble_manager_disconnect_device(conn);
+	ble_cmd_request_security(ctx->device_id);
 }
 
 struct bt_conn_auth_info_cb auth_info_callbacks = {
@@ -218,21 +219,17 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 			}
 			else if (ctx->state == CONN_STATE_PAIRING)
 			{
-				LOG_DBG("New device - waiting for pairing completion [DEVICE ID "
-						"%d]",
-						ctx->device_id);
+				LOG_DBG("New device - waiting for pairing completion [DEVICE ID %d]", ctx->device_id);
 			}
 			else
 			{
-				LOG_ERR("Unexpected security change state %d [DEVICE ID %d]",
-						ctx->state, ctx->device_id);
+				LOG_ERR("Unexpected security change state %d [DEVICE ID %d]", ctx->state, ctx->device_id);
 			}
 		}
 	}
 	else
 	{
-		LOG_ERR("Security failed: %s level %u err %d [DEVICE ID %d]", addr, level, err,
-				ctx->device_id);
+		LOG_ERR("Security failed: %s level %u err %d [DEVICE ID %d]", addr, level, err, ctx->device_id);
 	}
 
 	ble_cmd_complete(ctx->device_id, err);
@@ -241,7 +238,7 @@ void security_changed_cb(struct bt_conn *conn, bt_security_t level, enum bt_secu
 void ble_manager_establish_trusted_bond(uint8_t device_id)
 {
 	struct device_context *ctx = &device_ctx[device_id];
-	LOG_INF("Establishing trusted bond with device [DEVICE ID %d]", device_id);
+	LOG_INF("Establishing trusted bond [DEVICE ID %d]", device_id);
 	devices_manager_set_device_state(ctx, CONN_STATE_TRUSTING);
 
 	int err = ble_manager_disconnect_device(ctx->conn);
@@ -251,8 +248,7 @@ void ble_manager_establish_trusted_bond(uint8_t device_id)
 
 		if (err == 1 || err == -EINVAL)
 		{
-			LOG_DBG("Scheduling connection to establish bond [DEVICE ID %d]",
-					ctx->device_id);
+			LOG_DBG("Scheduling connection to establish bond [DEVICE ID %d]", ctx->device_id);
 			ble_manager_connect_to_bonded_device(ctx->device_id);
 		}
 	}
@@ -264,6 +260,7 @@ int ble_manager_disconnect_device(struct bt_conn *conn)
 	if (!ctx)
 	{
 		LOG_ERR("Cannot disconnect - device context not found");
+		// app_controller_notify_device_disconnected(0);
 		return -EINVAL;
 	}
 
@@ -281,6 +278,7 @@ int ble_manager_disconnect_device(struct bt_conn *conn)
 		if (err == -ENOTCONN)
 		{
 			LOG_DBG("Device already disconnected [DEVICE ID %d]", ctx->device_id);
+			app_controller_notify_device_disconnected(ctx->device_id);
 			return 1;
 		}
 
@@ -410,7 +408,8 @@ static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
 	else
 	{
 		LOG_WRN("Disconnected unexpectedly, state = %d [DEVICE ID %d]", ctx->state, ctx->device_id);
-		devices_manager_set_device_state(ctx, CONN_STATE_DISCONNECTED);
+		LOG_DBG("Powering off device due to unexpected disconnection [DEVICE ID %d]", ctx->device_id);
+		app_controller_notify_power_off();
 	}
 }
 
@@ -1386,7 +1385,7 @@ int ble_cmd_has_prev_preset(uint8_t device_id, bool high_priority)
 	if (!presets_loaded) {
 		ble_cmd_has_read_presets(device_id, true);
 	}
-	
+
 	struct device_context *ctx = &device_ctx[device_id];
 	struct ble_cmd *cmd = ble_cmd_alloc(ctx->device_id);
 	if (!cmd)

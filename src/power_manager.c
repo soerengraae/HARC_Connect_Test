@@ -90,8 +90,14 @@ void power_manager_prepare_power_off() {
     for (ssize_t i = 1; i <= 4; i++)
         button_manager_set_button_interrupt_mode(i, GPIO_INT_LEVEL_ACTIVE);
 
-    ble_manager_disconnect_device(device_ctx[0].conn);
-    ble_manager_disconnect_device(device_ctx[1].conn);
+    if (ble_manager_disconnect_device(device_ctx[0].conn) == -EINVAL) {
+        LOG_DBG("No active connection to disconnect for device 0");
+        app_controller_notify_device_disconnected(0);
+    }
+    if (ble_manager_disconnect_device(device_ctx[1].conn) == -EINVAL) {
+        LOG_DBG("No active connection to disconnect for device 1");
+        app_controller_notify_device_disconnected(1);
+    }
 }
 
 void power_manager_power_off() {
@@ -100,4 +106,5 @@ void power_manager_power_off() {
         log_process();
     }
     sys_poweroff();
+    sys_reboot(SYS_REBOOT_COLD); // Fallback in case poweroff fails
 }

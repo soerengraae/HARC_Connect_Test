@@ -82,6 +82,7 @@ extern struct device_context *device_ctx;
 void devices_manager_clear_all_bonds(void);
 void devices_manager_update_bonded_devices_collection(void);
 int devices_manager_init(void);
+void devices_manager_reset_device_contexts(void);
 int devices_manager_get_bonded_devices_collection(struct bond_collection *collection);
 bool devices_manager_find_bonded_entry_by_addr(const bt_addr_le_t *addr, struct bonded_device_entry *out_entry);
 struct device_context *devices_manager_get_device_context_by_conn(struct bt_conn *conn);
