@@ -99,6 +99,16 @@ void power_manager_prepare_power_off() {
         LOG_DBG("No active connection to disconnect for device 1");
         app_controller_notify_device_disconnected(1);
     }
+
+    if (ble_manager_disable_bt() < 0) {
+        LOG_ERR("Failed to disable Bluetooth before power off. Error: %d", err);
+    }
+
+    const struct device *display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+    err = pm_device_action_run(display_dev, PM_DEVICE_ACTION_SUSPEND);
+    if (err) {
+        LOG_WRN("Failed to suspend display device (err %d) - continuing", err);
+    }
 }
 
 void power_manager_power_off() {

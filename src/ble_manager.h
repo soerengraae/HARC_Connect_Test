@@ -122,6 +122,7 @@ struct ble_cmd {
 
 /* BLE manager public functions */
 int ble_manager_init(void);
+int8_t ble_manager_disable_bt();
 int ble_manager_connect(uint8_t device_id, const bt_addr_le_t *addr);
 void bt_ready_cb(int err);
 void ble_manager_set_device_ctx_battery_level(struct bt_conn *conn, uint8_t level);

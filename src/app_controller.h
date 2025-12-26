@@ -18,7 +18,7 @@ enum sm_state {
 };
 
 #define APP_CONTROLLER_PAIRING_TIMEOUT K_SECONDS(60)
-#define APP_CONTROLLER_ACTION_TIMEOUT K_SECONDS(40)
+#define APP_CONTROLLER_ACTION_TIMEOUT K_SECONDS(10)
 
 int8_t app_controller_notify_system_ready();
 int8_t app_controller_notify_device_connected(uint8_t device_id);

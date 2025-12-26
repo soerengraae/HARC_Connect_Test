@@ -19,11 +19,11 @@ int main(void)
         err = settings_subsys_init();
         if (err) {
             LOG_ERR("Settings init failed (err %d)", err);
-        }
-
-        err = settings_load();
-        if (err) {
-            LOG_ERR("Settings load failed (err %d)", err);
+        } else {
+            err = settings_load();
+            if (err) {
+                LOG_ERR("Settings load failed (err %d)", err);
+            }
         }
     }
 

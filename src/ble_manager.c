@@ -161,6 +161,10 @@ static void security_request_handler(struct k_work *work)
 	}
 }
 
+int8_t ble_manager_disable_bt() {
+	return bt_disable();
+}
+
 void pairing_complete(struct bt_conn *conn, bool bonded)
 {
 	struct device_context *ctx = devices_manager_get_device_context_by_conn(conn);
