@@ -1,0 +1,14 @@
+%%{init: {'theme':'default'}}%%
+flowchart TD
+    Start([User Presses<br/>Volume Down Button]) --> RC[Remote Control<br/>Sends BLE Command]
+    RC --> HA{Connected to<br/>Hearing Aids?}
+    HA -->|Yes - Single Device| HA1[Left/Right Hearing Aid<br/>Decreases Volume]
+    HA -->|Yes - Dual Device| HA2[Both Hearing Aids<br/>Decrease Volume]
+    HA -->|No| NoAction[No Action]
+    HA1 --> Display[Display Shows<br/>New Volume Level]
+    HA2 --> Display
+    Display --> End([Complete])
+    NoAction --> End
+    
+    style Start fill:#e1f5e1
+    style End fill:#ffe1e1

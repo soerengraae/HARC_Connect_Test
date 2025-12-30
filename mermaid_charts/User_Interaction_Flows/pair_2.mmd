@@ -1,0 +1,33 @@
+%%{init: {'theme':'default'}}%%
+flowchart TD
+    Start2[From Part 1:<br/>Hearing Aids Found] --> Connect[Connects to<br/>First Hearing Aid]
+    
+    Connect --> PairResult{Pairing<br/>Successful?}
+    
+    PairResult -->|No| PairFail[Display:<br/>Pairing Failed]
+    PairFail --> Idle[Returns to Idle<br/>User can retry]
+    Idle --> End2([End])
+    
+    PairResult -->|Yes| FindSecond[Find Second<br/>Hearing Aid]
+    
+    FindSecond --> SecondResult{Second Device<br/>Found?}
+    
+    SecondResult -->|No| SingleReady[Ready for Use<br/>Single Device Mode]
+    
+    SecondResult -->|Yes| Connect2[Connects to<br/>Second Hearing Aid]
+    
+    Connect2 --> Pair2Result{Pairing<br/>Successful?}
+    
+    Pair2Result -->|No| SingleReady
+    
+    Pair2Result -->|Yes| DualReady[Ready for Use<br/>Dual Device Mode]
+    
+    SingleReady --> End2
+    DualReady --> End2
+    
+    style Start2 fill:#e1f0ff
+    style End2 fill:#ffe1e1
+    style PairFail fill:#ffcccc
+    style Idle fill:#fff4e1
+    style SingleReady fill:#ccffcc
+    style DualReady fill:#ccffcc

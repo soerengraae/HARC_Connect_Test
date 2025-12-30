@@ -1,0 +1,13 @@
+%%{init: {'theme':'default'}}%%
+flowchart 
+    Start([User Presses<br/>Next Preset Button]) --> RC[Remote Control<br/>Sends BLE Command]
+    RC --> HA{Connected to<br/>Hearing Aids?}
+    HA -->|Yes| Next[Hearing Aids Switch<br/>to Next Preset]
+    HA -->|No| NoAction[No Action]
+    Next --> Example["Example Presets:<br/>- Normal → Restaurant<br/>- Restaurant → Music<br/>- Music → Outdoor<br/>- Outdoor → Normal"]
+    Example --> Display[Display Shows<br/>New Preset Name]
+    Display --> End([Complete])
+    NoAction --> End
+    
+    style Start fill:#e1f5e1
+    style End fill:#ffe1e1

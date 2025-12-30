@@ -1,0 +1,19 @@
+%%{init: {'theme':'default'}}%%
+flowchart TD
+    Start([User Presses<br/>Pair Button]) --> Clear[Remote Control<br/>Clears All Bonds]
+    Clear --> Disconnect[Disconnects from<br/>Hearing Aids]
+    Disconnect --> Scan[Remote Control<br/>Starts Scanning<br/>60 second timeout]
+    
+    Scan --> ScanResult{Hearing Aids<br/>Found?}
+    
+    ScanResult -->|No - Timeout| ScanFail[Display:<br/>No Devices Found]
+    ScanFail --> Idle[Returns to Idle<br/>User can retry]
+    Idle --> End1([End])
+    
+    ScanResult -->|Yes| Continue[Continue to<br/>Part 2: Pairing]
+    
+    style Start fill:#e1f5e1
+    style End1 fill:#ffe1e1
+    style Continue fill:#e1f0ff
+    style ScanFail fill:#ffcccc
+    style Idle fill:#fff4e1
