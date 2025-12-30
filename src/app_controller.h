@@ -17,7 +17,7 @@ enum sm_state {
     SM_POWER_OFF, /* Powering off the device */
 };
 
-#define APP_CONTROLLER_PAIRING_TIMEOUT K_SECONDS(60)
+#define APP_CONTROLLER_PAIRING_TIMEOUT K_SECONDS(30)
 #define APP_CONTROLLER_ACTION_TIMEOUT K_SECONDS(10)
 
 int8_t app_controller_notify_system_ready();
