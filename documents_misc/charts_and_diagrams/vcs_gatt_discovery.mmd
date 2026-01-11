@@ -1,0 +1,16 @@
+%%{init: {'theme':'default'}}%%
+flowchart TD
+    Start([Start VCS Discovery]) --> Step1[ATT_READ_BY_GROUP_TYPE_REQ<br/>Search for UUID 0x1844<br/>Primary Service Declaration]
+    
+    Step1 --> Step2[ATT_READ_BY_TYPE_REQ<br/>Search for UUID 0x2803<br/>Characteristic Declaration]
+    
+    Step2 --> FindChars[Find three characteristics:<br/>• Volume State UUID 0x2B7D<br/>• Volume Control Point UUID 0x2B7E<br/>• Volume Flags UUID 0x2B7F]
+    
+    FindChars --> Step3[ATT_FIND_INFORMATION_REQ<br/>Search for UUID 0x2902<br/>CCCD descriptors]
+    
+    Step3 --> FindCCCDs[Discover CCCDs for:<br/>• Volume State<br/>• Volume Flags]
+    
+    FindCCCDs --> Complete([Discovery Complete])
+
+    style Start fill:#e1f5e1
+    style Complete fill:#e1f5e1

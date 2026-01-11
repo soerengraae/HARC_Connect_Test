@@ -1,0 +1,481 @@
+% Zephyr RTOS Framework Modifications
+% GATT Handle Caching for Bluetooth Audio Profiles
+% This section documents all modifications made to the Zephyr framework
+
+\subsection{Zephyr Framework Modifications}
+
+This section documents all modifications made to the Zephyr RTOS framework (version v4.2.0-3327-gf539c41d7b1) for the HARC Connect Test project. The modifications introduce GATT handle caching capabilities for Bluetooth Low Energy (BLE) Audio profiles to significantly reduce reconnection time from 300--500ms to 10--50ms by bypassing GATT service discovery when cached handles are available.
+
+Two independent but architecturally similar modifications were made:
+\begin{enumerate}
+    \item \textbf{HAS (Hearing Access Service) Handle Caching} --- Added getter/setter APIs to cache and restore GATT handles for the HAS client.
+    \item \textbf{VCP (Volume Control Profile) Handle Caching} --- Added getter/setter APIs to cache and restore GATT handles for the VCP Volume Controller client.
+\end{enumerate}
+
+\subsubsection{Hearing Access Service (HAS) Modifications}
+
+\paragraph{Files Modified}
+\begin{itemize}
+    \item \texttt{include/zephyr/bluetooth/audio/has.h} --- New API declarations
+    \item \texttt{subsys/bluetooth/audio/has\_client.c} --- Implementation (+104 lines)
+    \item \texttt{subsys/bluetooth/audio/csip\_set\_coordinator.c} --- Debug logging (+4 lines)
+    \item \texttt{subsys/bluetooth/host/crypto\_psa.c} --- Debug logging (+1 line)
+\end{itemize}
+
+\paragraph{New Structure and API in \texttt{has.h}}
+
+\begin{lstlisting}[language=C, caption={GATT Handles Structure for HAS Client}]
+/**
+ * @brief GATT handles for HAS client
+ *
+ * Structure containing all GATT attribute handles used by the HAS client.
+ * These handles can be cached to NVS and restored on reconnection to skip
+ * service discovery.
+ */
+struct bt_has_handles {
+	/** Hearing Aid Features characteristic value handle */
+	uint16_t features_handle;
+	/** Hearing Aid Features CCC descriptor handle */
+	uint16_t features_ccc_handle;
+	/** Preset Control Point characteristic value handle */
+	uint16_t control_point_handle;
+	/** Preset Control Point CCC descriptor handle */
+	uint16_t control_point_ccc_handle;
+	/** Active Preset Index characteristic value handle */
+	uint16_t active_index_handle;
+	/** Active Preset Index CCC descriptor handle */
+	uint16_t active_index_ccc_handle;
+};
+
+/**
+ * @brief Extract GATT handles from HAS client instance
+ *
+ * Call after successful discovery to extract and cache the GATT handles.
+ * The extracted handles can be stored in NVS and restored on reconnection.
+ *
+ * @param has HAS client instance from bt_has_client_discover()
+ * @param handles Output structure for handles
+ *
+ * @return 0 on success, negative errno on failure
+ * @retval -EINVAL if @p has or @p handles is NULL
+ */
+int bt_has_client_get_handles(struct bt_has *has,
+                               struct bt_has_handles *handles);
+
+/**
+ * @brief Inject cached GATT handles into HAS client instance
+ *
+ * Restores previously cached handles to skip discovery on reconnection.
+ * If the injected handles are invalid (e.g., after peripheral firmware update),
+ * subsequent GATT operations will fail with ATT error codes, which should trigger
+ * cache invalidation and full re-discovery.
+ *
+ * @note Call this function before bt_has_client_discover() to skip discovery.
+ *       The function will allocate the client instance for the connection if needed.
+ *
+ * @param conn Bluetooth connection to the remote device
+ * @param handles Previously cached handles to restore
+ *
+ * @return 0 on success, negative errno on failure
+ * @retval -EINVAL if @p conn or @p handles is NULL
+ * @retval -EBUSY if discovery is currently in progress
+ * @retval -EALREADY if discovery has already been performed
+ */
+int bt_has_client_set_handles(struct bt_conn *conn,
+                               const struct bt_has_handles *handles);
+\end{lstlisting}
+
+\paragraph{Implementation in \texttt{has\_client.c}}
+
+\begin{lstlisting}[language=C, caption={Modified Discovery Complete Function}]
+static void discover_complete(struct bt_has_client *inst)
+{
+	/* ... existing code ... */
+
+	/* If Active Preset Index supported, notify it's value */
+	/* Only call if we actually read the active_index from device
+	   (not just cached handles) */
+	if (client_cb->preset_switch &&
+	    HANDLE_IS_VALID(inst->active_index_subscription.value_handle) &&
+	    inst->has.active_index != BT_HAS_PRESET_INDEX_NONE) {
+		client_cb->preset_switch(&inst->has, 0, inst->has.active_index);
+	}
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C, caption={Modified Discovery Function}]
+int bt_has_client_discover(struct bt_conn *conn)
+{
+	/* ... existing validation ... */
+
+	if (inst->conn && inst->conn != conn) {
+		/* Connection already set to a different connection */
+		return -EALREADY;
+	}
+
+	if (!inst->conn) {
+		inst->conn = bt_conn_ref(conn);
+	}
+
+	/* Check if handles have been pre-injected via
+	   bt_has_client_set_handles() */
+	if (HANDLE_IS_VALID(inst->features_subscription.value_handle)) {
+		LOG_INF("Handles already set - skipping discovery");
+		/* Handles are already set, skip discovery and
+		   go straight to complete */
+		discover_complete(inst);
+		return 0;
+	}
+
+	/* ... continue with normal discovery ... */
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C, caption={Handle Getter Implementation}]
+int bt_has_client_get_handles(struct bt_has *has,
+                               struct bt_has_handles *handles)
+{
+	struct bt_has_client *inst = HAS_INST(has);
+
+	if (!has || !handles) {
+		return -EINVAL;
+	}
+
+	if (!inst->conn) {
+		return -ENOTCONN;
+	}
+
+	/* Extract handles from subscription parameters */
+	handles->features_handle =
+		inst->features_subscription.value_handle;
+	handles->features_ccc_handle =
+		inst->features_subscription.ccc_handle;
+	handles->control_point_handle =
+		inst->control_point_subscription.value_handle;
+	handles->control_point_ccc_handle =
+		inst->control_point_subscription.ccc_handle;
+	handles->active_index_handle =
+		inst->active_index_subscription.value_handle;
+	handles->active_index_ccc_handle =
+		inst->active_index_subscription.ccc_handle;
+
+	LOG_DBG("Extracted handles: features=%u/%u, cp=%u/%u, active=%u/%u",
+		handles->features_handle, handles->features_ccc_handle,
+		handles->control_point_handle, handles->control_point_ccc_handle,
+		handles->active_index_handle, handles->active_index_ccc_handle);
+
+	return 0;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C, caption={Handle Setter Implementation}]
+int bt_has_client_set_handles(struct bt_conn *conn,
+                               const struct bt_has_handles *handles)
+{
+	struct bt_has_client *inst;
+
+	if (!conn || !handles) {
+		return -EINVAL;
+	}
+
+	/* Get or allocate client instance for this connection */
+	inst = &clients[bt_conn_index(conn)];
+
+	/* Check if discovery is in progress */
+	if (atomic_test_bit(inst->flags, HAS_CLIENT_DISCOVER_IN_PROGRESS)) {
+		return -EBUSY;
+	}
+
+	/* Check if discovery has already been performed with handles */
+	if (HANDLE_IS_VALID(inst->features_subscription.value_handle) ||
+	    HANDLE_IS_VALID(inst->control_point_subscription.value_handle) ||
+	    HANDLE_IS_VALID(inst->active_index_subscription.value_handle)) {
+		return -EALREADY;
+	}
+
+	/* Set up connection if not already set */
+	if (!inst->conn) {
+		inst->conn = bt_conn_ref(conn);
+	}
+
+	/* Inject cached handles into subscription parameters */
+	inst->features_subscription.value_handle =
+		handles->features_handle;
+	inst->features_subscription.ccc_handle =
+		handles->features_ccc_handle;
+	inst->control_point_subscription.value_handle =
+		handles->control_point_handle;
+	inst->control_point_subscription.ccc_handle =
+		handles->control_point_ccc_handle;
+	inst->active_index_subscription.value_handle =
+		handles->active_index_handle;
+	inst->active_index_subscription.ccc_handle =
+		handles->active_index_ccc_handle;
+
+	/* Set up notify callbacks for subscriptions */
+	inst->features_subscription.notify = features_notify_cb;
+	inst->control_point_subscription.notify = control_point_notify_cb;
+	inst->active_index_subscription.notify = active_preset_notify_cb;
+
+	/* Initialize active_index to NONE since we haven't read it
+	   from device yet */
+	inst->has.active_index = BT_HAS_PRESET_INDEX_NONE;
+
+	/* Set subscription value (required for notifications) */
+	inst->features_subscription.value = BT_GATT_CCC_NOTIFY;
+	inst->control_point_subscription.value = BT_GATT_CCC_NOTIFY;
+	inst->active_index_subscription.value = BT_GATT_CCC_NOTIFY;
+
+	LOG_DBG("Injected handles: features=%u/%u, cp=%u/%u, active=%u/%u",
+		handles->features_handle, handles->features_ccc_handle,
+		handles->control_point_handle, handles->control_point_ccc_handle,
+		handles->active_index_handle, handles->active_index_ccc_handle);
+
+	return 0;
+}
+\end{lstlisting}
+
+\subsubsection{Volume Control Profile (VCP) Modifications}
+
+\paragraph{Files Modified}
+\begin{itemize}
+    \item \texttt{include/zephyr/bluetooth/audio/vcp.h} --- New API declarations
+    \item \texttt{subsys/bluetooth/audio/vcp\_vol\_ctlr.c} --- Implementation (+125 lines)
+\end{itemize}
+
+\paragraph{New Structure and API in \texttt{vcp.h}}
+
+\begin{lstlisting}[language=C, caption={GATT Handles Structure for VCP Volume Controller}]
+/**
+ * @brief GATT handles for VCP Volume Controller client
+ *
+ * Structure containing all GATT attribute handles used by the VCP client.
+ * These handles can be cached to NVS and restored on reconnection to skip
+ * service discovery.
+ */
+struct bt_vcp_vol_ctlr_handles {
+	/** VCS service start handle */
+	uint16_t start_handle;
+	/** VCS service end handle */
+	uint16_t end_handle;
+	/** Volume State characteristic value handle */
+	uint16_t state_handle;
+	/** Volume Control Point characteristic value handle */
+	uint16_t control_handle;
+	/** Volume Flags characteristic value handle */
+	uint16_t vol_flag_handle;
+	/** Volume State CCC descriptor handle (for notifications) */
+	uint16_t state_ccc_handle;
+	/** Volume Flags CCC descriptor handle (for notifications) */
+	uint16_t vol_flag_ccc_handle;
+};
+
+/**
+ * @brief Extract GATT handles from VCP Volume Controller client instance
+ *
+ * Call after successful discovery to extract and cache the GATT handles.
+ * The extracted handles can be stored in NVS and restored on reconnection.
+ *
+ * @param vol_ctlr VCP Volume Controller instance from
+ *                 bt_vcp_vol_ctlr_discover()
+ * @param handles  Output structure for handles
+ *
+ * @return 0 on success, negative errno on failure
+ * @retval -EINVAL if @p vol_ctlr or @p handles is NULL
+ * @retval -ENOTCONN if not connected
+ */
+int bt_vcp_vol_ctlr_get_handles(struct bt_vcp_vol_ctlr *vol_ctlr,
+				struct bt_vcp_vol_ctlr_handles *handles);
+
+/**
+ * @brief Inject cached GATT handles into VCP Volume Controller client instance
+ *
+ * Restores previously cached handles to skip discovery on reconnection.
+ * If the injected handles are invalid (e.g., after peripheral firmware update),
+ * subsequent GATT operations will fail with ATT error codes, which should trigger
+ * cache invalidation and full re-discovery.
+ *
+ * @note Call this function before bt_vcp_vol_ctlr_discover() to skip discovery.
+ *       The function will allocate the client instance for the connection
+ *       if needed.
+ *
+ * @param conn    Bluetooth connection to the remote device
+ * @param handles Previously cached handles to restore
+ *
+ * @return 0 on success, negative errno on failure
+ * @retval -EINVAL if @p conn or @p handles is NULL
+ * @retval -EBUSY if discovery is currently in progress
+ * @retval -EALREADY if discovery has already been performed
+ */
+int bt_vcp_vol_ctlr_set_handles(struct bt_conn *conn,
+				const struct bt_vcp_vol_ctlr_handles *handles);
+\end{lstlisting}
+
+\paragraph{Implementation in \texttt{vcp\_vol\_ctlr.c}}
+
+\begin{lstlisting}[language=C, caption={Modified Discovery Function}]
+int bt_vcp_vol_ctlr_discover(struct bt_conn *conn,
+                              struct bt_vcp_vol_ctlr **out_vol_ctlr)
+{
+	/* ... existing initialization ... */
+
+	/* Check if handles have been pre-injected via
+	   bt_vcp_vol_ctlr_set_handles() */
+	if (vol_ctlr->state_handle != 0 && vol_ctlr->control_handle != 0) {
+		LOG_INF("VCP handles already set - skipping discovery");
+		*out_vol_ctlr = vol_ctlr;
+		/* Call discover complete callback directly */
+		vcp_vol_ctlr_discover_complete(vol_ctlr, 0);
+		return 0;
+	}
+
+	vcp_vol_ctlr_reset(vol_ctlr);
+	/* ... continue with normal discovery ... */
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C, caption={Handle Getter Implementation}]
+int bt_vcp_vol_ctlr_get_handles(struct bt_vcp_vol_ctlr *vol_ctlr,
+				struct bt_vcp_vol_ctlr_handles *handles)
+{
+	CHECKIF(vol_ctlr == NULL || handles == NULL) {
+		LOG_DBG("NULL param");
+		return -EINVAL;
+	}
+
+	if (vol_ctlr->conn == NULL) {
+		LOG_DBG("NULL conn");
+		return -ENOTCONN;
+	}
+
+	handles->start_handle = vol_ctlr->start_handle;
+	handles->end_handle = vol_ctlr->end_handle;
+	handles->state_handle = vol_ctlr->state_handle;
+	handles->control_handle = vol_ctlr->control_handle;
+	handles->vol_flag_handle = vol_ctlr->vol_flag_handle;
+
+	/* Extract CCC handles from subscription params */
+	handles->state_ccc_handle = vol_ctlr->state_sub_params.ccc_handle;
+	handles->vol_flag_ccc_handle = vol_ctlr->vol_flag_sub_params.ccc_handle;
+
+	LOG_DBG("Extracted VCP handles: state=%u/%u, control=%u, flags=%u/%u",
+		handles->state_handle, handles->state_ccc_handle,
+		handles->control_handle,
+		handles->vol_flag_handle, handles->vol_flag_ccc_handle);
+
+	return 0;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C, caption={Handle Setter Implementation}]
+int bt_vcp_vol_ctlr_set_handles(struct bt_conn *conn,
+				const struct bt_vcp_vol_ctlr_handles *handles)
+{
+	static bool initialized;
+	struct bt_vcp_vol_ctlr *vol_ctlr;
+	int err;
+
+	CHECKIF(conn == NULL || handles == NULL) {
+		LOG_DBG("NULL param");
+		return -EINVAL;
+	}
+
+	vol_ctlr = vol_ctlr_get_by_conn(conn);
+
+	if (atomic_test_bit(vol_ctlr->flags, BT_VCP_VOL_CTLR_FLAG_BUSY)) {
+		LOG_DBG("Volume controller busy");
+		return -EBUSY;
+	}
+
+	/* Check if already discovered */
+	if (vol_ctlr->conn != NULL && vol_ctlr->state_handle != 0) {
+		LOG_DBG("Already discovered");
+		return -EALREADY;
+	}
+
+	if (!initialized) {
+		bt_vcp_vol_ctlr_init();
+		initialized = true;
+	}
+
+	/* Set up connection */
+	if (vol_ctlr->conn == NULL) {
+		vol_ctlr->conn = bt_conn_ref(conn);
+	}
+
+	/* Inject cached handles */
+	vol_ctlr->start_handle = handles->start_handle;
+	vol_ctlr->end_handle = handles->end_handle;
+	vol_ctlr->state_handle = handles->state_handle;
+	vol_ctlr->control_handle = handles->control_handle;
+	vol_ctlr->vol_flag_handle = handles->vol_flag_handle;
+
+	LOG_DBG("Injected VCP handles: state=%u/%u, control=%u, flags=%u/%u",
+		handles->state_handle, handles->state_ccc_handle,
+		handles->control_handle,
+		handles->vol_flag_handle, handles->vol_flag_ccc_handle);
+
+	/* Set up Volume State subscription with pre-known CCC handle */
+	vol_ctlr->state_sub_params.value = BT_GATT_CCC_NOTIFY;
+	vol_ctlr->state_sub_params.value_handle = handles->state_handle;
+	vol_ctlr->state_sub_params.ccc_handle = handles->state_ccc_handle;
+	vol_ctlr->state_sub_params.end_handle = handles->end_handle;
+	vol_ctlr->state_sub_params.notify = vcp_vol_ctlr_notify_handler;
+	atomic_set_bit(vol_ctlr->state_sub_params.flags,
+	               BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
+
+	err = bt_gatt_subscribe(conn, &vol_ctlr->state_sub_params);
+	if (err != 0 && err != -EALREADY) {
+		LOG_ERR("Failed to subscribe to state (err %d)", err);
+		vcp_vol_ctlr_reset(vol_ctlr);
+		return err;
+	}
+	LOG_DBG("Subscribed to Volume State (handle 0x%04x, CCC 0x%04x)",
+		handles->state_handle, handles->state_ccc_handle);
+
+	/* Set up Volume Flags subscription with pre-known CCC handle */
+	vol_ctlr->vol_flag_sub_params.value = BT_GATT_CCC_NOTIFY;
+	vol_ctlr->vol_flag_sub_params.value_handle = handles->vol_flag_handle;
+	vol_ctlr->vol_flag_sub_params.ccc_handle = handles->vol_flag_ccc_handle;
+	vol_ctlr->vol_flag_sub_params.end_handle = handles->end_handle;
+	vol_ctlr->vol_flag_sub_params.notify = vcp_vol_ctlr_notify_handler;
+	atomic_set_bit(vol_ctlr->vol_flag_sub_params.flags,
+	               BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
+
+	err = bt_gatt_subscribe(conn, &vol_ctlr->vol_flag_sub_params);
+	if (err != 0 && err != -EALREADY) {
+		LOG_ERR("Failed to subscribe to flags (err %d)", err);
+		vcp_vol_ctlr_reset(vol_ctlr);
+		return err;
+	}
+	LOG_DBG("Subscribed to Volume Flags (handle 0x%04x, CCC 0x%04x)",
+		handles->vol_flag_handle, handles->vol_flag_ccc_handle);
+
+	LOG_INF("VCP handles injected and subscribed successfully");
+	return 0;
+}
+\end{lstlisting}
+
+\subsubsection{Summary}
+
+\begin{table}[h]
+\centering
+\caption{Summary of Framework Modifications}
+\begin{tabular}{llr}
+\toprule
+\textbf{File} & \textbf{Change Type} & \textbf{Lines} \\
+\midrule
+\texttt{has.h} & New APIs & +57 \\
+\texttt{has\_client.c} & Implementation & +104 \\
+\texttt{csip\_set\_coordinator.c} & Debug logging & +4 \\
+\texttt{crypto\_psa.c} & Debug logging & +1 \\
+\midrule
+\texttt{vcp.h} & New APIs & +62 \\
+\texttt{vcp\_vol\_ctlr.c} & Implementation & +125 \\
+\midrule
+\textbf{Total} & & \textbf{+353} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All modifications are committed locally to the Zephyr repository at commit \texttt{4dfe8b4932d} (VCP) and \texttt{6790049fa9c} (HAS), based on Zephyr version \texttt{v4.2.0-3327-gf539c41d7b1}.
