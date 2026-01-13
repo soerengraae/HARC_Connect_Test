@@ -29,18 +29,6 @@ flowchart TD
     
     CacheNew --> Ready([VCP Ready])
     
-    Ready -.->|Volume changes| Notification[Notification received]
-    
-    Notification --> Parse[Parse volume state]
-    
-    Parse --> UpdateState[Update stored state]
-    
-    UpdateState --> UpdateUI[Update display]
-    
-    UpdateUI --> WaitNext[Wait for next event]
-    
-    WaitNext -.-> Notification
-    
     style Start fill:#e1f5e1
     style Ready fill:#e1f5e1
     style Error fill:#ffe1e1
