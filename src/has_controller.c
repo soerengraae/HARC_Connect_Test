@@ -463,13 +463,6 @@ void has_controller_reset(uint8_t device_id)
         return;
     }
 
-    /* CRITICAL: Clear cached HAS handles to force full GATT discovery on next connection.
-     * This ensures notification subscriptions are properly re-established, which is
-     * necessary for preset read callbacks to work. Without this, preset reads will
-     * timeout because the callbacks never get triggered. */
-    LOG_INF("Clearing HAS handle cache to ensure fresh discovery on reconnect [DEVICE ID %d]", device_id);
-    has_settings_clear_handles(&ctx->info.addr);
-
     ctx->info.has_discovered = false;
     memset(&ctx->has_ctlr, 0, sizeof(struct bt_has_ctlr));
     ctx->has_ctlr.active_preset_index = BT_HAS_PRESET_INDEX_NONE;

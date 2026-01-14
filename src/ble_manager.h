@@ -117,7 +117,7 @@ struct ble_cmd {
 
 /* Command queue configuration */
 #define BLE_CMD_QUEUE_SIZE 10
-#define BLE_CMD_TIMEOUT_MS 2000
+#define BLE_CMD_TIMEOUT_MS 10000
 
 /* BLE manager public functions */
 int ble_manager_init(void);
