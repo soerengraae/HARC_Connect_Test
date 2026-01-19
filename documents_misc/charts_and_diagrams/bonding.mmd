@@ -1,0 +1,8 @@
+%%{init: {'theme': 'default'}}%%
+flowchart LR
+    A[Pairing Complete] --> B[Set Device State to PAIRED]
+    B --> C{New Device?}
+    C -->|Yes| D[Store Keys]
+    D --> E[Notify Device Ready]
+    C -->|No| F[Log Unexpected Pairing]
+    F --> E

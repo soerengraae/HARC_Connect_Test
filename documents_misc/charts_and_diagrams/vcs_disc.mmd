@@ -1,0 +1,25 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#1e40af', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#1e3a8a', 'lineColor': '#3b82f6', 'secondaryColor': '#dbeafe', 'tertiaryColor': '#eff6ff'}}}%%
+
+flowchart LR
+    Start([Start]) --> FindPrimary[Find Primary<br/>Services]
+    
+    FindPrimary --> VCSCheck{VCS<br/>found?}
+    
+    VCSCheck -->|No| Error([Error])
+    VCSCheck -->|Yes| FindChars[Find<br/>Characteristics]
+    
+    FindChars --> FindCCCD[Find<br/>CCCDs]
+    
+    FindCCCD --> AllFound{All<br/>found?}
+    
+    AllFound -->|No| Error
+    AllFound -->|Yes| Done([Done])
+
+    style Start fill:#1e40af,stroke:#1e3a8a,color:#ffffff
+    style Done fill:#1e40af,stroke:#1e3a8a,color:#ffffff
+    style Error fill:#dc2626,stroke:#991b1b,color:#ffffff
+    style FindPrimary fill:#2563eb,stroke:#1e3a8a,color:#ffffff
+    style FindChars fill:#2563eb,stroke:#1e3a8a,color:#ffffff
+    style FindCCCD fill:#2563eb,stroke:#1e3a8a,color:#ffffff
+    style VCSCheck fill:#3b82f6,stroke:#1e40af,color:#ffffff
+    style AllFound fill:#3b82f6,stroke:#1e40af,color:#ffffff
